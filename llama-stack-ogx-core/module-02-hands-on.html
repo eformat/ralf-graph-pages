@@ -1,0 +1,1540 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Module 02: Deploy an OGX server and build a RAG workflow :: RHOAI 3.5 Kitchen Sink Workshop Catalog</title>
+    <link rel="canonical" href="https://eformat.github.io/ralf-wiggum-rhoai-kitchen-sink/llama-stack-ogx-core/module-02-hands-on.html">
+    <link rel="prev" href="module-01-concepts.html">
+    <link rel="next" href="module-03-advanced.html">
+    <meta name="generator" content="Antora 3.2.3">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@400;500;700&family=Red+Hat+Mono:wght@400;700&family=Red+Hat+Text:wght@400;700&display=swap">
+    <link rel="stylesheet" href="../_/css/site.css">
+<link rel="stylesheet" href="../_/css/site-extra.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="icon" href="../_/img/favicon.svg" type="image/svg+xml">
+  </head>
+  <body class="article">
+<a class="skip-link" href="#content">Skip to content</a>
+<header class="header">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <span class="navbar-item navbar-logo">
+        <img src="../_/img/logo-summit.svg" alt="Red Hat Summit" class="navbar-logo-img">
+      </span>
+      <a class="navbar-item site-title" target="_blank" href="https://eformat.github.io/ralf-wiggum-rhoai-kitchen-sink">RHOAI 3.5 Kitchen Sink Workshop Catalog</a>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="llama-stack-ogx-core" data-version="">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+    <h3 class="title"><a href="index.html" class=" query-params-link">Llama Stack / OGX core: RAG, agentic workflows, vector DB integration</a></h3>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Workshop</span>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="index.html">Overview</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="getting-connected.html">Getting Connected</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Modules</span>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="module-01-concepts.html">Core Concepts</a>
+  </li>
+  <li class="nav-item is-current-page" data-depth="1">
+    <a class="nav-link" href="module-02-hands-on.html">Hands-on Exercise</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="module-03-advanced.html">Advanced Usage</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Wrap-up</span>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="conclusion.html">Conclusion</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+  </div>
+  <ul class="components">
+    <li class="component">
+      <span class="title">Agent Catalog in AI Hub</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../agent-catalog-ai-hub/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">AI Available Assets page</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../ai-available-assets/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Automated Red Teaming (powered by Garak)</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../automated-red-teaming-garak/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Automated tool-calling evaluation-data generation for custom MCP servers</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../automated-tool-calling-eval/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">AutoML</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../automl/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">AutoRAG</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../autorag/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Claude Code agent starter kit</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../claude-code-starter-kit/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">CSV export for Model Catalog data</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../csv-export-model-catalog/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Distributed Inference with llm-d (core)</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../llmd-core/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Distributed Inference with llm-d: priority-based flow control</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../llmd-priority-flow-control/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Evaluation Stack (EvalHub)</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../evalhub/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">External metering integration for MaaS</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../external-metering-maas/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">External metering: per-user token usage and cost</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../external-metering-per-user/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Feature Store (Feast-based)</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feature-store-feast/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Gateway API and Red Hat Connectivity Link (RHCL)</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../gateway-api-rhcl/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Gen AI Studio saved-agent configuration</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../genai-studio-saved-agent/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Hierarchical KV Cache Tiering (llm-d)</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../llmd-kv-cache-tiering/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Kale JupyterLab extension</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../kale-jupyterlab/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Kubeflow Trainer v2</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../kubeflow-trainer-v2/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">KubeRay (CodeFlare Operator successor)</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../kuberay/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Kueue (Red Hat build of Kueue Operator)</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../kueue/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Latency-aware routing for llm-d</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../llmd-latency-routing/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component is-current">
+      <span class="title">Llama Stack / OGX core: RAG, agentic workflows, vector DB integration</span>
+      <ul class="versions">
+        <li class="version is-current">
+          <a href="index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">LLMInferenceService / LLMInferenceServiceConfig (llm-d-native)</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../llminferenceservice-config/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Loki-based showback and user-scoped usage dashboards (MaaS)</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../maas-loki-showback/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">LoRA-aware routing for llm-d</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../llmd-lora-routing/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">MaaS deployment/routing path for Distributed Inference with llm-d</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../maas-llmd-deployment/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">MaaS multi-tenancy with per-tenant gateway and identity isolation</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../maas-multi-tenancy/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">MaaS-specific external OIDC user authentication</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../maas-oidc-auth/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">MCP Catalog administrative interface</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../mcp-catalog-admin/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">MCP Catalog support-tier labeling</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../mcp-catalog-support-tier/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">MCP gateway Operator</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../mcp-gateway-operator/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">MCP Lifecycle Operator</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../mcp-lifecycle-operator/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">MiDojo adversarial testing engine</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../midojo-adversarial-testing/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">MLflow experiment tracking / MLOps integration</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../mlflow-experiment-tracking/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Model registry and model catalog</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../model-registry-catalog/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Models-as-a-Service (MaaS) core: access model and token mechanism</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../maas-core/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Multi-provider API passthrough for external models (MaaS)</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../maas-multi-provider-passthrough/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">NeMo Guardrails</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../nemo-guardrails/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">NeMo Guardrails integration with MCP Gateway</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../nemo-guardrails-mcp-gateway/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">OGX File Processors API</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../ogx-file-processors/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">OGX remote::anthropic and remote::gemini providers</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../ogx-remote-providers/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">OGX-native agentic API surface (Tool Runtime, Responses, Conversations)</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../ogx-agentic-api/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">OpenClaw agent starter kit</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../openclaw-starter-kit/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">OpenCode coding-agent deployment</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../opencode-coding-agent/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">OpenShell (secure agent sandboxing and policy enforcement)</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../openshell-agent-sandboxing/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Platform-wide direct OIDC authentication (GatewayConfig CR)</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../platform-oidc-auth/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Red Hat AI Inference fast-release images as custom ServingRuntime</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../rhai-fast-release-images/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">RHOAI Kitchen Sink</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../home/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Text-mode training for multimodal models in Training Hub</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../text-mode-multimodal-training/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Validated tool-calling configuration in Model Catalog</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../validated-tool-calling-config/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">View running agent deployments in dashboard</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../view-agent-deployments/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">vLLM CPU ServingRuntime on IBM Z / Power</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../vllm-cpu-ibm-z-power/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">vLLM model deployment directly through MaaS</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../maas-vllm-deployment/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">vLLM ServingRuntime for KServe</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../vllm-serving-runtime-kserve/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</div>    </div>
+  </aside>
+</div>
+<main class="article" id="content">
+<div class="toolbar" role="navigation">
+<button class="nav-toggle"></button>
+  <a href="../home/index.html" class="home-link"></a>
+<nav class="breadcrumbs" aria-label="breadcrumbs">
+  <ul>
+    <li><a href="index.html">Llama Stack / OGX core: RAG, agentic workflows, vector DB integration</a></li>
+    <li>Modules</li>
+    <li><a href="module-02-hands-on.html">Hands-on Exercise</a></li>
+  </ul>
+</nav>
+</div>
+  <div class="content">
+<article class="doc">
+<h1 class="page">Module 02: Deploy an OGX server and build a RAG workflow</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>In this module you will activate the OGX Operator, deploy an OGX server connected to a vLLM
+inference service and PostgreSQL metadata storage, and build an end-to-end RAG workflow: ingest
+documents into a vector store and query them from a notebook.</p>
+</div>
+<div class="paragraph">
+<p><strong>Learning objectives:</strong></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Enable the OGX Operator in the DataScienceCluster custom resource</p>
+</li>
+<li>
+<p>Deploy an OGXServer connected to a vLLM inference service, a vector store, and PostgreSQL metadata storage</p>
+</li>
+<li>
+<p>Ingest documents into a vector store and run retrieval-augmented queries with the <code>file_search</code> tool</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_exercise_1_activate_the_ogx_operator"><a class="anchor" href="#_exercise_1_activate_the_ogx_operator"></a>Exercise 1: Activate the OGX Operator</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You activate the OGX Operator by setting its management state to <code>Managed</code> in the
+DataScienceCluster (DSC) custom resource.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+If your facilitator has already activated OGX, run the verification step and continue to
+Exercise 2.
+</td>
+</tr>
+</table>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Log in to the OpenShift web console as a cluster administrator.</p>
+</li>
+<li>
+<p>Go to the Installed Operators page: on OpenShift 4.20 and later, click <strong>Ecosystem → Installed
+Operators</strong>; on OpenShift 4.19, click <strong>Operators → Installed Operators</strong>.</p>
+</li>
+<li>
+<p>Click the <strong>Red Hat OpenShift AI Operator</strong> to open its details.</p>
+</li>
+<li>
+<p>Click the <strong>Data Science Cluster</strong> tab and select the <code>default-dsc</code> object.</p>
+</li>
+<li>
+<p>Click the <strong>YAML</strong> tab, locate <code>spec.components</code>, and set the <code>ogx</code> component to <code>Managed</code>:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">spec:
+  components:
+    ogx:
+      managementState: Managed</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Click <strong>Save</strong> to apply your changes.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>You can also activate the operator from the CLI:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc patch datasciencecluster default-dsc --type=merge -p '{"spec":{"components":{"ogx":{"managementState":"Managed"}}}}'</code></pre>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_verify"><a class="anchor" href="#_verify"></a>Verify</h3>
+<div class="paragraph">
+<p>Confirm that the OGX Operator pod is running in the <code>redhat-ods-applications</code> namespace:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get pods -n redhat-ods-applications -l name=ogx-k8s-operator</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Expected output:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>NAME                               READY   STATUS    RESTARTS   AGE
+ogx-k8s-operator-&lt;pod-suffix&gt;      1/1     Running   0          &lt;age&gt;</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>With the operator running, deploy your first OGX server.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_exercise_2_deploy_an_ogx_server"><a class="anchor" href="#_exercise_2_deploy_an_ogx_server"></a>Exercise 2: Deploy an OGX server</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The OGXServer custom resource deploys a server that exposes the OGX APIs in your project. You are
+responsible for provisioning the PostgreSQL instance used for metadata storage; it can run
+in-cluster or be hosted externally, as long as it is reachable from the cluster network.</p>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+Create the PostgreSQL credential secret in the same namespace as the OGXServer
+resource. Avoid placing passwords directly on the command line, as they can be stored in shell
+history.
+</td>
+</tr>
+</table>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Create a secret that contains only the database password, then create the secret from that file:</p>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">echo "%password%" > pg-password.txt
+oc create secret generic postgres-secret --from-file=password=pg-password.txt -n abc123-user1
+rm -f pg-password.txt</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Create the <code>ogxserver.yaml</code> file — a shell heredoc with the PostgreSQL
+secret from the previous step. Point <code>VLLM_URL</code> at your vLLM inference
+service; here the <code>granite-vllm</code> predictor from the vLLM ServingRuntime
+workshop (a GPU cluster substitutes its deployed model, e.g.
+<code><a href="https://llama32-3b.&lt;project&gt;.svc.cluster.local/v1" class="bare">https://llama32-3b.&lt;project&gt;.svc.cluster.local/v1</a></code>):</p>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">PGPASSWORD=$(oc get secret postgres-secret -n abc123-user1 -o jsonpath='{.data.password}' | base64 -d)
+oc create secret generic ogx-postgres-conn -n abc123-user1 \
+  --from-literal=connection="postgresql://ogx:${PGPASSWORD}@postgres.abc123-user1.svc.cluster.local:5432/ogx" \
+  --dry-run=client -o yaml | oc apply -n abc123-user1 -f -
+oc label secret ogx-postgres-conn -n abc123-user1 ogx.io/watch=true --overwrite
+cat > ogxserver.yaml <<'EOF'
+apiVersion: ogx.io/v1beta1
+kind: OGXServer
+metadata:
+  name: ogx-custom-server
+  namespace: abc123-user1
+spec:
+  distribution:
+    name: rh-dev
+  storage:
+    sql:
+      type: postgres
+      connectionString:
+        name: ogx-postgres-conn
+        key: connection
+EOF</code></pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>The fields map to the RHOAI documentation (OGXServer v1beta1):
+<code>distribution.name</code> is an internal image reference (the RHOAI Operator
+resolves <code>rh-dev</code> to the container image in the appropriate registry).
+<code>spec.storage.sql</code> configures the PostgreSQL metadata store — the
+<code>connectionString</code> Secret must carry the <code>ogx.io/watch: "true"</code> label and the
+key holds a <code>postgresql://</code> connection string to your PostgreSQL instance
+(deploy a PostgreSQL instance and Service in your project first; the in-lab
+flow uses an in-cluster PostgreSQL). Inference provider endpoints are
+registered via <code>spec.resources</code> or the server&#8217;s registry — point your client
+at the deployed model&#8217;s OpenAI-compatible API.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Apply the OGXServer CR:</p>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc apply -f ogxserver.yaml -n abc123-user1</code></pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+The <code>rh-dev</code> distribution value is an internal image reference resolved automatically by the
+OpenShift AI Operator; you do not need to replace it with a registry URL.
+</td>
+</tr>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_verify_2"><a class="anchor" href="#_verify_2"></a>Verify</h3>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Check that the custom resource became ready and the server pods are running:</p>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get ogxserver -n abc123-user1
+oc wait --for=jsonpath='{.status.phase}'=Ready ogxserver/ogx-custom-server -n abc123-user1 --timeout=300s
+oc get pods -n abc123-user1 | grep ogx-custom-server</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Expected output: <code>oc get ogxserver</code> lists <code>ogx-custom-server</code>, the <code>oc wait</code> command prints
+<code>condition met</code> once <code>.status.phase</code> is <code>Ready</code>, and the pod listing shows the <code>ogx-custom-server</code>
+pods with <code>STATUS</code> <code>Running</code>.</p>
+</div>
+</li>
+<li>
+<p>Check the server logs for startup output:</p>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc logs -n abc123-user1 -l app=ogx</code></pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Expected output:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>INFO: Started server process
+INFO: Waiting for application startup.
+INFO: Application startup complete.
+INFO: Uvicorn running on http://['::', '0.0.0.0']:8321</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The server listens on port 8321. The OGX Operator names the service
+<code>&lt;ogxserver-name&gt;-service</code>, so this instance is reachable in-cluster at
+<code><a href="http://ogx-custom-server-service.abc123-user1.svc.cluster.local:8321" class="bare">http://ogx-custom-server-service.abc123-user1.svc.cluster.local:8321</a></code>.</p>
+</div>
+<div class="paragraph">
+<p>With the base server running, pair it with a vector store and ingest real documents.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_exercise_3_ingest_documents_and_query_with_rag"><a class="anchor" href="#_exercise_3_ingest_documents_and_query_with_rag"></a>Exercise 3: Ingest documents and query with RAG</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The RAG stack connects your OGX server to a vector store so that you can ingest, embed, and query
+domain-specific documents during inference. In this exercise you configure the pgvector provider,
+upload a PDF from a Jupyter notebook, and answer questions grounded in the ingested content.</p>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+For RAG you need a remote embedding model reachable from the cluster, for example
+<code>nomic-embed-text-v1-5</code> served through a vLLM embedding endpoint. RAG queries without ingested
+content return empty or non-contextual responses.
+</td>
+</tr>
+</table>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Create a secret that contains the inference model and remote embedding environment variables, replacing <code>&lt;token-identifier&gt;</code> with the API token for your vLLM inference service and <code>&lt;embedding-token&gt;</code> with the API token for your embedding endpoint:</p>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">export INFERENCE_MODEL="llama-3-2-3b"
+export VLLM_URL="https://llama-32-3b-instruct-predictor:8443/v1"
+export VLLM_TLS_VERIFY="false"
+export VLLM_API_TOKEN="<token-identifier>"
+export VLLM_MAX_TOKENS=16384
+export EMBEDDING_MODEL="nomic-embed-text-v1-5"
+export EMBEDDING_PROVIDER_MODEL_ID="nomic-embed-text-v1-5"
+export VLLM_EMBEDDING_URL="https://nomic-embed-text-v1-5-predictor:8443/v1"
+export VLLM_EMBEDDING_API_TOKEN="<embedding-token>"
+export VLLM_EMBEDDING_MAX_TOKENS=8192
+export VLLM_EMBEDDING_TLS_VERIFY="true"
+oc create secret generic ogx-secret -n abc123-user1 \
+  --from-literal=INFERENCE_MODEL="$INFERENCE_MODEL" \
+  --from-literal=VLLM_URL="$VLLM_URL" \
+  --from-literal=VLLM_TLS_VERIFY="$VLLM_TLS_VERIFY" \
+  --from-literal=VLLM_API_TOKEN="$VLLM_API_TOKEN" \
+  --from-literal=VLLM_MAX_TOKENS="$VLLM_MAX_TOKENS" \
+  --from-literal=EMBEDDING_MODEL="$EMBEDDING_MODEL" \
+  --from-literal=EMBEDDING_PROVIDER_MODEL_ID="$EMBEDDING_PROVIDER_MODEL_ID" \
+  --from-literal=VLLM_EMBEDDING_URL="$VLLM_EMBEDDING_URL" \
+  --from-literal=VLLM_EMBEDDING_TLS_VERIFY="$VLLM_EMBEDDING_TLS_VERIFY" \
+  --from-literal=VLLM_EMBEDDING_API_TOKEN="$VLLM_EMBEDDING_API_TOKEN" \
+  --from-literal=VLLM_EMBEDDING_MAX_TOKENS="$VLLM_EMBEDDING_MAX_TOKENS"</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Create a secret with the pgvector connection values, replacing <code>&lt;pgvector-password&gt;</code> with your pgvector user&#8217;s password:</p>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc create secret generic pgvector-connection -n abc123-user1 \
+  --from-literal=PGVECTOR_HOST="postgres.abc123-user1.svc.cluster.local" \
+  --from-literal=PGVECTOR_PORT="5432" \
+  --from-literal=PGVECTOR_DB="ogx_metadata" \
+  --from-literal=PGVECTOR_USER="ogx" \
+  --from-literal=PGVECTOR_PASSWORD="<pgvector-password>"</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Create a RAG-enabled OGXServer that reads its configuration from these secrets. In the console,
+select <strong>Administrator → Quick Create (+) → Import YAML</strong>, and apply:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: ogx.io/v1beta1
+kind: OGXServer
+metadata:
+  name: ogx-rag-server
+  namespace: abc123-user1
+spec:
+  distribution:
+    name: rh-dev
+  workload:
+    replicas: 1
+    storage:
+      size: 5Gi
+  overrides:
+    env:
+      - name: POSTGRES_HOST <1>
+        value: postgres.abc123-user1.svc.cluster.local
+      - name: POSTGRES_PORT
+        value: "5432"
+      - name: POSTGRES_DB
+        value: ogx_metadata
+      - name: POSTGRES_USER
+        value: ogx
+      - name: POSTGRES_PASSWORD
+        valueFrom:
+          secretKeyRef:
+            name: postgres-secret
+            key: password
+      - name: INFERENCE_MODEL <2>
+        valueFrom:
+          secretKeyRef:
+            name: ogx-secret
+            key: INFERENCE_MODEL
+      - name: VLLM_URL
+        valueFrom:
+          secretKeyRef:
+            name: ogx-secret
+            key: VLLM_URL
+      - name: VLLM_API_TOKEN
+        valueFrom:
+          secretKeyRef:
+            name: ogx-secret
+            key: VLLM_API_TOKEN
+      - name: EMBEDDING_MODEL
+        valueFrom:
+          secretKeyRef:
+            name: ogx-secret
+            key: EMBEDDING_MODEL
+      - name: VLLM_EMBEDDING_URL
+        valueFrom:
+          secretKeyRef:
+            name: ogx-secret
+            key: VLLM_EMBEDDING_URL
+      - name: ENABLE_PGVECTOR <3>
+        value: "true"
+      - name: PGVECTOR_HOST <4>
+        valueFrom:
+          secretKeyRef:
+            name: pgvector-connection
+            key: PGVECTOR_HOST
+      - name: PGVECTOR_PORT
+        valueFrom:
+          secretKeyRef:
+            name: pgvector-connection
+            key: PGVECTOR_PORT
+      - name: PGVECTOR_DB
+        valueFrom:
+          secretKeyRef:
+            name: pgvector-connection
+            key: PGVECTOR_DB
+      - name: PGVECTOR_USER
+        valueFrom:
+          secretKeyRef:
+            name: pgvector-connection
+            key: PGVECTOR_USER
+      - name: PGVECTOR_PASSWORD
+        valueFrom:
+          secretKeyRef:
+            name: pgvector-connection
+            key: PGVECTOR_PASSWORD <5></code></pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td><strong>POSTGRES_</strong>* — the PostgreSQL metadata store; OGX requires PostgreSQL 14 or later for metadata persistence.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td><strong>INFERENCE_MODEL</strong> — the vLLM-served LLM identifier; <code>VLLM_URL</code> points at its <code>/v1</code> endpoint.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td><strong>ENABLE_PGVECTOR</strong> — enables the <code>remote::pgvector</code> vector_io provider in the OGX server.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td><strong>PGVECTOR_</strong>* — the pgvector vector store connection, read from the <code>pgvector-connection</code> secret.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td><strong>PGVECTOR_PASSWORD</strong> — credentials must come from secrets, never as plaintext values in the CR.</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+If you switch between vector store configurations, delete the existing OGX pod to ensure the
+new environment variables and backing store are picked up cleanly.
+</td>
+</tr>
+</table>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>In a workbench in your project, open a Jupyter notebook and install the OGX client:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">%pip install ogx_client</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Create a client instance and list the available models:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">from ogx_client import OGXClient
+
+client = OGXClient(base_url="http://ogx-rag-server-service:8321")
+models = client.models.list()
+print(models)</code></pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Expected output:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>[Model(identifier='llama-32-3b-instruct', model_type='llm', provider_id='vllm-inference'),
+ Model(identifier='nomic-embed-text-v1-5', model_type='embedding', metadata=
+ {'embedding_dimension': 768})]</pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Provider IDs can differ between interfaces. In the Python SDK you use the provider name
+directly (for example, <code>provider_id: "pgvector"</code>); in some CLI tools remote providers use a
+prefixed identifier (for example, <code>--vector-db-provider-id remote-pgvector</code>). Use the format that
+matches the interface you are using.
+</td>
+</tr>
+</table>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Select an LLM and an embedding model, and register a vector store:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">model_id = next(m.identifier for m in models if m.model_type == "llm")
+embedding_model = next(m for m in models if m.model_type == "embedding")
+embedding_model_id = embedding_model.identifier
+embedding_dimension = int(embedding_model.metadata["embedding_dimension"])
+
+vector_store = client.vector_stores.create(
+    name="my_pgvector_store",
+    extra_body={
+        "embedding_model": embedding_model_id,
+        "embedding_dimension": embedding_dimension,
+        "provider_id": "pgvector",
+    },
+)
+vector_store_id = vector_store.id
+print(vector_store_id)</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Download a PDF, upload it to OGX, and add it to the vector store with a chunking strategy:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">import requests
+
+pdf_url = "https://www.federalreserve.gov/aboutthefed/files/quarterly-report-20250822.pdf"
+filename = "quarterly-report-20250822.pdf"
+response = requests.get(pdf_url)
+response.raise_for_status()
+with open(filename, "wb") as f:
+    f.write(response.content)
+
+with open(filename, "rb") as f:
+    file_info = client.files.create(
+        file=(filename, f),
+        purpose="assistants",
+    )
+
+vector_store_file = client.vector_stores.files.create(
+    vector_store_id=vector_store_id,
+    file_id=file_info.id,
+    chunking_strategy={
+        "type": "static",
+        "static": {
+            "max_chunk_size_tokens": 800,
+            "chunk_overlap_tokens": 400,
+        },
+    },
+)
+print(vector_store_file)</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Query the ingested content with the Responses API and the <code>file_search</code> tool:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">system_instructions = """You are a precise and reliable AI assistant.
+Use retrieved context when it is available.
+If nothing relevant is found, say so clearly."""
+query = "Summarize the key findings in the report."
+
+response = client.responses.create(
+    model=model_id,
+    input=query,
+    instructions=system_instructions,
+    tools=[
+        {
+            "type": "file_search",
+            "vector_store_ids": [vector_store_id],
+        }
+    ],
+)
+print(response.output_text)</code></pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>When you include the <code>file_search</code> tool with <code>vector_store_ids</code>, OGX retrieves relevant chunks
+from the vector store and provides them to the model as context for the response.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Query the vector store directly to inspect the retrieved chunks:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">query_result = client.vector_io.query(
+    vector_store_id=vector_store_id,
+    query="key findings",
+)
+print(query_result)</code></pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+<div class="sect2">
+<h3 id="_verify_3"><a class="anchor" href="#_verify_3"></a>Verify</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><code>client.vector_stores.files.create()</code> returns a file object with <code>status</code> <code>completed</code>, confirming the PDF was chunked and indexed into <code>my_pgvector_store</code>.</p>
+</li>
+<li>
+<p><code>print(response.output_text)</code> outputs a summary grounded in the report content, and a question about a topic the document does not cover returns a statement that no relevant information was found.</p>
+</li>
+<li>
+<p><code>client.vector_io.query()</code> returns the ingested report chunks matching <code>key findings</code>, confirming the pgvector store holds indexed content.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>You now have a working RAG loop. Before scaling it up, test the underlying model endpoints directly
+from the CLI.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_exercise_4_test_your_vllm_model_endpoints"><a class="anchor" href="#_exercise_4_test_your_vllm_model_endpoints"></a>Exercise 4: Test your vLLM model endpoints</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To confirm your deployed model is accessible, test the vLLM endpoint with a chat completion
+request. If you selected <strong>Make deployed models available through an external route</strong> during model
+deployment, the endpoint is already exposed outside the cluster.</p>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+Manually exposing vLLM model endpoints, for example with <code>oc expose</code>, creates an
+unsecured route unless you configure authentication. Avoid exposing endpoints without security
+controls.
+</td>
+</tr>
+</table>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Log in to the cluster from the CLI. In the upper-right corner of the web console, click your
+user name, select <strong>Copy login command</strong>, then <strong>Display Token</strong>, and copy the displayed command,
+replacing <code>&lt;token&gt;</code> with the API token shown on that page:</p>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc login --token=<token> --server=https://api.cluster.example.com:6443</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>If you enabled <strong>Require token authentication</strong> during model deployment, retrieve the model token:</p>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">export MODEL_TOKEN=$(oc get secret default-name-llama-32-3b-instruct-sa -n abc123-user1 -o jsonpath='{.data.token}' | base64 -d)</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Obtain the model endpoint URL from <strong>Endpoint details</strong> on the Deployments page in the RHOAI
+dashboard, or from the route:</p>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">export MODEL_ENDPOINT="https://$(oc get route llama-32-3b-instruct -n abc123-user1 -o jsonpath='{.spec.host}')"</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Test the endpoint with a sample chat completion request:</p>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">curl -s -k $MODEL_ENDPOINT/v1/chat/completions \
+  --header "Authorization: Bearer $MODEL_TOKEN" \
+  --header 'Content-Type: application/json' \
+  -d '{
+    "model": "llama-32-3b-instruct",
+    "messages": [
+      {"role": "user", "content": "Hello"}
+    ]
+  }' | jq .</code></pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The <code>-k</code> flag disables SSL verification and should only be used in test environments or
+with self-signed certificates.
+</td>
+</tr>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_verify_4"><a class="anchor" href="#_verify_4"></a>Verify</h3>
+<div class="paragraph">
+<p>You receive a JSON response containing a chat completion, similar to:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>{
+  "id": "chatcmpl-05d24b91b08a4b78b0e084d4cc91dd7e",
+  "object": "chat.completion",
+  "model": "llama-32-3b-instruct",
+  "choices": [{
+    "index": 0,
+    "message": {
+      "role": "assistant",
+      "content": "Hello! It's nice to meet you. Is there something I can help you with or would you like to chat?"
+    },
+    "finish_reason": "stop"
+  }],
+  "usage": {
+    "prompt_tokens": 37,
+    "total_tokens": 62,
+    "completion_tokens": 25
+  }
+}</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If you do not receive a response similar to the example, verify that the endpoint URL and token
+are correct, and ensure your model deployment is running.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_module_summary"><a class="anchor" href="#_module_summary"></a>Module summary</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><strong>What you accomplished:</strong></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Activated the OGX Operator in the DataScienceCluster and confirmed the operator pod running</p>
+</li>
+<li>
+<p>Deployed OGXServer instances backed by vLLM inference, PostgreSQL metadata storage, and a pgvector vector store</p>
+</li>
+<li>
+<p>Ingested a PDF into a vector store and ran grounded RAG queries with the <code>file_search</code> tool</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><strong>Key takeaways:</strong></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The OGXServer CR is the single entry point for wiring providers: inference, embeddings, vector store, and metadata all come from environment variables sourced from secrets</p>
+</li>
+<li>
+<p>Ingestion is a two-step flow — upload the file with the Files API, then index it into a vector store with a chunking strategy</p>
+</li>
+<li>
+<p>The <code>file_search</code> tool on the OpenAI-compatible Responses API is what turns a plain chat into RAG</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><strong>Next steps:</strong></p>
+</div>
+<div class="paragraph">
+<p>With the base RAG stack working, tune retrieval modes and scale the deployment for availability in
+Module 03.</p>
+</div>
+</div>
+</div>
+<nav class="pagination">
+  <span class="prev"><a href="module-01-concepts.html" class="query-params-link">Core Concepts</a></span>
+  <span class="next"><a href="module-03-advanced.html" class="query-params-link">Advanced Usage</a></span>
+</nav>
+</article>
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>  </div>
+</main>
+</div>
+<footer class="footer">
+  <a href="https://demo.redhat.com" target="_blank" class="poweredBy"><p>Powered by</p><div class="labInfo_poweredBy" style="display: block; width: 260px;"><svg class="labInfo_poweredByLogo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1508.5 178.739"><g fill="#111"><path d="M316.6 63.2v-56H342a21.279 21.279 0 0 1 7.8 1.3 18.111 18.111 0 0 1 5.9 3.5 15.577 15.577 0 0 1 5 11.8 15.051 15.051 0 0 1-3.1 9.5 16.836 16.836 0 0 1-8.4 5.8l12.5 24.1h-9.3l-11.6-23H325v23Zm24.7-48.6H325v18.7h16.3q5.25 0 8.1-2.7a8.7 8.7 0 0 0 2.8-6.6 8.7 8.7 0 0 0-2.8-6.6c-1.8-1.9-4.5-2.8-8.1-2.8ZM364.1 42.8a20.674 20.674 0 0 1 1.6-8.2 20.288 20.288 0 0 1 4.3-6.7 19.92 19.92 0 0 1 6.5-4.5 19.718 19.718 0 0 1 8-1.6 18.463 18.463 0 0 1 7.8 1.6 18.677 18.677 0 0 1 6.2 4.5 20.927 20.927 0 0 1 4.1 6.8 23.2 23.2 0 0 1 1.5 8.4v2.3H372a13.822 13.822 0 0 0 4.6 8.4 13.6 13.6 0 0 0 9.1 3.3 15.553 15.553 0 0 0 5.7-1 12.858 12.858 0 0 0 4.6-2.6l5.1 5a25.983 25.983 0 0 1-7.4 4.1 24.69 24.69 0 0 1-8.4 1.3 21.306 21.306 0 0 1-8.4-1.6 22.763 22.763 0 0 1-6.8-4.4 20.788 20.788 0 0 1-4.5-6.7 23.2 23.2 0 0 1-1.5-8.4Zm20.2-14.2a11.527 11.527 0 0 0-8 3 13.046 13.046 0 0 0-4.2 7.8h24.2a13.091 13.091 0 0 0-4.2-7.8 11.106 11.106 0 0 0-7.8-3ZM443.1 63.2v-3.8a19.448 19.448 0 0 1-5.8 3.3 18.924 18.924 0 0 1-6.7 1.2 19.824 19.824 0 0 1-14.6-6.1 22.268 22.268 0 0 1-4.4-6.7 21.812 21.812 0 0 1 0-16.4A20.534 20.534 0 0 1 416 28a19.335 19.335 0 0 1 6.6-4.5 20.334 20.334 0 0 1 8.2-1.6 20.7 20.7 0 0 1 6.6 1 19.415 19.415 0 0 1 5.7 3V7.2l8-1.8v57.8Zm-25.2-20.4a13.718 13.718 0 0 0 4 10.1 13.45 13.45 0 0 0 9.8 4.1 14.956 14.956 0 0 0 6.4-1.3 15.954 15.954 0 0 0 4.9-3.6V33.6a14.988 14.988 0 0 0-4.9-3.5 15.271 15.271 0 0 0-6.4-1.3 13.423 13.423 0 0 0-9.9 4 13.806 13.806 0 0 0-3.9 10ZM478.1 63.2v-56h8.4v24h29.8v-24h8.4v56h-8.4V38.8h-29.8v24.4ZM547.2 64a16.483 16.483 0 0 1-10.8-3.5 11.037 11.037 0 0 1-4.2-8.9 10.375 10.375 0 0 1 4.7-9.2 20.76 20.76 0 0 1 11.8-3.2 27.841 27.841 0 0 1 5.8.6 27.374 27.374 0 0 1 5.3 1.6v-4.3a8.143 8.143 0 0 0-2.6-6.5 11.452 11.452 0 0 0-7.4-2.2 20.788 20.788 0 0 0-6 .9 34.616 34.616 0 0 0-6.6 2.6l-3-6a54.169 54.169 0 0 1 8.4-3.1 33.18 33.18 0 0 1 8.3-1.1c5.2 0 9.3 1.3 12.2 3.8s4.4 6.1 4.4 10.8v27h-7.8v-3.5a19.441 19.441 0 0 1-5.8 3.2 23.54 23.54 0 0 1-6.7 1Zm-7.3-12.6a5.646 5.646 0 0 0 2.6 4.8 11.193 11.193 0 0 0 6.6 1.8 16.256 16.256 0 0 0 5.9-1 14.449 14.449 0 0 0 4.9-2.9V47a19.778 19.778 0 0 0-4.8-1.8 24.933 24.933 0 0 0-5.7-.6 11.859 11.859 0 0 0-6.8 1.8 5.728 5.728 0 0 0-2.7 5ZM580.6 53.2v-24H572v-6.7h8.6V12.1l7.9-1.9v12.3h12v6.7h-12v22.1a5.94 5.94 0 0 0 1.4 4.4c.9.9 2.5 1.3 4.6 1.3a23.637 23.637 0 0 0 3-.2 10.857 10.857 0 0 0 2.8-.8v6.7a19.28 19.28 0 0 1-3.8.9 27.484 27.484 0 0 1-3.8.3c-3.9 0-7-.9-9-2.8-2-1.7-3.1-4.4-3.1-7.9Z"></path></g><path d="M127 90.2c12.5 0 30.6-2.6 30.6-17.5a12.678 12.678 0 0 0-.3-3.4L149.8 37c-1.7-7.1-3.2-10.3-15.7-16.6-9.7-5-30.8-13.1-37.1-13.1-5.8 0-7.5 7.5-14.4 7.5-6.7 0-11.6-5.6-17.9-5.6-6 0-9.9 4.1-12.9 12.5 0 0-8.4 23.7-9.5 27.2a4.216 4.216 0 0 0-.3 1.9c0 9.2 36.3 39.4 85 39.4Zm32.5-11.4c1.7 8.2 1.7 9.1 1.7 10.1 0 14-15.7 21.8-36.4 21.8-46.8 0-87.7-27.4-87.7-45.5a17.535 17.535 0 0 1 1.5-7.3C21.8 58.8 0 61.8 0 81c0 31.5 74.6 70.3 133.7 70.3 45.3 0 56.7-20.5 56.7-36.6-.1-12.8-11-27.3-30.9-35.9Z" fill="#e00"></path><path d="M159.5 78.8c1.7 8.2 1.7 9.1 1.7 10.1 0 14-15.7 21.8-36.4 21.8-46.8 0-87.7-27.4-87.7-45.5a17.535 17.535 0 0 1 1.5-7.3l3.7-9.1a4.877 4.877 0 0 0-.3 2c0 9.2 36.3 39.4 85 39.4 12.5 0 30.6-2.6 30.6-17.5a12.678 12.678 0 0 0-.3-3.4Z"></path><path d="M253.5 158.7a2.22 2.22 0 0 1-2.2-2.2V2.2a2.2 2.2 0 0 1 4.4 0v154.2a2.242 2.242 0 0 1-2.2 2.3Z" fill="#111"></path><text data-name="Demo Platform" transform="translate(1186 149)" fill="#111" font-size="82" font-family="'RedHatDisplay', 'Overpass', overpass, helvetica, arial, sans-serif" font-weight="700"><tspan x="-877.892" y="0">Demo Platform</tspan></text></svg></div></div>
+</footer>
+<script defer src="../_/js/vendor/clipboard.js"></script>
+<script defer src="../_/js/site.js"></script>
+<script defer src="../_/js/vendor/highlight.js"></script>
+  <style>
+/* left align items inside imageblock */
+.doc .imageblock {
+    align-items: flex-start;
+  }
+
+/* add a shadow to the image container */
+.doc .bordershadow .content{
+    border: solid 1px black;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+}
+
+/*custom video css*/
+video {
+    border: solid 1px black;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+}
+
+/* allow for wider screens */
+.doc {
+    max-width: none;
+}
+
+.navbar-item-right-dropdown {
+    float: right!important;
+}
+
+.navbar-dropdown-right {
+    right: 0;
+    left: auto;
+}
+
+.navbar-item-right-content {
+    width: 100%;
+    background-color: #131313;
+}
+
+/* ── Send-to button ─────────────────────────────────── */
+.listingblock { position: relative; }
+.send-to-command-btn {
+  position: absolute; top: 0.5rem; right: 0.5rem;
+  background: #28a745; color: white; border: none; border-radius: 4px;
+  padding: 0.5rem 1rem; font-size: 0.875rem; font-weight: 600;
+  cursor: pointer; transition: all 0.2s; z-index: 100;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2); opacity: 0.3;
+}
+.send-to-command-btn:hover { background: #218838; transform: translateY(-2px); opacity: 1; }
+.send-to-command-btn.success { background: #27ae60; }
+.send-to-command-btn.copied { background: #3498db; }
+.listingblock pre.send-to { padding-top: 3rem !important; }
+
+</style>
+<script>
+(function () {
+  'use strict';
+
+  // ── Send-to Terminal ──────────────────────────────────────────────────────
+  function initSendTo() {
+    document.querySelectorAll('[class*="send-to-"]').forEach(function (block) {
+      if (block.dataset.sendToButtonAdded) return;
+      var listingBlock = block.closest('.listingblock');
+      if (!listingBlock) return;
+
+      var targetClass = Array.from(block.classList).find(function (c) { return /^send-to-.+/.test(c); });
+      if (!targetClass) return;
+      var targetPath = '/' + targetClass.replace('send-to-', '');
+
+      var btn = document.createElement('button');
+      btn.className = 'send-to-command-btn';
+      btn.title = 'Send to ' + targetPath;
+      btn.innerHTML = '▶';
+      btn.onclick = function () {
+        var cmd = (block.querySelector('code') || block).textContent.trim();
+        sendToTerminal(cmd, btn, targetPath);
+      };
+      listingBlock.appendChild(btn);
+      block.dataset.sendToButtonAdded = 'true';
+    });
+  }
+
+  function findFrame(targetPath) {
+    try {
+      if (!window.parent || window.parent === window) return null;
+      var frames = window.parent.document.querySelectorAll('iframe');
+      for (var i = 0; i < frames.length; i++) {
+        if ((frames[i].src || '').indexOf(targetPath) !== -1) return frames[i];
+      }
+    } catch (e) {}
+    return null;
+  }
+
+  function sendToTerminal(command, button, targetPath) {
+    var frame = findFrame(targetPath);
+    var original = button.innerHTML;
+    if (!frame) {
+      alert('Cannot find terminal at ' + targetPath + ' in this showroom.\nCheck ui-config.yml has a tab with ' + targetPath + ' URL.');
+      return;
+    }
+
+    if (targetPath === '/terminal') {
+      ensureTerminalListener(frame);
+    }
+
+    frame.contentWindow.postMessage({ type: 'execute', data: command + '\r' }, '*');
+    button.classList.add('success'); button.innerHTML = '✓ Sent!';
+    setTimeout(function () { button.classList.remove('success'); button.innerHTML = original; }, 2000);
+  }
+
+  function ensureTerminalListener(frame) {
+    if (frame.dataset.listenerInjected) return;
+
+    var listenerScript = `
+(function() {
+  if (window.__terminalListenerInstalled) return;
+  window.__terminalListenerInstalled = true;
+
+  window.addEventListener("message", function(event) {
+    if (event.data && event.data.type === "execute") {
+      var command = event.data.data;
+      var term = window.term;
+
+      if (term) {
+        command = command.replace(/[\\r\\n]+$/, "");
+
+        if (window.client && typeof window.client.sendData === 'function') {
+          window.client.sendData(command + '\\r');
+          return;
+        }
+
+        if (term._core && term._core.coreService && term._core.coreService._inputHandler) {
+          for (var i = 0; i < command.length; i++) {
+            term._core.coreService._inputHandler.parse(command[i]);
+          }
+          term._core.coreService._inputHandler.parse('\\r');
+          return;
+        }
+
+        if (term._core && term._core._onData) {
+          term._core._onData.fire(command + '\\r');
+          return;
+        }
+
+        term.write(command + '\\r\\n');
+      }
+    }
+  }, false);
+})();`;
+
+    try {
+      var script = frame.contentWindow.document.createElement('script');
+      script.textContent = listenerScript;
+      frame.contentWindow.document.body.appendChild(script);
+      frame.dataset.listenerInjected = 'true';
+    } catch (e) {
+      console.error('Failed to inject terminal listener:', e);
+    }
+  }
+
+  // ── Copy-to-parent (plugin integration) ──────────────────────────────────
+  function initCopyToParent() {
+    if (window.parent === window) return;
+
+    document.addEventListener('click', function (e) {
+      var btn = e.target.closest('.copypaste .clipboard, .copypaste button[title="Copy"]');
+      if (!btn) return;
+      var listing = btn.closest('.listingblock');
+      if (!listing) return;
+      var code = listing.querySelector('pre code');
+      if (!code) return;
+      window.parent.postMessage({ type: 'copy', text: code.textContent.trim() }, '*');
+    });
+  }
+
+  // ── Boot ──────────────────────────────────────────────────────────────────
+  function init() { initSendTo(); initCopyToParent(); }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+
+})();
+
+</script>
+</body>
+</html>
