@@ -1,0 +1,1119 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Module 03: Advanced — Troubleshooting patterns :: RHOAI 3.5 Kitchen Sink Workshop Catalog</title>
+    <link rel="canonical" href="https://eformat.github.io/ralf-graph-pages/private-hf-models/module-03-advanced.html">
+    <link rel="prev" href="module-02-hands-on.html">
+    <link rel="next" href="conclusion.html">
+    <meta name="generator" content="Antora 3.2.3">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@400;500;700&family=Red+Hat+Mono:wght@400;700&family=Red+Hat+Text:wght@400;700&display=swap">
+    <link rel="stylesheet" href="../_/css/site.css">
+<link rel="stylesheet" href="../_/css/site-extra.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="icon" href="../_/img/favicon.svg" type="image/svg+xml">
+  </head>
+  <body class="article">
+<a class="skip-link" href="#content">Skip to content</a>
+<header class="header">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <span class="navbar-item navbar-logo">
+        <img src="../_/img/logo-summit.svg" alt="Red Hat Summit" class="navbar-logo-img">
+      </span>
+      <a class="navbar-item site-title" target="_blank" href="https://eformat.github.io/ralf-graph-pages">RHOAI 3.5 Kitchen Sink Workshop Catalog</a>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="private-hf-models" data-version="">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+    <h3 class="title"><a href="index.html" class=" query-params-link">Private Hugging Face models in the model catalog</a></h3>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Workshop</span>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="index.html">Overview</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="getting-connected.html">Getting Connected</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Modules</span>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="module-01-concepts.html">Core Concepts</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="module-02-hands-on.html">Hands-on: Mode 4 demo flow</a>
+  </li>
+  <li class="nav-item is-current-page" data-depth="1">
+    <a class="nav-link" href="module-03-advanced.html">Advanced: Troubleshooting</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Wrap-up</span>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="conclusion.html">Conclusion</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+  </div>
+  <ul class="components">
+    <li class="component">
+      <span class="title">Agent Catalog in AI Hub</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../agent-catalog-ai-hub/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">AI Available Assets page</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../ai-available-assets/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Automated Red Teaming (powered by Garak)</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../automated-red-teaming-garak/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Automated tool-calling evaluation-data generation for custom MCP servers</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../automated-tool-calling-eval/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">AutoML</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../automl/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">AutoRAG</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../autorag/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Claude Code agent starter kit</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../claude-code-starter-kit/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">CSV export for Model Catalog data</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../csv-export-model-catalog/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Distributed Inference with llm-d (core)</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../llmd-core/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Distributed Inference with llm-d: priority-based flow control</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../llmd-priority-flow-control/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Evaluation Stack (EvalHub)</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../evalhub/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">External metering integration for MaaS</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../external-metering-maas/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">External metering: per-user token usage and cost</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../external-metering-per-user/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Feature Store (Feast-based)</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feature-store-feast/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Gateway API and Red Hat Connectivity Link (RHCL)</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../gateway-api-rhcl/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Gen AI Studio saved-agent configuration</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../genai-studio-saved-agent/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Hierarchical KV Cache Tiering (llm-d)</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../llmd-kv-cache-tiering/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Kale JupyterLab extension</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../kale-jupyterlab/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Kubeflow Trainer v2</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../kubeflow-trainer-v2/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">KubeRay (CodeFlare Operator successor)</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../kuberay/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Kueue (Red Hat build of Kueue Operator)</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../kueue/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Latency-aware routing for llm-d</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../llmd-latency-routing/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Llama Stack / OGX core: RAG, agentic workflows, vector DB integration</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../llama-stack-ogx-core/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">LLMInferenceService / LLMInferenceServiceConfig (llm-d-native)</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../llminferenceservice-config/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Loki-based showback and user-scoped usage dashboards (MaaS)</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../maas-loki-showback/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">LoRA-aware routing for llm-d</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../llmd-lora-routing/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">MaaS deployment/routing path for Distributed Inference with llm-d</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../maas-llmd-deployment/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">MaaS multi-tenancy with per-tenant gateway and identity isolation</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../maas-multi-tenancy/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">MaaS-specific external OIDC user authentication</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../maas-oidc-auth/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">MCP Catalog administrative interface</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../mcp-catalog-admin/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">MCP Catalog support-tier labeling</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../mcp-catalog-support-tier/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">MCP gateway Operator</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../mcp-gateway-operator/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">MCP Lifecycle Operator</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../mcp-lifecycle-operator/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">MiDojo adversarial testing engine</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../midojo-adversarial-testing/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">MLflow experiment tracking / MLOps integration</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../mlflow-experiment-tracking/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Model registry and model catalog</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../model-registry-catalog/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Models-as-a-Service (MaaS) core: access model and token mechanism</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../maas-core/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Multi-provider API passthrough for external models (MaaS)</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../maas-multi-provider-passthrough/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">NeMo Guardrails</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../nemo-guardrails/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">NeMo Guardrails integration with MCP Gateway</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../nemo-guardrails-mcp-gateway/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">OGX File Processors API</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../ogx-file-processors/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">OGX remote::anthropic and remote::gemini providers</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../ogx-remote-providers/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">OGX-native agentic API surface (Tool Runtime, Responses, Conversations)</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../ogx-agentic-api/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">OpenClaw agent starter kit</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../openclaw-starter-kit/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">OpenCode coding-agent deployment</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../opencode-coding-agent/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">OpenShell (secure agent sandboxing and policy enforcement)</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../openshell-agent-sandboxing/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Platform-wide direct OIDC authentication (GatewayConfig CR)</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../platform-oidc-auth/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component is-current">
+      <span class="title">Private Hugging Face models in the model catalog</span>
+      <ul class="versions">
+        <li class="version is-current">
+          <a href="index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Red Hat AI Inference fast-release images as custom ServingRuntime</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../rhai-fast-release-images/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">RHOAI Kitchen Sink</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../home/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Text-mode training for multimodal models in Training Hub</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../text-mode-multimodal-training/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Validated tool-calling configuration in Model Catalog</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../validated-tool-calling-config/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">View running agent deployments in dashboard</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../view-agent-deployments/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">vLLM CPU ServingRuntime on IBM Z / Power</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../vllm-cpu-ibm-z-power/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">vLLM model deployment directly through MaaS</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../maas-vllm-deployment/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">vLLM ServingRuntime for KServe</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../vllm-serving-runtime-kserve/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</div>    </div>
+  </aside>
+</div>
+<main class="article" id="content">
+<div class="toolbar" role="navigation">
+<button class="nav-toggle"></button>
+  <a href="../home/index.html" class="home-link"></a>
+<nav class="breadcrumbs" aria-label="breadcrumbs">
+  <ul>
+    <li><a href="index.html">Private Hugging Face models in the model catalog</a></li>
+    <li>Modules</li>
+    <li><a href="module-03-advanced.html">Advanced: Troubleshooting</a></li>
+  </ul>
+</nav>
+</div>
+  <div class="content">
+<article class="doc">
+<h1 class="page">Module 03: Advanced — Troubleshooting patterns</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>In this module you learn the four failure patterns the RHAISTRAT-1258 pilot
+surfaced in the workshop factory, how to diagnose each from the CLI, and when to
+escalate to the operator. These are recurring patterns, not one-off incidents —
+each one has a name (GAP-1 through GAP-4), a diagnosis, a workaround, and an
+escalation rule.</p>
+</div>
+<div class="paragraph">
+<p><strong>Learning objectives:</strong></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Diagnose the DSC TrustyAI patch loop and its type-skew root cause</p>
+</li>
+<li>
+<p>Recognize model-catalog scale-to-zero and its RBAC/escalation path</p>
+</li>
+<li>
+<p>Identify engine write-pipe constraint failures from <code>SQLSTATE 23514 ck_node_state</code></p>
+</li>
+<li>
+<p>Choose the right escalation severity with <code>ask_operator</code></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_exercise_1_dsc_trustyai_patch_loop_trustyai_patch_loop"><a class="anchor" href="#_exercise_1_dsc_trustyai_patch_loop_trustyai_patch_loop"></a>Exercise 1: DSC TrustyAI patch loop {#trustyai-patch-loop}</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><strong>Pattern:</strong> the DataScienceCluster reports <code>False/NotReady</code> while the dashboard
+and the TrustyAI custom resource themselves look healthy.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Reproduce the symptom:</p>
+</li>
+</ol>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get dsc default-dsc
+oc get trustyai -A</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The DSC shows <code>False</code> / <code>NotReady</code>; the TrustyAI CR shows <code>Ready</code>.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Find the loop in the operator logs — the controller retries the component
+apply roughly every two minutes:</p>
+</li>
+</ol>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc logs -n redhat-ods-operator deploy/rhods-operator --tail=200 | grep -i trustyai | tail -10</code></pre>
+</div>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>The root cause is a <strong>type skew</strong>: the DSC spec carries string enum values for
+<code>eval.lmeval.permitCodeExecution</code> (for example <code>"deny"</code>), while the controller
+writes a boolean into the TrustyAI CR field — the apply fails with
+<code>expected string, got false</code> — the spec never reconciles, the DSC status stays
+<code>False</code>, and the cycle repeats.</p>
+</li>
+<li>
+<p>The workaround is to fix the spec values so the controller&#8217;s write matches the
+CR schema. The platform remains functional meanwhile — the DSC status is the
+symptom, not the outage.</p>
+</li>
+</ol>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The DSC is not ArgoCD-managed in this environment, so there is no GitOps
+revert path — changes go through the spec directly, and the fix-vs-suppress
+decision belongs to the platform owner (operator question Q156).
+</td>
+</tr>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_verify"><a class="anchor" href="#_verify"></a>Verify</h3>
+<div class="paragraph">
+<p>You can distinguish the two sides of the skew — the DSC spec value and the value
+the controller writes into the TrustyAI CR — and you know the platform is usable
+while the loop continues.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_exercise_2_model_catalog_scale_to_zero_scale_to_zero"><a class="anchor" href="#_exercise_2_model_catalog_scale_to_zero_scale_to_zero"></a>Exercise 2: model-catalog scale-to-zero {#scale-to-zero}</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><strong>Pattern:</strong> the <code>model-catalog</code> deployment sits at <code>0/0</code> READY with its database
+fine — every private-model validation gates on it.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Diagnose the state:</p>
+</li>
+</ol>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get deploy -n rhoai-model-registries model-catalog -o jsonpath='{.spec.replicas}{"\t"}{.status.readyReplicas}{"\n"}'
+oc get pods -n rhoai-model-registries</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>spec.replicas=0</code> with <code>model-catalog-postgres</code> at <code>1/1</code> is the scale-to-zero
+pattern: the metadata database is healthy, the API tier is scaled down.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Understand the constraint before reaching for <code>oc scale</code>: the deployment is
+<strong>owned by the <code>Catalog</code> CR</strong> (<code>aihub.opendatahub.io/v1alpha1</code>, name <code>catalog</code>,
+owned by the <code>AIHub</code> component), and the aihub-controller reconciles it every
+15 seconds. Scale-down to zero is the operator&#8217;s <strong>containment</strong> mode while the
+Catalog activation is Failed — the CRD says so explicitly ("Deployment
+scale-down is temporary containment", pending RHOAIENG-97414). A manual
+<code>oc scale</code> (or patch of <code>spec.replicas</code>) succeeds against the API server and
+is <strong>reverted within seconds</strong> — no RBAC grant can win that race.</p>
+</li>
+<li>
+<p>Read the actual root cause from the CR before touching anything:</p>
+</li>
+</ol>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get catalog catalog -n rhoai-model-registries -o jsonpath='{.status.activation.state}{"\t"}{.status.activation.reason}{"\n"}'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>Failed</code> + <code>DataImageInitializationFailed</code> means the operator contained the
+workload after a failed data-image initialization — the replica state is a
+symptom, not the disease.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>The working remediation is the one the CR itself prints in its status
+("Correct spec.catalogDataImageStream or spec.benchmarkDataImageStream and
+retry the selected images"): pin the digest the operator already resolved
+and imported successfully. That is a real spec change (generation bump) but
+semantically the same images, so the controller re-runs activation and, on
+success, <strong>scales the deployment up itself</strong>. The full runbook lives in
+<code>deploy/31-catalog-activation-retry.yaml</code> in this feature&#8217;s tree. Re-apply
+the HF credential env afterwards (<code>deploy/30-model-catalog-hf-env.yaml</code>) —
+the operator strips custom env on every activation attempt.</p>
+</li>
+<li>
+<p>Operator escalation remains the fallback when the activation retry fails, or
+when the fix belongs to the platform owner: scaling the catalog tier is a
+cluster resource request, so it goes to the operator with severity <code>high</code>
+(see Exercise 4). The pilot&#8217;s ask is logged as Q154.</p>
+</li>
+<li>
+<p>Until the scale-up lands, downstream steps record <strong>honest blocked states</strong> with
+captures of the probe output — the demo flow completes with a blocked verdict
+rather than a fabricated pass.</p>
+</li>
+</ol>
+</div>
+<div class="sect2">
+<h3 id="_verify_2"><a class="anchor" href="#_verify_2"></a>Verify</h3>
+<div class="paragraph">
+<p>You can read the replica state, explain that <code>spec.replicas</code> is
+operator-owned (containment while the Catalog activation is Failed), and name
+both remedies in the right order: the Catalog activation retry (worker-grade,
+reversible, makes the operator scale up itself) and the operator escalation.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_exercise_3_engine_write_pipe_constraint_failures_write_pipe"><a class="anchor" href="#_exercise_3_engine_write_pipe_constraint_failures_write_pipe"></a>Exercise 3: Engine write-pipe constraint failures {#write-pipe}</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><strong>Pattern:</strong> the engine&#8217;s MCP write-back tools fail on every insert with
+<code>SQLSTATE 23514 ck_node_state</code> on <code>exploration_nodes</code> — the evidence pipe degrades
+to capture-only.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Recognize the signature from the tool error:</p>
+</li>
+</ol>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>Error: insert into exploration_nodes ... SQLSTATE 23514 ck_node_state</pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>23514</code> is a PostgreSQL check-constraint violation: the node state the insert
+path passes does not satisfy the <code>ck_node_state</code> constraint on the
+<code>exploration_nodes</code> table.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Narrow the blast radius by probing the tools individually. During the pilot,
+<code>record_fact</code> recovered after an engine restart while <code>add_hint</code> kept failing —
+the constraint violation lives in the hint-insert path only, which narrowed the
+fix to one code path.</p>
+</li>
+<li>
+<p>Work with the degraded pipe:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>submit_capture</code> keeps working — evidence continues to accumulate even when
+fact writes fail.</p>
+</li>
+<li>
+<p>Retry <code>record_fact</code> after a restart; the fact then cites the capture captured
+during the outage window.</p>
+</li>
+<li>
+<p>The engine fix is Go code: per the factory charter it is queued as a commit and
+a task for the operator (Q153), never auto-edited on-cluster.</p>
+</li>
+</ul>
+</div>
+</li>
+</ol>
+</div>
+<div class="sect2">
+<h3 id="_verify_3"><a class="anchor" href="#_verify_3"></a>Verify</h3>
+<div class="paragraph">
+<p>You can read the constraint name out of the error, map it to the failing insert
+path, and describe which tools stay usable in the degraded state.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_exercise_4_operator_escalation_with_ask_operator"><a class="anchor" href="#_exercise_4_operator_escalation_with_ask_operator"></a>Exercise 4: Operator escalation with ask_operator</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Every pattern above has an escalation, and the factory has exactly one channel:
+the <code>ask_operator</code> MCP tool, which queues a question at <code>/api/operator-questions</code>
+and notifies the operator.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Pick the severity honestly:</p>
+</li>
+</ol>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Situation</th>
+<th class="tableblock halign-left valign-top">Severity</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Cluster capacity or resource requests (scale-ups, node pools, GPU requests)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>high</code> — always, no exceptions</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Ordinary blockers (missing credentials, unclear decision, stale state)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>normal</code> — the planner routes around them</p></td>
+</tr>
+</tbody>
+</table>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Write the ask with the evidence attached: the pattern name (GAP-2 …), the exact
+observed state, the captures that prove it, and the decision you need. The
+pilot&#8217;s four asks are the model — Q153 (engine fix), Q154 (scale model-catalog
+0→&gt;=1), Q155 (real token vs placeholder contract), Q156 (TrustyAI type-skew
+owner decision).</p>
+</li>
+<li>
+<p>Route capacity questions <strong>only</strong> through the tool — never by editing cluster
+resources out of band, and never by assuming the operator is watching the same
+graph you are.</p>
+</li>
+</ol>
+</div>
+<div class="sect2">
+<h3 id="_verify_4"><a class="anchor" href="#_verify_4"></a>Verify</h3>
+<div class="paragraph">
+<p>Given a new failure, you can classify it: worker-fixable, planner-routable, or
+operator-ask — and for operator-asks you can name the severity and the decision
+required.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_module_summary"><a class="anchor" href="#_module_summary"></a>Module summary</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><strong>What you accomplished:</strong></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Diagnosed the TrustyAI patch loop, the catalog scale-to-zero, and the write-pipe constraint failures from live cluster and engine evidence</p>
+</li>
+<li>
+<p>Mapped each pattern to its constraint — spec type skew, worker RBAC, and check-constraint validation — and its workaround</p>
+</li>
+<li>
+<p>Classified escalations by severity and routed the capacity ones through <code>ask_operator</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><strong>Key takeaways:</strong></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>A red DSC status with healthy components is a diagnosis, not necessarily an outage — read the loop before paging anyone</p>
+</li>
+<li>
+<p>Blocked is an honest outcome: record it with captures and escalate instead of patching what your RBAC forbids</p>
+</li>
+<li>
+<p>Cluster capacity requests always travel as <code>high</code> severity through the operator question queue</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><strong>Next steps:</strong></p>
+</div>
+<div class="paragraph">
+<p>Head to the <a href="conclusion.html" class="xref page">conclusion</a> for the related RHOAI and Hugging
+Face documentation.</p>
+</div>
+</div>
+</div>
+<nav class="pagination">
+  <span class="prev"><a href="module-02-hands-on.html" class="query-params-link">Hands-on: Mode 4 demo flow</a></span>
+  <span class="next"><a href="conclusion.html" class="query-params-link">Conclusion</a></span>
+</nav>
+</article>
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>  </div>
+</main>
+</div>
+<footer class="footer">
+  <a href="https://demo.redhat.com" target="_blank" class="poweredBy"><p>Powered by</p><div class="labInfo_poweredBy" style="display: block; width: 260px;"><svg class="labInfo_poweredByLogo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1508.5 178.739"><g fill="#111"><path d="M316.6 63.2v-56H342a21.279 21.279 0 0 1 7.8 1.3 18.111 18.111 0 0 1 5.9 3.5 15.577 15.577 0 0 1 5 11.8 15.051 15.051 0 0 1-3.1 9.5 16.836 16.836 0 0 1-8.4 5.8l12.5 24.1h-9.3l-11.6-23H325v23Zm24.7-48.6H325v18.7h16.3q5.25 0 8.1-2.7a8.7 8.7 0 0 0 2.8-6.6 8.7 8.7 0 0 0-2.8-6.6c-1.8-1.9-4.5-2.8-8.1-2.8ZM364.1 42.8a20.674 20.674 0 0 1 1.6-8.2 20.288 20.288 0 0 1 4.3-6.7 19.92 19.92 0 0 1 6.5-4.5 19.718 19.718 0 0 1 8-1.6 18.463 18.463 0 0 1 7.8 1.6 18.677 18.677 0 0 1 6.2 4.5 20.927 20.927 0 0 1 4.1 6.8 23.2 23.2 0 0 1 1.5 8.4v2.3H372a13.822 13.822 0 0 0 4.6 8.4 13.6 13.6 0 0 0 9.1 3.3 15.553 15.553 0 0 0 5.7-1 12.858 12.858 0 0 0 4.6-2.6l5.1 5a25.983 25.983 0 0 1-7.4 4.1 24.69 24.69 0 0 1-8.4 1.3 21.306 21.306 0 0 1-8.4-1.6 22.763 22.763 0 0 1-6.8-4.4 20.788 20.788 0 0 1-4.5-6.7 23.2 23.2 0 0 1-1.5-8.4Zm20.2-14.2a11.527 11.527 0 0 0-8 3 13.046 13.046 0 0 0-4.2 7.8h24.2a13.091 13.091 0 0 0-4.2-7.8 11.106 11.106 0 0 0-7.8-3ZM443.1 63.2v-3.8a19.448 19.448 0 0 1-5.8 3.3 18.924 18.924 0 0 1-6.7 1.2 19.824 19.824 0 0 1-14.6-6.1 22.268 22.268 0 0 1-4.4-6.7 21.812 21.812 0 0 1 0-16.4A20.534 20.534 0 0 1 416 28a19.335 19.335 0 0 1 6.6-4.5 20.334 20.334 0 0 1 8.2-1.6 20.7 20.7 0 0 1 6.6 1 19.415 19.415 0 0 1 5.7 3V7.2l8-1.8v57.8Zm-25.2-20.4a13.718 13.718 0 0 0 4 10.1 13.45 13.45 0 0 0 9.8 4.1 14.956 14.956 0 0 0 6.4-1.3 15.954 15.954 0 0 0 4.9-3.6V33.6a14.988 14.988 0 0 0-4.9-3.5 15.271 15.271 0 0 0-6.4-1.3 13.423 13.423 0 0 0-9.9 4 13.806 13.806 0 0 0-3.9 10ZM478.1 63.2v-56h8.4v24h29.8v-24h8.4v56h-8.4V38.8h-29.8v24.4ZM547.2 64a16.483 16.483 0 0 1-10.8-3.5 11.037 11.037 0 0 1-4.2-8.9 10.375 10.375 0 0 1 4.7-9.2 20.76 20.76 0 0 1 11.8-3.2 27.841 27.841 0 0 1 5.8.6 27.374 27.374 0 0 1 5.3 1.6v-4.3a8.143 8.143 0 0 0-2.6-6.5 11.452 11.452 0 0 0-7.4-2.2 20.788 20.788 0 0 0-6 .9 34.616 34.616 0 0 0-6.6 2.6l-3-6a54.169 54.169 0 0 1 8.4-3.1 33.18 33.18 0 0 1 8.3-1.1c5.2 0 9.3 1.3 12.2 3.8s4.4 6.1 4.4 10.8v27h-7.8v-3.5a19.441 19.441 0 0 1-5.8 3.2 23.54 23.54 0 0 1-6.7 1Zm-7.3-12.6a5.646 5.646 0 0 0 2.6 4.8 11.193 11.193 0 0 0 6.6 1.8 16.256 16.256 0 0 0 5.9-1 14.449 14.449 0 0 0 4.9-2.9V47a19.778 19.778 0 0 0-4.8-1.8 24.933 24.933 0 0 0-5.7-.6 11.859 11.859 0 0 0-6.8 1.8 5.728 5.728 0 0 0-2.7 5ZM580.6 53.2v-24H572v-6.7h8.6V12.1l7.9-1.9v12.3h12v6.7h-12v22.1a5.94 5.94 0 0 0 1.4 4.4c.9.9 2.5 1.3 4.6 1.3a23.637 23.637 0 0 0 3-.2 10.857 10.857 0 0 0 2.8-.8v6.7a19.28 19.28 0 0 1-3.8.9 27.484 27.484 0 0 1-3.8.3c-3.9 0-7-.9-9-2.8-2-1.7-3.1-4.4-3.1-7.9Z"></path></g><path d="M127 90.2c12.5 0 30.6-2.6 30.6-17.5a12.678 12.678 0 0 0-.3-3.4L149.8 37c-1.7-7.1-3.2-10.3-15.7-16.6-9.7-5-30.8-13.1-37.1-13.1-5.8 0-7.5 7.5-14.4 7.5-6.7 0-11.6-5.6-17.9-5.6-6 0-9.9 4.1-12.9 12.5 0 0-8.4 23.7-9.5 27.2a4.216 4.216 0 0 0-.3 1.9c0 9.2 36.3 39.4 85 39.4Zm32.5-11.4c1.7 8.2 1.7 9.1 1.7 10.1 0 14-15.7 21.8-36.4 21.8-46.8 0-87.7-27.4-87.7-45.5a17.535 17.535 0 0 1 1.5-7.3C21.8 58.8 0 61.8 0 81c0 31.5 74.6 70.3 133.7 70.3 45.3 0 56.7-20.5 56.7-36.6-.1-12.8-11-27.3-30.9-35.9Z" fill="#e00"></path><path d="M159.5 78.8c1.7 8.2 1.7 9.1 1.7 10.1 0 14-15.7 21.8-36.4 21.8-46.8 0-87.7-27.4-87.7-45.5a17.535 17.535 0 0 1 1.5-7.3l3.7-9.1a4.877 4.877 0 0 0-.3 2c0 9.2 36.3 39.4 85 39.4 12.5 0 30.6-2.6 30.6-17.5a12.678 12.678 0 0 0-.3-3.4Z"></path><path d="M253.5 158.7a2.22 2.22 0 0 1-2.2-2.2V2.2a2.2 2.2 0 0 1 4.4 0v154.2a2.242 2.242 0 0 1-2.2 2.3Z" fill="#111"></path><text data-name="Demo Platform" transform="translate(1186 149)" fill="#111" font-size="82" font-family="'RedHatDisplay', 'Overpass', overpass, helvetica, arial, sans-serif" font-weight="700"><tspan x="-877.892" y="0">Demo Platform</tspan></text></svg></div></div>
+</footer>
+<script defer src="../_/js/vendor/clipboard.js"></script>
+<script defer src="../_/js/site.js"></script>
+<script defer src="../_/js/vendor/highlight.js"></script>
+  <style>
+/* left align items inside imageblock */
+.doc .imageblock {
+    align-items: flex-start;
+  }
+
+/* add a shadow to the image container */
+.doc .bordershadow .content{
+    border: solid 1px black;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+}
+
+/*custom video css*/
+video {
+    border: solid 1px black;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+}
+
+/* allow for wider screens */
+.doc {
+    max-width: none;
+}
+
+.navbar-item-right-dropdown {
+    float: right!important;
+}
+
+.navbar-dropdown-right {
+    right: 0;
+    left: auto;
+}
+
+.navbar-item-right-content {
+    width: 100%;
+    background-color: #131313;
+}
+
+/* ── Send-to button ─────────────────────────────────── */
+.listingblock { position: relative; }
+.send-to-command-btn {
+  position: absolute; top: 0.5rem; right: 0.5rem;
+  background: #28a745; color: white; border: none; border-radius: 4px;
+  padding: 0.5rem 1rem; font-size: 0.875rem; font-weight: 600;
+  cursor: pointer; transition: all 0.2s; z-index: 100;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2); opacity: 0.3;
+}
+.send-to-command-btn:hover { background: #218838; transform: translateY(-2px); opacity: 1; }
+.send-to-command-btn.success { background: #27ae60; }
+.send-to-command-btn.copied { background: #3498db; }
+.listingblock pre.send-to { padding-top: 3rem !important; }
+
+</style>
+<script>
+(function () {
+  'use strict';
+
+  // ── Send-to Terminal ──────────────────────────────────────────────────────
+  function initSendTo() {
+    document.querySelectorAll('[class*="send-to-"]').forEach(function (block) {
+      if (block.dataset.sendToButtonAdded) return;
+      var listingBlock = block.closest('.listingblock');
+      if (!listingBlock) return;
+
+      var targetClass = Array.from(block.classList).find(function (c) { return /^send-to-.+/.test(c); });
+      if (!targetClass) return;
+      var targetPath = '/' + targetClass.replace('send-to-', '');
+
+      var btn = document.createElement('button');
+      btn.className = 'send-to-command-btn';
+      btn.title = 'Send to ' + targetPath;
+      btn.innerHTML = '▶';
+      btn.onclick = function () {
+        var cmd = (block.querySelector('code') || block).textContent.trim();
+        sendToTerminal(cmd, btn, targetPath);
+      };
+      listingBlock.appendChild(btn);
+      block.dataset.sendToButtonAdded = 'true';
+    });
+  }
+
+  function findFrame(targetPath) {
+    try {
+      if (!window.parent || window.parent === window) return null;
+      var frames = window.parent.document.querySelectorAll('iframe');
+      for (var i = 0; i < frames.length; i++) {
+        if ((frames[i].src || '').indexOf(targetPath) !== -1) return frames[i];
+      }
+    } catch (e) {}
+    return null;
+  }
+
+  function sendToTerminal(command, button, targetPath) {
+    var frame = findFrame(targetPath);
+    var original = button.innerHTML;
+    if (!frame) {
+      alert('Cannot find terminal at ' + targetPath + ' in this showroom.\nCheck ui-config.yml has a tab with ' + targetPath + ' URL.');
+      return;
+    }
+
+    if (targetPath === '/terminal') {
+      ensureTerminalListener(frame);
+    }
+
+    frame.contentWindow.postMessage({ type: 'execute', data: command + '\r' }, '*');
+    button.classList.add('success'); button.innerHTML = '✓ Sent!';
+    setTimeout(function () { button.classList.remove('success'); button.innerHTML = original; }, 2000);
+  }
+
+  function ensureTerminalListener(frame) {
+    if (frame.dataset.listenerInjected) return;
+
+    var listenerScript = `
+(function() {
+  if (window.__terminalListenerInstalled) return;
+  window.__terminalListenerInstalled = true;
+
+  window.addEventListener("message", function(event) {
+    if (event.data && event.data.type === "execute") {
+      var command = event.data.data;
+      var term = window.term;
+
+      if (term) {
+        command = command.replace(/[\\r\\n]+$/, "");
+
+        if (window.client && typeof window.client.sendData === 'function') {
+          window.client.sendData(command + '\\r');
+          return;
+        }
+
+        if (term._core && term._core.coreService && term._core.coreService._inputHandler) {
+          for (var i = 0; i < command.length; i++) {
+            term._core.coreService._inputHandler.parse(command[i]);
+          }
+          term._core.coreService._inputHandler.parse('\\r');
+          return;
+        }
+
+        if (term._core && term._core._onData) {
+          term._core._onData.fire(command + '\\r');
+          return;
+        }
+
+        term.write(command + '\\r\\n');
+      }
+    }
+  }, false);
+})();`;
+
+    try {
+      var script = frame.contentWindow.document.createElement('script');
+      script.textContent = listenerScript;
+      frame.contentWindow.document.body.appendChild(script);
+      frame.dataset.listenerInjected = 'true';
+    } catch (e) {
+      console.error('Failed to inject terminal listener:', e);
+    }
+  }
+
+  // ── Copy-to-parent (plugin integration) ──────────────────────────────────
+  function initCopyToParent() {
+    if (window.parent === window) return;
+
+    document.addEventListener('click', function (e) {
+      var btn = e.target.closest('.copypaste .clipboard, .copypaste button[title="Copy"]');
+      if (!btn) return;
+      var listing = btn.closest('.listingblock');
+      if (!listing) return;
+      var code = listing.querySelector('pre code');
+      if (!code) return;
+      window.parent.postMessage({ type: 'copy', text: code.textContent.trim() }, '*');
+    });
+  }
+
+  // ── Boot ──────────────────────────────────────────────────────────────────
+  function init() { initSendTo(); initCopyToParent(); }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+
+})();
+
+</script>
+</body>
+</html>

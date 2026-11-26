@@ -148,6 +148,9 @@
 <loc>https://eformat.github.io/ralf-graph-pages/sitemap-platform-oidc-auth.xml</loc>
 </sitemap>
 <sitemap>
+<loc>https://eformat.github.io/ralf-graph-pages/sitemap-private-hf-models.xml</loc>
+</sitemap>
+<sitemap>
 <loc>https://eformat.github.io/ralf-graph-pages/sitemap-rhai-fast-release-images.xml</loc>
 </sitemap>
 <sitemap>
