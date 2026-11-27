@@ -129,6 +129,22 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">AutoRAG Multilingual Workshop</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../autorag-multilingual/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">AutoRAG OCR Document Ingestion</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../autorag-ocr-ingestion/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Claude Code agent starter kit</span>
       <ul class="versions">
         <li class="version">
@@ -385,6 +401,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Native Prometheus telemetry for Kubeflow Trainer v2 training workloads</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../kftv2-prometheus-telemetry/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">NeMo Guardrails</span>
       <ul class="versions">
         <li class="version">
@@ -481,6 +505,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Speculator training pipeline for Kubeflow Pipelines</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../speculator-training-kfp/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Text-mode training for multimodal models in Training Hub</span>
       <ul class="versions">
         <li class="version">
@@ -560,7 +592,7 @@ configured Gen AI playground directly from the page.</p>
 <div class="ulist">
 <ul>
 <li>
-<p>Deploy a generative AI model with the <strong>Add as AI asset endpoint</strong> option</p>
+<p>Deploy a generative AI model with the <strong>Make this deployment available as an AI asset</strong> option</p>
 </li>
 <li>
 <p>Verify the deployed model endpoint from the CLI</p>
@@ -577,8 +609,8 @@ configured Gen AI playground directly from the page.</p>
 <div class="sectionbody">
 <div class="paragraph">
 <p>A model only appears on the AI Available Assets page if you designate it as an
-available asset while deploying. You do this with the <strong>Add as AI asset
-endpoint</strong> checkbox in the deploy model wizard.</p>
+available asset while deploying. You do this with the <strong>Make this deployment
+available as an AI asset</strong> checkbox in the deploy model wizard.</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
@@ -625,7 +657,7 @@ endpoint</strong> checkbox in the deploy model wizard.</p>
 <div class="olist loweralpha">
 <ol class="loweralpha" type="a">
 <li>
-<p>Select the <strong>Add as AI asset endpoint</strong> checkbox. This adds your model&#8217;s endpoint to the <strong>Gen AI studio → AI asset endpoints</strong> page.</p>
+<p>Select the <strong>Make this deployment available as an AI asset</strong> checkbox. This adds your model&#8217;s endpoint to the <strong>Gen AI studio → AI asset endpoints</strong> page.</p>
 </li>
 <li>
 <p>In the <strong>Use case</strong> field, enter the types of tasks your model performs, such as <code>chat</code>, <code>multimodal</code>, or <code>natural language processing</code>.</p>
@@ -645,9 +677,9 @@ endpoint</strong> checkbox in the deploy model wizard.</p>
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-You must add your model as an AI asset endpoint to test your model on the
-Gen AI studio → playground page. If you skip the checkbox, the deployment still
-runs but will not be listed as an available asset.
+You must make your deployment available as an AI asset to test your model
+on the Gen AI studio → playground page. If you skip the checkbox, the
+deployment still runs but will not be listed as an available asset.
 </td>
 </tr>
 </table>
@@ -663,12 +695,12 @@ runs but will not be listed as an available asset.
 </div>
 </div>
 <div class="paragraph">
-<p>The output shows your deployment with <code>STATUS</code> <code>Successful</code> and URL <code>True</code>:</p>
+<p>The output shows your deployment with <code>READY</code> <code>True</code> and its external route URL:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>NAME                  URL                                                  READY   PREFAILED   PREISSUE   STATUS       AGE
-granite-asset-demo    https://granite-asset-demo.abc123-user1.apps.cluster.example.com   True                Successful    2m</pre>
+<pre>NAME                  URL                                                                                       READY   PREV   LATEST   PREVROLLEDOUTREVISION   LATESTREADYREVISION   AGE
+granite-asset-demo    https://granite-asset-demo-abc123-user1.apps.apps.cluster.example.com          True                                                                2m</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -706,14 +738,20 @@ instance for testing.</p>
 <p>Select <code>abc123-user1</code> from the <strong>Project</strong> drop-down list and click the <strong>Models</strong> tab.</p>
 </li>
 <li>
-<p>Locate <code>granite-asset-demo</code> and click <strong>Add to playground</strong>.
-The <strong>Configure playground</strong> dialog opens.</p>
+<p>Locate <code>granite-asset-demo</code> and click <strong>Try in playground</strong>.
+The <strong>Configure playground</strong> dialog opens. You can also open the same dialog
+with the <strong>Create playground</strong> action above the table.</p>
 </li>
 <li>
-<p>In the dialog, select the models to use in this playground instance. For each model, use the <strong>Type</strong> dropdown to select <strong>Inference</strong> or <strong>Embedding</strong>.</p>
+<p>In the dialog, review the <strong>Available models</strong> table and confirm the model
+endpoints to use in this playground instance. Each selected model row shows
+its <strong>Status</strong>, <strong>Use case</strong>, and a <strong>Type</strong> dropdown (<strong>Inference</strong>, <strong>Embedding</strong>, or
+<strong>Transcription</strong>); <code>granite-asset-demo</code> is preselected with the <strong>Inference</strong>
+type. Embedding models also carry an <strong>Embedding dimension</strong> value.</p>
 </li>
 <li>
-<p>Optional: To collect distributed traces for this session, toggle <strong>Enable tracing</strong> in the dialog footer.</p>
+<p>Optional: To collect execution traces for debugging and observability, toggle
+<strong>Enable tracing</strong> (marked <strong>Tech Preview</strong>) in the dialog footer.</p>
 </li>
 <li>
 <p>Click <strong>Create</strong> and wait for the playground interface to finish loading.</p>
@@ -729,7 +767,7 @@ The <strong>Configure playground</strong> dialog opens.</p>
 <td class="content">
 The <strong>Enable tracing</strong> toggle is visible only if your cluster administrator
 has configured the platform observability stack and enabled the <code>genAiTracing</code>
-feature flag.
+feature flag. In RHOAI 3.6 the toggle carries a <strong>Tech Preview</strong> badge.
 </td>
 </tr>
 </table>
@@ -833,7 +871,7 @@ be selected in the playground for inference responses.</p>
 <div class="ulist">
 <ul>
 <li>
-<p>Deployed a generative AI model with the <strong>Add as AI asset endpoint</strong> option and a use-case label</p>
+<p>Deployed a generative AI model with the <strong>Make this deployment available as an AI asset</strong> option and a use-case label</p>
 </li>
 <li>
 <p>Verified the model endpoint from the CLI and on the AI Available Assets page</p>
@@ -849,10 +887,10 @@ be selected in the playground for inference responses.</p>
 <div class="ulist">
 <ul>
 <li>
-<p><strong>Add as AI asset endpoint</strong> is the switch that turns a deployment into a discoverable asset</p>
+<p><strong>Make this deployment available as an AI asset</strong> is the switch that turns a deployment into a discoverable asset</p>
 </li>
 <li>
-<p>The AI Available Assets page is the launch point for consuming assets — <strong>Add to playground</strong> takes you straight to a configured session</p>
+<p>The AI Available Assets page is the launch point for consuming assets — <strong>Try in playground</strong> takes you straight to a configured session</p>
 </li>
 <li>
 <p>Custom endpoints extend the page to models outside your project namespace, gated by the <code>OdhDashboardConfig</code> settings</p>

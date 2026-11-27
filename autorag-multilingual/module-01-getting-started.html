@@ -1,0 +1,1617 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Module 01: Get started with AutoRAG in French :: RHOAI 3.6 Kitchen Sink Workshop Catalog</title>
+    <link rel="canonical" href="https://eformat.github.io/ralf-graph-pages/autorag-multilingual/module-01-getting-started.html">
+    <link rel="prev" href="getting-connected.html">
+    <link rel="next" href="module-02-hands-on.html">
+    <meta name="generator" content="Antora 3.2.3">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@400;500;700&family=Red+Hat+Mono:wght@400;700&family=Red+Hat+Text:wght@400;700&display=swap">
+    <link rel="stylesheet" href="../_/css/site.css">
+<link rel="stylesheet" href="../_/css/site-extra.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="icon" href="../_/img/favicon.svg" type="image/svg+xml">
+  </head>
+  <body class="article">
+<a class="skip-link" href="#content">Skip to content</a>
+<header class="header">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <span class="navbar-item navbar-logo">
+        <img src="../_/img/logo-summit.svg" alt="Red Hat Summit" class="navbar-logo-img">
+      </span>
+      <a class="navbar-item site-title" target="_blank" href="https://eformat.github.io/ralf-graph-pages">RHOAI 3.6 Kitchen Sink Workshop Catalog</a>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="autorag-multilingual" data-version="">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+    <h3 class="title"><a href="index.html" class=" query-params-link">AutoRAG Multilingual Workshop</a></h3>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Workshop</span>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="index.html">Overview</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="getting-connected.html">Getting Connected</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Modules</span>
+<ul class="nav-list">
+  <li class="nav-item is-current-page" data-depth="1">
+    <a class="nav-link" href="module-01-getting-started.html">Getting Started</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="module-02-hands-on.html">Hands-on Exercise</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Wrap-up</span>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="conclusion.html">Conclusion</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+  </div>
+  <ul class="components">
+    <li class="component">
+      <span class="title">Agent Catalog in AI Hub</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../agent-catalog-ai-hub/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">AI Available Assets page</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../ai-available-assets/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Automated Red Teaming (powered by Garak)</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../automated-red-teaming-garak/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Automated tool-calling evaluation-data generation for custom MCP servers</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../automated-tool-calling-eval/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">AutoML</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../automl/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">AutoRAG</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../autorag/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component is-current">
+      <span class="title">AutoRAG Multilingual Workshop</span>
+      <ul class="versions">
+        <li class="version is-current">
+          <a href="index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">AutoRAG OCR Document Ingestion</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../autorag-ocr-ingestion/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Claude Code agent starter kit</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../claude-code-starter-kit/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">CSV export for Model Catalog data</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../csv-export-model-catalog/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Distributed Inference with llm-d (core)</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../llmd-core/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Distributed Inference with llm-d: priority-based flow control</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../llmd-priority-flow-control/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Evaluation Stack (EvalHub)</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../evalhub/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">External metering integration for MaaS</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../external-metering-maas/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">External metering: per-user token usage and cost</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../external-metering-per-user/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Feature Store (Feast-based)</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feature-store-feast/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Gateway API and Red Hat Connectivity Link (RHCL)</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../gateway-api-rhcl/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Gen AI Studio saved-agent configuration</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../genai-studio-saved-agent/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Hierarchical KV Cache Tiering (llm-d)</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../llmd-kv-cache-tiering/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Kale JupyterLab extension</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../kale-jupyterlab/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Kubeflow Trainer v2</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../kubeflow-trainer-v2/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">KubeRay (CodeFlare Operator successor)</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../kuberay/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Kueue (Red Hat build of Kueue Operator)</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../kueue/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Latency-aware routing for llm-d</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../llmd-latency-routing/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Llama Stack / OGX core: RAG, agentic workflows, vector DB integration</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../llama-stack-ogx-core/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">LLMInferenceService / LLMInferenceServiceConfig (llm-d-native)</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../llminferenceservice-config/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Loki-based showback and user-scoped usage dashboards (MaaS)</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../maas-loki-showback/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">LoRA-aware routing for llm-d</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../llmd-lora-routing/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">MaaS deployment/routing path for Distributed Inference with llm-d</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../maas-llmd-deployment/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">MaaS multi-tenancy with per-tenant gateway and identity isolation</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../maas-multi-tenancy/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">MaaS-specific external OIDC user authentication</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../maas-oidc-auth/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">MCP Catalog administrative interface</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../mcp-catalog-admin/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">MCP Catalog support-tier labeling</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../mcp-catalog-support-tier/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">MCP gateway Operator</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../mcp-gateway-operator/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">MCP Lifecycle Operator</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../mcp-lifecycle-operator/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">MiDojo adversarial testing engine</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../midojo-adversarial-testing/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">MLflow experiment tracking / MLOps integration</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../mlflow-experiment-tracking/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Model registry and model catalog</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../model-registry-catalog/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Models-as-a-Service (MaaS) core: access model and token mechanism</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../maas-core/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Multi-provider API passthrough for external models (MaaS)</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../maas-multi-provider-passthrough/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Native Prometheus telemetry for Kubeflow Trainer v2 training workloads</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../kftv2-prometheus-telemetry/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">NeMo Guardrails</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../nemo-guardrails/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">NeMo Guardrails integration with MCP Gateway</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../nemo-guardrails-mcp-gateway/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">OGX File Processors API</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../ogx-file-processors/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">OGX remote::anthropic and remote::gemini providers</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../ogx-remote-providers/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">OGX-native agentic API surface (Tool Runtime, Responses, Conversations)</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../ogx-agentic-api/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">OpenClaw agent starter kit</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../openclaw-starter-kit/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">OpenCode coding-agent deployment</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../opencode-coding-agent/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">OpenShell (secure agent sandboxing and policy enforcement)</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../openshell-agent-sandboxing/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Platform-wide direct OIDC authentication (GatewayConfig CR)</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../platform-oidc-auth/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Private Hugging Face models in the model catalog</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../private-hf-models/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Red Hat AI Inference fast-release images as custom ServingRuntime</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../rhai-fast-release-images/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">RHOAI Kitchen Sink</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../home/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Speculator training pipeline for Kubeflow Pipelines</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../speculator-training-kfp/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Text-mode training for multimodal models in Training Hub</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../text-mode-multimodal-training/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Validated tool-calling configuration in Model Catalog</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../validated-tool-calling-config/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">View running agent deployments in dashboard</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../view-agent-deployments/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">vLLM CPU ServingRuntime on IBM Z / Power</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../vllm-cpu-ibm-z-power/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">vLLM model deployment directly through MaaS</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../maas-vllm-deployment/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">vLLM ServingRuntime for KServe</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../vllm-serving-runtime-kserve/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</div>    </div>
+  </aside>
+</div>
+<main class="article" id="content">
+<div class="toolbar" role="navigation">
+<button class="nav-toggle"></button>
+  <a href="../home/index.html" class="home-link"></a>
+<nav class="breadcrumbs" aria-label="breadcrumbs">
+  <ul>
+    <li><a href="index.html">AutoRAG Multilingual Workshop</a></li>
+    <li>Modules</li>
+    <li><a href="module-01-getting-started.html">Getting Started</a></li>
+  </ul>
+</nav>
+</div>
+  <div class="content">
+<article class="doc">
+<h1 class="page">Module 01: Get started with AutoRAG in French</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>In this module you will learn what changes when AutoRAG optimizes RAG
+configurations for a non-English corpus, and you will stage the demo
+environment the wizard consumes: a pgvector vector database, a tool-calling
+foundation model plus the multilingual <code>bge-m3</code> embedding model on CPU model
+servers, an OGX instance wiring them together, a MaaS facade that exposes both
+models to the wizard through one OpenAI-compatible endpoint, the project
+connections the wizard lists, and the French corpus with its evaluation data
+set.</p>
+</div>
+<div class="paragraph">
+<p><strong>Learning objectives:</strong></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Explain what AutoRAG needs from your models, corpus, and evaluation data when the corpus is not English</p>
+</li>
+<li>
+<p>Stage the demo environment from this workshop&#8217;s additive <code>deploy/</code> manifests</p>
+</li>
+<li>
+<p>Upload a French regulatory corpus and a French evaluation data set to S3-compatible storage</p>
+</li>
+<li>
+<p>Verify every layer of the stack before creating an optimization run</p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+This feature is <strong>Generally Available</strong> in Red Hat OpenShift AI
+3.6. Multi-language support for AutoRAG — non-English corpora,
+multilingual embedding models, and automatic detection of the evaluation
+questions' language — is GA in 3.6.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_exercise_1_what_changes_for_a_non_english_corpus"><a class="anchor" href="#_exercise_1_what_changes_for_a_non_english_corpus"></a>Exercise 1: What changes for a non-English corpus</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>AutoRAG tests combinations of chunking, embedding, retrieval, and generation
+settings and ranks the resulting RAG patterns on a leaderboard. Every layer of
+that loop must speak your corpus&#8217;s language:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Embedding model.</strong> The default English-only embedding models produce weak
+vectors for French text. This workshop deploys <code>BAAI/bge-m3</code>, the multilingual
+embedding model named in the AutoRAG documentation: 100+ languages, dense and
+sparse retrieval, ~1.1 GB of memory (fp16). Mind the dimensions — <code>bge-m3</code>
+produces <strong>1024-dim</strong> vectors, not the 768-dim of the English-only
+<code>granite-embedding-english-r2</code> the standard workshop deploys. The OGX
+<code>defaultEmbeddingModel</code> setting must declare <code>embeddingDimensions: 1024</code> or
+vector-store writes fail.</p>
+</li>
+<li>
+<p><strong>Evaluation data set.</strong> The questions and expected answers must be written in
+your target language. AutoRAG detects the language of the evaluation questions
+automatically; with French questions the LLM-as-judge metrics grade French
+answers against French ground truth.</p>
+</li>
+<li>
+<p><strong>No language selector.</strong> The 3.6 wizard has no evaluation-language setting —
+verified exhaustively against the live wizard (page text, models dialog, metric
+dropdown, both presets) and its JavaScript bundles. Language handling is
+implicit: auto-detection for the judge, your embedding model for retrieval,
+your data for the ground truth. Do not search the UI for a language dropdown —
+spend that effort on the models and data instead.</p>
+</li>
+<li>
+<p><strong>Generation model.</strong> The foundation model must follow instructions in the
+target language. This workshop deploys <code>llama-3.2-3b-instruct</code>, a multilingual
+instruction-tuned model, with tool calling enabled.</p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Budget one target language per run on a CPU-only cluster: every foundation and
+embedding model combination the wizard explores runs inference over your whole
+corpus and evaluation set. This workshop deliberately picks <strong>French only</strong> — a
+single, well-scoped language keeps CPU runtimes tractable.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_verify"><a class="anchor" href="#_verify"></a>Verify</h3>
+<div class="paragraph">
+<p>You can name the multilingual deltas before you touch the cluster: a
+multilingual embedding model with matching <code>embeddingDimensions</code>, an
+evaluation data set in the target language, and automatic question-language
+detection in place of any wizard language setting.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_exercise_2_stage_the_vector_database"><a class="anchor" href="#_exercise_2_stage_the_vector_database"></a>Exercise 2: Stage the vector database</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>AutoRAG requires a <strong>remote</strong> vector database — inline vector databases are not
+supported. The demo stack uses PostgreSQL 16 with the pgvector extension. From
+the root of the workshop assets repository, apply the pgvector manifest:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">cd features/feature-store-automl-autorag/autorag-multilingual/deploy
+oc apply -f pgvector.yaml</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Expected output:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>secret/aml-pgvector-secret created
+configmap/aml-pgvector-init created
+statefulset.apps/aml-pgvector created
+service/aml-pgvector created
+persistentvolumeclaim/aml-pgvector created</pre>
+</div>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>The PVC mount root contains <code>lost+found</code>, and PostgreSQL&#8217;s <code>initdb</code> refuses to
+initialize into a non-empty directory. The manifest therefore sets
+<code>PGDATA=/var/lib/postgresql/data/pgdata</code> — a <strong>subdirectory</strong> of the mounted
+volume. Removing this setting crash-loops the pod.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_verify_2"><a class="anchor" href="#_verify_2"></a>Verify</h3>
+<div class="paragraph">
+<p>Wait for the statefulset, then list the databases:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc wait sts/aml-pgvector -n autorag-ml-demo --for=condition=Ready --timeout=300s
+oc exec -n autorag-ml-demo sts/aml-pgvector -- psql -U ogx -d ogx -c '\l'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Expected output (abridged — real capture):</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>                              List of databases
+   Name    |  Owner   | Encoding |   Collate   |    Ctype    | Access privileges
+-----------+----------+----------+-------------+-------------+-------------------
+ ogx       | ogx      | UTF8     | en_US.UTF-8 | en_US.UTF-8 |
+ ogx_metadata | ogx      | UTF8     | en_US.UTF-8 | en_US.UTF-8 |</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Both databases matter: <code>ogx</code> holds the vector store, <code>ogx_metadata</code> is the
+OGXServer metadata store created by the init ConfigMap.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_exercise_3_deploy_the_models"><a class="anchor" href="#_exercise_3_deploy_the_models"></a>Exercise 3: Deploy the models</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>AutoRAG discovers foundation and embedding models from your OGX instance, and
+foundation models deployed with vLLM <strong>must have tool calling enabled</strong>. Deploy
+the CPU serving runtime first, then the two models, then the connection
+services:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">./setup-runtime.sh autorag-ml-demo
+oc apply -f models-toolcalling.yaml
+oc apply -f embedding-model-bge-m3.yaml
+oc apply -f model-conn-services.yaml</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Expected output (abridged):</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>&gt;&gt; instantiating vllm-cpu-x86-runtime template into project autorag-ml-demo
+servingruntime.serving.kserve.io/vllm-cpu-x86-runtime created
+inferenceservice.serving.kserve.io/aml-llama32-3b created
+inferenceservice.serving.kserve.io/aml-bge-m3 created
+service/aml-llama32-3b-conn created
+service/aml-bge-m3-conn created</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Three teaching points hide in these manifests:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Tool calling.</strong> <code>models-toolcalling.yaml</code> adds
+<code>--enable-auto-tool-choice --tool-call-parser=llama3_json</code> (Llama 3.x family)
+to the model server arguments. Without them the AutoRAG run fails when the
+pipeline calls model tools.</p>
+</li>
+<li>
+<p><strong>CPU memory.</strong> Despite its name, <code>--gpu-memory-utilization</code> controls the
+fraction of the <strong>container memory limit</strong> reserved by the vLLM CPU backend. The
+manifests set it explicitly (0.7 for the LLM, 0.25 for the embedder) — with a
+small limit and the default 0.92, startup fails with "Available memory on node
+0 &#8230;&#8203; is less than desired CPU memory utilization".</p>
+</li>
+<li>
+<p><strong>Embedder sizing.</strong> The bge-m3 settings in <code>embedding-model-bge-m3.yaml</code>
+were earned the hard way on this CPU cluster, and they are the sizing recipe
+to copy: at a 4Gi limit with <code>--gpu-memory-utilization=0.5</code> the engine
+crash-looped at startup (<code>ValueError: Available memory on node 0 (1.41/4.0
+GiB) is less than desired CPU memory utilization (0.5, 2.0 GiB)</code>); raising
+only the limit to 6Gi OOMKilled the container three times during weight load
+(fp32 load spike); <strong>8Gi limit with 0.25 utilization</strong> (2 GiB reserved) came up
+Ready and stayed there.</p>
+</li>
+<li>
+<p><strong>Embedder context window.</strong> Keep <code>--max-model-len</code> at the 4096 the manifest
+ships: the optimization pipeline validates the embedding model&#8217;s served
+context and requires <code>context_length</code> &gt;= 700 (it reads vLLM&#8217;s
+<code>max_model_len</code> minus a small offset). A 512 setting reports 507 and the run
+fails at search-space preparation with <code>ValueError: Embedding model
+aml-bge-m3 supports 'context_length' 507. Minimal required value is 700.</code> —
+a model-serving config defect, not a wizard problem.</p>
+</li>
+<li>
+<p><strong>Connection services.</strong> KServe RawDeployment predictor services are headless
+(ClusterIP <code>None</code>), and <code>podIP:80</code> is refused — the model servers listen on
+<strong>8080</strong>. <code>model-conn-services.yaml</code> creates the two ClusterIP services
+(<code>aml-llama32-3b-conn</code>, <code>aml-bge-m3-conn</code>) that translate to pod port 8080;
+the OGX providers point at these names.</p>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="_verify_3"><a class="anchor" href="#_verify_3"></a>Verify</h3>
+<div class="paragraph">
+<p>Wait for both InferenceServices to become Ready (the first modelcar pull plus
+CPU load takes several minutes):</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc wait inferenceservice/aml-llama32-3b -n autorag-ml-demo --for=condition=Ready --timeout=900s
+oc wait inferenceservice/aml-bge-m3 -n autorag-ml-demo --for=condition=Ready --timeout=900s
+oc get isvc -n autorag-ml-demo</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Expected output:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>NAME             URL                                        READY   UPDATED   UPDATINGAVAILABLE   DEGRADED
+aml-bge-m3       http://aml-bge-m3.autorag-ml-demo.svc.cluster.local   True
+aml-llama32-3b   http://aml-llama32-3b.autorag-ml-demo.svc.cluster.local   True</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If a predictor pod sits in <code>ImagePullBackOff</code> with <code>manifest unknown</code> for the
+vLLM CPU runtime digest, it is a node-level registry resolution issue rather
+than an authoring error — delete the pod so it reschedules onto a node that
+has the image cached.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_exercise_4_install_the_ogx_server"><a class="anchor" href="#_exercise_4_install_the_ogx_server"></a>Exercise 4: Install the OGX server</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The OGXServer wires everything together: the two model endpoints as vLLM
+inference providers, pgvector as the vector I/O provider, and PostgreSQL as
+the metadata store. Apply the manifest (it also creates the labeled base
+ConfigMap and the postgres connection Secret the OGXServer references):</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc apply -f ogxserver.yaml</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Expected output:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>secret/aml-ogx-postgres-conn created
+configmap/aml-ogx-base-config created
+ogxserver.ogx.io/aml-ogx created</pre>
+</div>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Three OGX configuration gotchas are baked into this manifest, and all three
+silently break the AutoRAG wizard when missed:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The base ConfigMap and the postgres Secret must carry the
+<code>ogx.io/watch: "true"</code> label — the operator only watches labeled resources and
+otherwise reports "failed to find referenced base ConfigMap".</p>
+</li>
+<li>
+<p>The pgvector provider must be declared under <code>providers.vector_io</code> — a
+top-level <code>vector_io:</code> key is ignored by the runtime, and the wizard&#8217;s Vector
+I/O provider dropdown renders empty.</p>
+</li>
+<li>
+<p>The pgvector persistence must be the flat
+<code>{backend: kv_default, namespace: pgvector}</code> shape — the nested
+<code>persistence.reference.*</code> shape fails OGX startup with a
+<code>PGVectorVectorIOConfig</code> validation error.</p>
+</li>
+</ul>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_verify_4"><a class="anchor" href="#_verify_4"></a>Verify</h3>
+<div class="paragraph">
+<p>Check the server phase, then confirm the providers the wizard will discover:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get ogxserver aml-ogx -n autorag-ml-demo -o jsonpath='{.status.phase}{"\n"}'
+oc get svc aml-ogx-service -n autorag-ml-demo</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Expected output:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>Ready
+NAME               TYPE        CLUSTER-IP      PORT(S)
+aml-ogx-service    ClusterIP   172.30.x.x      8321/TCP,9464/TCP</pre>
+</div>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc port-forward svc/aml-ogx-service 18321:8321 -n autorag-ml-demo</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In a second terminal:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">curl -s http://127.0.0.1:18321/v1/providers | python3 -m json.tool</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Expected output (abridged — real capture):</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>{
+    "data": [
+        {
+            "provider_id": "vllm-inference",
+            "provider_type": "remote::vllm",
+            "config": { "base_url": "http://aml-llama32-3b-conn.autorag-ml-demo.svc.cluster.local:8080/v1", ... }
+        },
+        {
+            "provider_id": "vllm-embedding",
+            "provider_type": "remote::vllm",
+            "config": { "base_url": "http://aml-bge-m3-conn.autorag-ml-demo.svc.cluster.local:8080/v1", ... }
+        },
+        {
+            "provider_id": "pgvector",
+            "provider_type": "remote::pgvector",
+            "api": "vector_io",
+            "config": { "db": "ogx", "host": "aml-pgvector...", "persistence": {"backend": "kv_default", "namespace": "pgvector"} }
+        }
+    ]
+}</pre>
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p><code>oc wait ogxserver/aml-ogx --for=condition=Ready</code> times out even when the
+server is healthy: this CRD has no condition type named <code>Ready</code> (its condition
+types are <code>ConfigGenerated</code>, <code>DeploymentReady</code>, <code>StorageReady</code>, <code>ServiceReady</code>,
+and <code>HealthCheck</code>). Verify with the <code>.status.phase</code> jsonpath or
+<code>--for=condition=HealthCheck</code> instead.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_exercise_5_register_the_project_connections_and_routes"><a class="anchor" href="#_exercise_5_register_the_project_connections_and_routes"></a>Exercise 5: Register the project connections and routes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The wizard consumes two project connections: a <strong>MaaS connection</strong> in step 1
+(model discovery) and an <strong>S3 connection</strong> in step 2 (knowledge documents). The
+MaaS connection is where multilingual model serving meets the wizard, and it
+needs one component first.</p>
+</div>
+<div class="sect2">
+<h3 id="_stage_the_maas_facade"><a class="anchor" href="#_stage_the_maas_facade"></a>Stage the MaaS facade</h3>
+<div class="paragraph">
+<p>The wizard&#8217;s step-1 <strong>MaaS connection</strong> consumes one OpenAI-compatible base URL
+that serves <strong>both</strong> model types — the foundation model (chat + responses) and
+the embedding model (<code>/v1/models</code> must list both; the dashboard probes
+readiness per model). This OGX build implements only the <code>[inference, models,
+vector_io]</code> APIs: pointed at OGX, the wizard renders every model <code>ready:false</code>
+with disabled checkboxes. The raw vLLM model servers serve everything the
+wizard and the optimization pipeline call, but they are two separate
+endpoints. <code>maas-facade.yaml</code> bridges the gap — a small stdlib reverse proxy
+that merges the two model servers behind one endpoint (<code>/v1/models</code> merged
+listing; chat/completions/responses proxied to the LLM; embeddings proxied to
+<code>bge-m3</code>):</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc apply -f maas-facade.yaml</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Expected output:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>configmap/aml-maas-facade created
+deployment.apps/aml-maas-facade created
+service/aml-maas-facade created
+route.route.openshift.io/aml-maas-facade-tls created</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The manifest also exposes the facade through the edge-TLS route
+aml-maas-facade-tls — the wizard&#8217;s <strong>Add MaaS connection</strong> dialog accepts only
+HTTPS URLs (or localhost HTTP), so in-cluster plain-HTTP service URLs are
+rejected client-side.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_register_the_maas_connection"><a class="anchor" href="#_register_the_maas_connection"></a>Register the MaaS connection</h3>
+<div class="paragraph">
+<p>The wizard&#8217;s step-1 dropdown lists the project&#8217;s <strong>MaaS connections</strong>: Secrets
+with the <code>opendatahub.io/connection-type: maas</code> annotation and
+<code>MAAS_BASE_URL</code> / <code>MAAS_API_KEY</code> data keys:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc apply -f maas-connection.yaml</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Expected output:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>secret/aml-maas-models created</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Two Base URL rules hide in aml-maas-models (both learned from the live
+wizard):</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The value points at the <strong>facade route host</strong> and must <strong>not</strong> end in <code>/v1</code> —
+the dashboard backend appends <code>/v1</code> itself. A <code>/v1</code>-suffixed
+<code>MAAS_BASE_URL</code> makes it call <code>&lt;host&gt;/v1/v1/models</code>, which returns 404 and
+the wizard shows "Failed to load MaaS models".</p>
+</li>
+<li>
+<p>Only HTTPS passes the dialog&#8217;s client-side validation — hence the edge-TLS
+route rather than the in-cluster service URL.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_register_the_s3_connection_and_the_optional_ogx_route"><a class="anchor" href="#_register_the_s3_connection_and_the_optional_ogx_route"></a>Register the S3 connection (and the optional OGX route)</h3>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc apply -f data/s3-connection.yaml
+oc apply -f ogx-connection.yaml
+oc apply -f ogx-connection-wizard-keys.yaml
+oc apply -f ogx-route.yaml</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Expected output:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>secret/aml-s3-connection created
+secret/aml-ogx-connection created
+secret/aml-ogx-connection configured
+route.route.openshift.io/aml-ogx-tls created</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The S3 connection (annotation <code>opendatahub.io/connection-type: s3</code>) is the
+step-2 knowledge source. The OGX connection files register an <strong>OGX-typed</strong>
+Secret for direct OGX API clients — honest note: on this 3.6 build the
+AutoRAG wizard does <strong>not</strong> consume OGX-typed Secrets (its step-1 dropdown
+listed only the MaaS connection while this Secret was present in the
+project); the files are kept for OGX clients and parity with the parent
+English workshop. <code>ogx-route.yaml</code> exposes the OGX server through the
+edge-TLS route <code>aml-ogx-tls</code> for those clients.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_verify_5"><a class="anchor" href="#_verify_5"></a>Verify</h3>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get secret aml-maas-models -n autorag-ml-demo \
+  -o jsonpath='{.metadata.annotations.opendatahub\.io/connection-type}{"\n"}'
+oc get secret aml-maas-models -n autorag-ml-demo \
+  -o jsonpath='{.data.MAAS_BASE_URL}' | base64 -d
+oc get secret aml-s3-connection -n autorag-ml-demo \
+  -o jsonpath='{.data.AWS_S3_BUCKET}{"\n"}' | base64 -d
+oc get secret aml-ogx-connection -n autorag-ml-demo \
+  -o jsonpath='{.metadata.annotations.opendatahub\.io/connection-type}{"\n"}'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Expected output:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>maas
+https://aml-maas-facade-tls-autorag-ml-demo.apps.ocp5-m6wl4-2plgg.sandbox1832.opentlc.com
+autorag-ml-corpus
+ogx</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The MaaS base URL ends at the route host — no <code>/v1</code> suffix. Now check the
+exact endpoint the wizard&#8217;s model discovery will call:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">curl -sk "https://$(oc get route aml-maas-facade-tls -n autorag-ml-demo \
+  -o jsonpath='{.spec.host}')/v1/models" | python3 -m json.tool</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Expected output (abridged — real capture):</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>{
+    "object": "list",
+    "data": [
+        { "id": "aml-llama32-3b", "object": "model", "owned_by": "vllm", "ready": true },
+        { "id": "aml-bge-m3", "object": "model", "owned_by": "vllm", "ready": true }
+    ]
+}</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Both models listed with <code>ready: true</code> is the go signal for the wizard — a
+missing embedding model or any <code>ready: false</code> here means the models dialog in
+<a href="module-02-hands-on.html" class="xref page">Module 02</a> renders empty or disabled.</p>
+</div>
+<div class="paragraph">
+<p>The S3 connection manifest also declares <code>AWS_DEFAULT_REGION</code> — without that
+key the wizard&#8217;s storage filter fails with <code>Required key "AWS_DEFAULT_REGION"
+is not set</code> and <strong>Create run</strong> stays disabled.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_exercise_6_enable_the_pipeline_server"><a class="anchor" href="#_exercise_6_enable_the_pipeline_server"></a>Exercise 6: Enable the pipeline server</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>AutoRAG launches the optimization run as a Kubeflow pipeline in the project&#8217;s
+pipeline server, so the project needs a DataSciencePipelinesApplication with
+the AutoML and AutoRAG managed pipelines enabled (<code>spec.apiServer.
+managedPipelines: {}</code>):</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc apply -f dspa.yaml</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Expected output:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>datasciencepipelinesapplication.datasciencepipelinesapplications.opendatahub.io/aml-dspa created</pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>The DSPA stores its pipeline artifacts in MinIO (bucket <code>aml-pipelines</code>,
+credentials in the <code>aml-minio-creds</code> secret) — stage that secret and bucket
+before the first run. The French corpus bucket <code>autorag-ml-corpus</code> from the
+next exercise is a different, wizard-facing bucket.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_verify_6"><a class="anchor" href="#_verify_6"></a>Verify</h3>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc wait dspa/aml-dspa -n autorag-ml-demo --for=condition=Ready --timeout=600s
+oc get dspa -n autorag-ml-demo</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Expected output:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>NAME       READY   AGE
+aml-dspa   True    5m</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_exercise_7_upload_the_french_corpus_and_evaluation_data_set"><a class="anchor" href="#_exercise_7_upload_the_french_corpus_and_evaluation_data_set"></a>Exercise 7: Upload the French corpus and evaluation data set</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The Knowledge documents live in the <code>autorag-ml-corpus</code> bucket under the
+<code>fed-aura-fr/</code> folder prefix (multiple documents belong in a single folder):</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>banque-aura-politique-reglementaire.md</code> — a French regulatory policy
+compendium for the fictive <strong>Banque Aura Fédérale S.A.</strong>: six parts covering
+DORA, MiFID II product governance, CSRD ESG data collection, third-party ICT
+providers, risk appetite, and AML/KYC, with ACPR/AMF French-regulatory
+detail and threshold tables.</p>
+</li>
+<li>
+<p><code>eval-dataset-fr.json</code> — ten French questions in the wizard format, each
+with expected answers verbatim-derivable from the corpus.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The upload script reads MinIO credentials at runtime (never printed),
+port-forwards to the object storage service, uploads both files, lists the
+prefix, and round-trip-verifies each object byte-for-byte:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">cd data
+./upload-data-fr.sh</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Expected output (abridged — real capture):</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>=== upload to s3://autorag-ml-corpus/fed-aura-fr/ ===
+uploading fed-aura-fr/banque-aura-politique-reglementaire.md  (82522 bytes local)
+uploading fed-aura-fr/eval-dataset-fr.json  (8132 bytes local)
+=== listing s3://autorag-ml-corpus/fed-aura-fr/ ===
+fed-aura-fr/banque-aura-politique-reglementaire.md
+fed-aura-fr/eval-dataset-fr.json
+=== round-trip verification (GET each object, compare byte length) ===
+  OK       fed-aura-fr/banque-aura-politique-reglementaire.md  HTTP 200  remote 82,522 B / local 82,522 B
+  OK       fed-aura-fr/eval-dataset-fr.json  HTTP 200  remote 8,132 B / local 8,132 B
+fed-aura-fr upload complete: FRENCH corpus + eval dataset in s3://autorag-ml-corpus/fed-aura-fr/</pre>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_verify_7"><a class="anchor" href="#_verify_7"></a>Verify</h3>
+<div class="paragraph">
+<p>Validate the evaluation data set is well-formed JSON and that every document
+key matches the uploaded corpus file name exactly:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">python3 -m json.tool data/eval-dataset-fr.json | head -12
+python3 -c "import json;print({q['correct_answer_document_keys'][0] for q in json.load(open('data/eval-dataset-fr.json'))})"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Expected output:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>[
+    {
+        "question": "Quelles sont les clauses contractuelles obligatoires exigées par l'article 30 de DORA ...",
+        "correct_answers": [...],
+        "correct_answer_document_keys": ["banque-aura-politique-reglementaire.md"]
+    },
+    ...
+]
+{'banque-aura-politique-reglementaire.md'}</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>A <code>json.decoder.JSONDecodeError</code> means the file has a syntax error to fix, and
+any document key that does not match the uploaded file name exactly will not
+score.</p>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>The 3.6 evaluation-data schema is strict: each record must contain <strong>exactly</strong>
+the keys <code>question</code>, <code>correct_answers</code>, and <code>correct_answer_document_keys</code>.
+The parent English workshop&#8217;s dataset uses the older
+<code>correct_answer_document_ids</code> key — on this build that fails the run at the
+load-benchmark stage with <code>TestDataLoaderError: Incorrect or incomplete keys
+in test data record at index 0. Each record must contain exactly:
+['correct_answer_document_keys', 'correct_answers', 'question']</code>. If you
+adapt the parent dataset, rename the key first.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>With the environment staged and the French data in place, you are ready to
+create the optimization run that consumes it.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_module_summary"><a class="anchor" href="#_module_summary"></a>Module summary</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><strong>What you accomplished:</strong></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Staged pgvector with the <code>PGDATA</code> subdirectory setting, a tool-calling foundation model, the multilingual <code>bge-m3</code> embedding model, the OGX server wiring them together, and the MaaS facade exposing both models to the wizard</p>
+</li>
+<li>
+<p>Registered the wizard-shaped MaaS and S3 connections, exposed the facade and OGX through edge-TLS routes, and enabled the project pipeline server</p>
+</li>
+<li>
+<p>Uploaded the French corpus and the French evaluation data set and verified them end to end</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><strong>Key takeaways:</strong></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Multilingual AutoRAG starts at the embedding layer: <code>bge-m3</code> (1024-dim, 100+ languages) replaces the English-only default, and <code>embeddingDimensions</code> must match</p>
+</li>
+<li>
+<p>The wizard is strict about shapes: <code>ogx.io/watch</code> labels, <code>providers.vector_io</code>, flat pgvector persistence, <code>opendatahub.io/connection-type</code> annotations (<code>maas</code> with <code>MAAS_BASE_URL</code>, <code>s3</code>), and <code>AWS_DEFAULT_REGION</code> each gate a dropdown or button in the UI</p>
+</li>
+<li>
+<p>The evaluation data set is the language contract: French questions, French expected answers, and the exact <code>correct_answer_document_keys</code> document keys</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><strong>Next steps:</strong></p>
+</div>
+<div class="paragraph">
+<p>Continue to <a href="module-02-hands-on.html" class="xref page">Module 02</a> to create the French
+optimization run in the wizard and evaluate the leaderboard.</p>
+</div>
+</div>
+</div>
+<nav class="pagination">
+  <span class="prev"><a href="getting-connected.html" class="query-params-link">Getting Connected</a></span>
+  <span class="next"><a href="module-02-hands-on.html" class="query-params-link">Hands-on Exercise</a></span>
+</nav>
+</article>
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>  </div>
+</main>
+</div>
+<footer class="footer">
+  <a href="https://demo.redhat.com" target="_blank" class="poweredBy"><p>Powered by</p><div class="labInfo_poweredBy" style="display: block; width: 260px;"><svg class="labInfo_poweredByLogo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1508.5 178.739"><g fill="#111"><path d="M316.6 63.2v-56H342a21.279 21.279 0 0 1 7.8 1.3 18.111 18.111 0 0 1 5.9 3.5 15.577 15.577 0 0 1 5 11.8 15.051 15.051 0 0 1-3.1 9.5 16.836 16.836 0 0 1-8.4 5.8l12.5 24.1h-9.3l-11.6-23H325v23Zm24.7-48.6H325v18.7h16.3q5.25 0 8.1-2.7a8.7 8.7 0 0 0 2.8-6.6 8.7 8.7 0 0 0-2.8-6.6c-1.8-1.9-4.5-2.8-8.1-2.8ZM364.1 42.8a20.674 20.674 0 0 1 1.6-8.2 20.288 20.288 0 0 1 4.3-6.7 19.92 19.92 0 0 1 6.5-4.5 19.718 19.718 0 0 1 8-1.6 18.463 18.463 0 0 1 7.8 1.6 18.677 18.677 0 0 1 6.2 4.5 20.927 20.927 0 0 1 4.1 6.8 23.2 23.2 0 0 1 1.5 8.4v2.3H372a13.822 13.822 0 0 0 4.6 8.4 13.6 13.6 0 0 0 9.1 3.3 15.553 15.553 0 0 0 5.7-1 12.858 12.858 0 0 0 4.6-2.6l5.1 5a25.983 25.983 0 0 1-7.4 4.1 24.69 24.69 0 0 1-8.4 1.3 21.306 21.306 0 0 1-8.4-1.6 22.763 22.763 0 0 1-6.8-4.4 20.788 20.788 0 0 1-4.5-6.7 23.2 23.2 0 0 1-1.5-8.4Zm20.2-14.2a11.527 11.527 0 0 0-8 3 13.046 13.046 0 0 0-4.2 7.8h24.2a13.091 13.091 0 0 0-4.2-7.8 11.106 11.106 0 0 0-7.8-3ZM443.1 63.2v-3.8a19.448 19.448 0 0 1-5.8 3.3 18.924 18.924 0 0 1-6.7 1.2 19.824 19.824 0 0 1-14.6-6.1 22.268 22.268 0 0 1-4.4-6.7 21.812 21.812 0 0 1 0-16.4A20.534 20.534 0 0 1 416 28a19.335 19.335 0 0 1 6.6-4.5 20.334 20.334 0 0 1 8.2-1.6 20.7 20.7 0 0 1 6.6 1 19.415 19.415 0 0 1 5.7 3V7.2l8-1.8v57.8Zm-25.2-20.4a13.718 13.718 0 0 0 4 10.1 13.45 13.45 0 0 0 9.8 4.1 14.956 14.956 0 0 0 6.4-1.3 15.954 15.954 0 0 0 4.9-3.6V33.6a14.988 14.988 0 0 0-4.9-3.5 15.271 15.271 0 0 0-6.4-1.3 13.423 13.423 0 0 0-9.9 4 13.806 13.806 0 0 0-3.9 10ZM478.1 63.2v-56h8.4v24h29.8v-24h8.4v56h-8.4V38.8h-29.8v24.4ZM547.2 64a16.483 16.483 0 0 1-10.8-3.5 11.037 11.037 0 0 1-4.2-8.9 10.375 10.375 0 0 1 4.7-9.2 20.76 20.76 0 0 1 11.8-3.2 27.841 27.841 0 0 1 5.8.6 27.374 27.374 0 0 1 5.3 1.6v-4.3a8.143 8.143 0 0 0-2.6-6.5 11.452 11.452 0 0 0-7.4-2.2 20.788 20.788 0 0 0-6 .9 34.616 34.616 0 0 0-6.6 2.6l-3-6a54.169 54.169 0 0 1 8.4-3.1 33.18 33.18 0 0 1 8.3-1.1c5.2 0 9.3 1.3 12.2 3.8s4.4 6.1 4.4 10.8v27h-7.8v-3.5a19.441 19.441 0 0 1-5.8 3.2 23.54 23.54 0 0 1-6.7 1Zm-7.3-12.6a5.646 5.646 0 0 0 2.6 4.8 11.193 11.193 0 0 0 6.6 1.8 16.256 16.256 0 0 0 5.9-1 14.449 14.449 0 0 0 4.9-2.9V47a19.778 19.778 0 0 0-4.8-1.8 24.933 24.933 0 0 0-5.7-.6 11.859 11.859 0 0 0-6.8 1.8 5.728 5.728 0 0 0-2.7 5ZM580.6 53.2v-24H572v-6.7h8.6V12.1l7.9-1.9v12.3h12v6.7h-12v22.1a5.94 5.94 0 0 0 1.4 4.4c.9.9 2.5 1.3 4.6 1.3a23.637 23.637 0 0 0 3-.2 10.857 10.857 0 0 0 2.8-.8v6.7a19.28 19.28 0 0 1-3.8.9 27.484 27.484 0 0 1-3.8.3c-3.9 0-7-.9-9-2.8-2-1.7-3.1-4.4-3.1-7.9Z"></path></g><path d="M127 90.2c12.5 0 30.6-2.6 30.6-17.5a12.678 12.678 0 0 0-.3-3.4L149.8 37c-1.7-7.1-3.2-10.3-15.7-16.6-9.7-5-30.8-13.1-37.1-13.1-5.8 0-7.5 7.5-14.4 7.5-6.7 0-11.6-5.6-17.9-5.6-6 0-9.9 4.1-12.9 12.5 0 0-8.4 23.7-9.5 27.2a4.216 4.216 0 0 0-.3 1.9c0 9.2 36.3 39.4 85 39.4Zm32.5-11.4c1.7 8.2 1.7 9.1 1.7 10.1 0 14-15.7 21.8-36.4 21.8-46.8 0-87.7-27.4-87.7-45.5a17.535 17.535 0 0 1 1.5-7.3C21.8 58.8 0 61.8 0 81c0 31.5 74.6 70.3 133.7 70.3 45.3 0 56.7-20.5 56.7-36.6-.1-12.8-11-27.3-30.9-35.9Z" fill="#e00"></path><path d="M159.5 78.8c1.7 8.2 1.7 9.1 1.7 10.1 0 14-15.7 21.8-36.4 21.8-46.8 0-87.7-27.4-87.7-45.5a17.535 17.535 0 0 1 1.5-7.3l3.7-9.1a4.877 4.877 0 0 0-.3 2c0 9.2 36.3 39.4 85 39.4 12.5 0 30.6-2.6 30.6-17.5a12.678 12.678 0 0 0-.3-3.4Z"></path><path d="M253.5 158.7a2.22 2.22 0 0 1-2.2-2.2V2.2a2.2 2.2 0 0 1 4.4 0v154.2a2.242 2.242 0 0 1-2.2 2.3Z" fill="#111"></path><text data-name="Demo Platform" transform="translate(1186 149)" fill="#111" font-size="82" font-family="'RedHatDisplay', 'Overpass', overpass, helvetica, arial, sans-serif" font-weight="700"><tspan x="-877.892" y="0">Demo Platform</tspan></text></svg></div></div>
+</footer>
+<script defer src="../_/js/vendor/clipboard.js"></script>
+<script defer src="../_/js/site.js"></script>
+<script defer src="../_/js/vendor/highlight.js"></script>
+  <style>
+/* left align items inside imageblock */
+.doc .imageblock {
+    align-items: flex-start;
+  }
+
+/* add a shadow to the image container */
+.doc .bordershadow .content{
+    border: solid 1px black;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+}
+
+/*custom video css*/
+video {
+    border: solid 1px black;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+}
+
+/* allow for wider screens */
+.doc {
+    max-width: none;
+}
+
+.navbar-item-right-dropdown {
+    float: right!important;
+}
+
+.navbar-dropdown-right {
+    right: 0;
+    left: auto;
+}
+
+.navbar-item-right-content {
+    width: 100%;
+    background-color: #131313;
+}
+
+/* ── Send-to button ─────────────────────────────────── */
+.listingblock { position: relative; }
+.send-to-command-btn {
+  position: absolute; top: 0.5rem; right: 0.5rem;
+  background: #28a745; color: white; border: none; border-radius: 4px;
+  padding: 0.5rem 1rem; font-size: 0.875rem; font-weight: 600;
+  cursor: pointer; transition: all 0.2s; z-index: 100;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2); opacity: 0.3;
+}
+.send-to-command-btn:hover { background: #218838; transform: translateY(-2px); opacity: 1; }
+.send-to-command-btn.success { background: #27ae60; }
+.send-to-command-btn.copied { background: #3498db; }
+.listingblock pre.send-to { padding-top: 3rem !important; }
+
+</style>
+<script>
+(function () {
+  'use strict';
+
+  // ── Send-to Terminal ──────────────────────────────────────────────────────
+  function initSendTo() {
+    document.querySelectorAll('[class*="send-to-"]').forEach(function (block) {
+      if (block.dataset.sendToButtonAdded) return;
+      var listingBlock = block.closest('.listingblock');
+      if (!listingBlock) return;
+
+      var targetClass = Array.from(block.classList).find(function (c) { return /^send-to-.+/.test(c); });
+      if (!targetClass) return;
+      var targetPath = '/' + targetClass.replace('send-to-', '');
+
+      var btn = document.createElement('button');
+      btn.className = 'send-to-command-btn';
+      btn.title = 'Send to ' + targetPath;
+      btn.innerHTML = '▶';
+      btn.onclick = function () {
+        var cmd = (block.querySelector('code') || block).textContent.trim();
+        sendToTerminal(cmd, btn, targetPath);
+      };
+      listingBlock.appendChild(btn);
+      block.dataset.sendToButtonAdded = 'true';
+    });
+  }
+
+  function findFrame(targetPath) {
+    try {
+      if (!window.parent || window.parent === window) return null;
+      var frames = window.parent.document.querySelectorAll('iframe');
+      for (var i = 0; i < frames.length; i++) {
+        if ((frames[i].src || '').indexOf(targetPath) !== -1) return frames[i];
+      }
+    } catch (e) {}
+    return null;
+  }
+
+  function sendToTerminal(command, button, targetPath) {
+    var frame = findFrame(targetPath);
+    var original = button.innerHTML;
+    if (!frame) {
+      alert('Cannot find terminal at ' + targetPath + ' in this showroom.\nCheck ui-config.yml has a tab with ' + targetPath + ' URL.');
+      return;
+    }
+
+    if (targetPath === '/terminal') {
+      ensureTerminalListener(frame);
+    }
+
+    frame.contentWindow.postMessage({ type: 'execute', data: command + '\r' }, '*');
+    button.classList.add('success'); button.innerHTML = '✓ Sent!';
+    setTimeout(function () { button.classList.remove('success'); button.innerHTML = original; }, 2000);
+  }
+
+  function ensureTerminalListener(frame) {
+    if (frame.dataset.listenerInjected) return;
+
+    var listenerScript = `
+(function() {
+  if (window.__terminalListenerInstalled) return;
+  window.__terminalListenerInstalled = true;
+
+  window.addEventListener("message", function(event) {
+    if (event.data && event.data.type === "execute") {
+      var command = event.data.data;
+      var term = window.term;
+
+      if (term) {
+        command = command.replace(/[\\r\\n]+$/, "");
+
+        if (window.client && typeof window.client.sendData === 'function') {
+          window.client.sendData(command + '\\r');
+          return;
+        }
+
+        if (term._core && term._core.coreService && term._core.coreService._inputHandler) {
+          for (var i = 0; i < command.length; i++) {
+            term._core.coreService._inputHandler.parse(command[i]);
+          }
+          term._core.coreService._inputHandler.parse('\\r');
+          return;
+        }
+
+        if (term._core && term._core._onData) {
+          term._core._onData.fire(command + '\\r');
+          return;
+        }
+
+        term.write(command + '\\r\\n');
+      }
+    }
+  }, false);
+})();`;
+
+    try {
+      var script = frame.contentWindow.document.createElement('script');
+      script.textContent = listenerScript;
+      frame.contentWindow.document.body.appendChild(script);
+      frame.dataset.listenerInjected = 'true';
+    } catch (e) {
+      console.error('Failed to inject terminal listener:', e);
+    }
+  }
+
+  // ── Copy-to-parent (plugin integration) ──────────────────────────────────
+  function initCopyToParent() {
+    if (window.parent === window) return;
+
+    document.addEventListener('click', function (e) {
+      var btn = e.target.closest('.copypaste .clipboard, .copypaste button[title="Copy"]');
+      if (!btn) return;
+      var listing = btn.closest('.listingblock');
+      if (!listing) return;
+      var code = listing.querySelector('pre code');
+      if (!code) return;
+      window.parent.postMessage({ type: 'copy', text: code.textContent.trim() }, '*');
+    });
+  }
+
+  // ── Boot ──────────────────────────────────────────────────────────────────
+  function init() { initSendTo(); initCopyToParent(); }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+
+})();
+
+</script>
+</body>
+</html>

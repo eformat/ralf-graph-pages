@@ -128,6 +128,22 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">AutoRAG Multilingual Workshop</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../autorag-multilingual/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">AutoRAG OCR Document Ingestion</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../autorag-ocr-ingestion/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Claude Code agent starter kit</span>
       <ul class="versions">
         <li class="version">
@@ -384,6 +400,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Native Prometheus telemetry for Kubeflow Trainer v2 training workloads</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../kftv2-prometheus-telemetry/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">NeMo Guardrails</span>
       <ul class="versions">
         <li class="version">
@@ -480,6 +504,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Speculator training pipeline for Kubeflow Pipelines</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../speculator-training-kfp/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Text-mode training for multimodal models in Training Hub</span>
       <ul class="versions">
         <li class="version">
@@ -548,21 +580,6 @@
 <h1 class="page">Welcome to the Validated tool-calling configuration in Model Catalog Workshop</h1>
 <div id="preamble">
 <div class="sectionbody">
-<div class="admonitionblock warning">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-warning" title="Warning"></i>
-</td>
-<td class="content">
-This feature is a <strong>Technology Preview</strong>. Technology Preview features are
-not supported with Red Hat production service-level agreements (SLAs) and might
-not be functionally complete. The dashboard flag, UI panels, and example model
-defaults shown in this workshop may change between releases.
-</td>
-</tr>
-</table>
-</div>
 <div class="paragraph">
 <p>This workshop introduces <strong>Validated tool-calling configuration in Model Catalog</strong>.
 The model catalog displays validated vLLM deployment arguments for models with
@@ -575,13 +592,16 @@ the first time, without guessing at runtime arguments.</p>
 <div class="ulist">
 <ul>
 <li>
-<p>What validated tool-calling configuration does and where it fits in RHOAI 3.5</p>
+<p>What validated tool-calling configuration does and where it fits in RHOAI 3.6</p>
 </li>
 <li>
 <p>How to enable the feature with the <code>spec.dashboardConfig.toolCalling</code> flag in the <code>OdhDashboardConfig</code> custom resource</p>
 </li>
 <li>
-<p>How to find and copy the exact <code>vllm serve</code> arguments from the Validated Arguments section and Tool Calling panel on a model details page</p>
+<p>How to locate models with confirmed tool-calling support using the <strong>Validated arguments</strong> &gt; <strong>Tool calling</strong> catalog filter</p>
+</li>
+<li>
+<p>How to copy the validated <code>vllm serve</code> runtime command for a model from the <strong>Runtime command</strong> popover on its <strong>Performance insights</strong> tab</p>
 </li>
 <li>
 <p>How to validate a model&#8217;s tool-calling accuracy on your own MCP tools with the SDG Hub MCP evaluation pipeline</p>
@@ -596,7 +616,7 @@ the first time, without guessing at runtime arguments.</p>
 <div class="ulist">
 <ul>
 <li>
-<p>An OpenShift cluster with RHOAI 3.5 installed</p>
+<p>An OpenShift cluster with RHOAI 3.6 installed</p>
 </li>
 <li>
 <p>Cluster administrator access (required to update the <code>OdhDashboardConfig</code> custom resource)</p>

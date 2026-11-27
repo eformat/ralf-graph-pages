@@ -132,6 +132,22 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">AutoRAG Multilingual Workshop</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../autorag-multilingual/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">AutoRAG OCR Document Ingestion</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../autorag-ocr-ingestion/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Claude Code agent starter kit</span>
       <ul class="versions">
         <li class="version">
@@ -388,6 +404,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Native Prometheus telemetry for Kubeflow Trainer v2 training workloads</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../kftv2-prometheus-telemetry/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">NeMo Guardrails</span>
       <ul class="versions">
         <li class="version">
@@ -480,6 +504,14 @@
       <ul class="versions">
         <li class="version">
           <a href="../home/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Speculator training pipeline for Kubeflow Pipelines</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../speculator-training-kfp/index.html">default</a>
         </li>
       </ul>
     </li>
@@ -924,24 +956,62 @@ evalhub config set token $TOKEN</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Expected output is a tabular view of benchmark metrics:</p>
+<p>The following tabular view is as captured from the workshop cluster (2026-11-27)
+for the <code>quick</code> garak scan of the <code>Qwen/Qwen2.5-0.5B-Instruct</code> endpoint submitted
+in Exercise 3 — columns: BENCHMARK, PROVIDER, METRIC, VALUE:</p>
 </div>
 </li>
 </ol>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>BENCHMARK             PROVIDER   METRIC               VALUE
-quick                 garak      attack_success_rate  0.0</pre>
+<pre>BENCHMARK   PROVIDER   METRIC               VALUE
+quick       garak      attack_success_rate  1
+quick       garak      dan.Dan_11_0_asr     1</pre>
 </div>
+</div>
+<div class="paragraph">
+<p>+
+An <code>attack_success_rate</code> of <code>1</code> means every attack in the single-probe DAN scan
+(<code>dan.Dan_11_0</code>) succeeded — the model returned a jailbreak-compliant answer, so
+the probe <code>FAILED</code> against the benchmark&#8217;s <code>0.3</code> pass threshold. Lower is better:
+<code>0.0</code> would mean no attacks succeeded, and scores above <code>0.3</code> indicate significant
+vulnerability. For an unaligned 0.5B model this is the expected outcome, and it
+demonstrates that the generated evaluation data carries a meaningful safety
+signal rather than a placeholder score.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>The garak runner applies a fixed <code>300s</code> timeout to the <code>quick</code> scan profile — the
+runner log records <code>Using timeout=300s for benchmark=quick</code>, and
+<code>submit_evaluation</code> exposes no timeout override parameter. The captured scan
+completed its single DAN probe in ~33s and reported results in 36.49s (the
+underlying Kubernetes job finished in 113s), so the timeout never binds when the
+model endpoint is responsive. If a scan instead hangs at <code>0/1 Preparing prompts</code>
+and fails with <code>RuntimeError: Scan timed out after 300 seconds</code>, point the
+evaluation at a verified-fast OpenAI-compatible endpoint — earlier workshop runs
+against a cold, slower endpoint failed exactly this way and remain visible as
+<code>failed</code> jobs in <code>evalhub eval status</code>.</p>
+</div>
+</td>
+</tr>
+</table>
 </div>
 <div class="sect2">
 <h3 id="_verify_4"><a class="anchor" href="#_verify_4"></a>Verify</h3>
 <div class="paragraph">
 <p><code>evalhub eval results &lt;job_id&gt; --format table</code> lists the benchmark metrics for the
 job the agent submitted, and the metrics match the values the agent interpreted in
-Exercise 3. If a job failed, run <code>evalhub eval status &lt;job_id&gt; --format=json</code> to
-view the error message.</p>
+Exercise 3 — as captured, <code>attack_success_rate 1</code> with the per-probe
+<code>dan.Dan_11_0_asr 1</code>. <code>evalhub eval status &lt;job_id&gt;</code> shows the job <code>completed</code>
+with <code>quick (garak): completed</code>. If a job failed, run
+<code>evalhub eval status &lt;job_id&gt; --format=json</code> to view the error message.</p>
 </div>
 </div>
 </div>

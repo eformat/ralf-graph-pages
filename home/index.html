@@ -50,6 +50,9 @@
     <a class="nav-link" href="learning-paths.html">Learning Paths</a>
   </li>
   <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="quality-dashboard.html">Quality Dashboard</a>
+  </li>
+  <li class="nav-item" data-depth="1">
     <a class="nav-link" href="cluster-setup.html">Cluster Setup</a>
   </li>
 </ul>
@@ -106,6 +109,22 @@
       <ul class="versions">
         <li class="version">
           <a href="../autorag/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">AutoRAG Multilingual Workshop</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../autorag-multilingual/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">AutoRAG OCR Document Ingestion</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../autorag-ocr-ingestion/index.html">default</a>
         </li>
       </ul>
     </li>
@@ -366,6 +385,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Native Prometheus telemetry for Kubeflow Trainer v2 training workloads</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../kftv2-prometheus-telemetry/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">NeMo Guardrails</span>
       <ul class="versions">
         <li class="version">
@@ -458,6 +485,14 @@
       <ul class="versions">
         <li class="version is-current">
           <a href="index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Speculator training pipeline for Kubeflow Pipelines</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../speculator-training-kfp/index.html">default</a>
         </li>
       </ul>
     </li>
@@ -602,7 +637,7 @@ the kustomize <code>cluster/</code> config and which overlays each lab needs.</p
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="../opencode-coding-agent/index.html" class="xref page">OpenCode coding-agent deployment</a></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">TP</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="../opencode-coding-agent/index.html" class="xref page">Start →</a></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="../opencode-coding-agent/_attachments/opencode-coding-agent-demo.html" target="_blank" rel="noopener">▶ Walkthrough</a></p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="../validated-tool-calling-config/index.html" class="xref page">Validated tool-calling configuration in Model Catalog</a></p></td>
@@ -783,6 +818,24 @@ the kustomize <code>cluster/</code> config and which overlays each lab needs.</p
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="../kubeflow-trainer-v2/index.html" class="xref page">Start →</a></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="../kubeflow-trainer-v2/_attachments/kubeflow-trainer-v2-demo.html" target="_blank" rel="noopener">▶ Walkthrough</a></p></td>
 </tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#grpo-training-pipelines::index.adoc" class="xref unresolved">AI Pipelines for GRPO training (full fine-tuning + LoRA)</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">GA</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#grpo-training-pipelines::index.adoc" class="xref unresolved">Start →</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="../grpo-training-pipelines/_attachments/grpo-training-pipelines-demo.html" target="_blank" rel="noopener">▶ Walkthrough</a></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="../kftv2-prometheus-telemetry/index.html" class="xref page">Native Prometheus telemetry for Kubeflow Trainer v2 training workloads</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">GA</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="../kftv2-prometheus-telemetry/index.html" class="xref page">Start →</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="../kftv2-prometheus-telemetry/_attachments/kftv2-prometheus-telemetry-demo.html" target="_blank" rel="noopener">▶ Walkthrough</a></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="../speculator-training-kfp/index.html" class="xref page">Speculator training pipeline for Kubeflow Pipelines (RHAISTRAT-2546)</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">GA</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="../speculator-training-kfp/index.html" class="xref page">Start →</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="../speculator-training-kfp/_attachments/speculator-training-kfp-demo.html" target="_blank" rel="noopener">▶ Walkthrough</a></p></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -817,6 +870,12 @@ the kustomize <code>cluster/</code> config and which overlays each lab needs.</p
 <td class="tableblock halign-left valign-top"><p class="tableblock">GA</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="../evalhub/index.html" class="xref page">Start →</a></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#eval-insights-model-library::index.adoc" class="xref unresolved">Evaluation Insights Tab in Model Library (reuses EvalHub UI components)</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">GA</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#eval-insights-model-library::index.adoc" class="xref unresolved">Start →</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="../eval-insights-model-library/_attachments/eval-insights-model-library-demo.html" target="_blank" rel="noopener">▶ Walkthrough</a></p></td>
 </tr>
 </tbody>
 </table>
@@ -858,6 +917,12 @@ the kustomize <code>cluster/</code> config and which overlays each lab needs.</p
 <td class="tableblock halign-left valign-top"><p class="tableblock">TP</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="../autorag/index.html" class="xref page">Start →</a></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="../autorag/_attachments/autorag-demo.html" target="_blank" rel="noopener">▶ Walkthrough</a></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="../autorag-multilingual/index.html" class="xref page">Multi-Lingual Support for AutoRAG</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">GA</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="../autorag-multilingual/index.html" class="xref page">Start →</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="../autorag-multilingual/_attachments/autorag-multilingual-demo.html" target="_blank" rel="noopener">▶ Walkthrough</a></p></td>
 </tr>
 </tbody>
 </table>

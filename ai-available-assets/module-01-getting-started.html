@@ -129,6 +129,22 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">AutoRAG Multilingual Workshop</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../autorag-multilingual/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">AutoRAG OCR Document Ingestion</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../autorag-ocr-ingestion/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Claude Code agent starter kit</span>
       <ul class="versions">
         <li class="version">
@@ -385,6 +401,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Native Prometheus telemetry for Kubeflow Trainer v2 training workloads</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../kftv2-prometheus-telemetry/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">NeMo Guardrails</span>
       <ul class="versions">
         <li class="version">
@@ -481,6 +505,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Speculator training pipeline for Kubeflow Pipelines</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../speculator-training-kfp/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Text-mode training for multimodal models in Training Hub</span>
       <ul class="versions">
         <li class="version">
@@ -560,10 +592,10 @@ configuration such as MCP servers flows into the page.</p>
 <div class="ulist">
 <ul>
 <li>
-<p>Explain the role of the AI Available Assets page in RHOAI 3.5</p>
+<p>Explain the role of the AI Available Assets page in RHOAI 3.6</p>
 </li>
 <li>
-<p>Navigate to the AI asset endpoints page and identify its asset categories</p>
+<p>Navigate to the AI asset endpoints page and identify its four asset tabs</p>
 </li>
 <li>
 <p>Publish an MCP server into the available assets with a ConfigMap</p>
@@ -578,7 +610,10 @@ configuration such as MCP servers flows into the page.</p>
 <div class="paragraph">
 <p>The AI Available Assets page — shown in the dashboard as <strong>AI asset endpoints</strong> —
 is a central view of the generative AI assets that are available for you to use
-within your project. It organizes assets into two categories:</p>
+within your project. The page presents its assets in four tabs — <strong>Models</strong>,
+<strong>MCP servers</strong>, <strong>Vector stores</strong>, and <strong>Agents</strong>. This workshop works hands-on in
+the <strong>Models</strong> and <strong>MCP servers</strong> tabs; <strong>Vector stores</strong> and <strong>Agents</strong> are related
+tabs that are outside the scope of this workshop.</p>
 </div>
 <div class="ulist">
 <ul>
@@ -587,7 +622,7 @@ within your project. It organizes assets into two categories:</p>
 <div class="ulist">
 <ul>
 <li>
-<p>Models deployed in your project namespace that were designated as available assets (by selecting <strong>Add as AI asset endpoint</strong> when deploying).</p>
+<p>Models deployed in your project namespace that were designated as available assets (by selecting <strong>Make this deployment available as an AI asset</strong> when deploying).</p>
 </li>
 <li>
 <p>Custom endpoints created from models in other namespaces on the same cluster or from external third-party providers (available when a platform engineer enables the feature).</p>
@@ -599,7 +634,12 @@ within your project. It organizes assets into two categories:</p>
 </div>
 </li>
 <li>
-<p><strong>Model Context Protocol (MCP) Server</strong> — lists all MCP servers configured for the cluster in the <code>gen-ai-aa-mcp-servers</code> ConfigMap.</p>
+<p><strong>MCP servers</strong> — lists the Model Context Protocol (MCP) servers configured at
+the platform level in the <code>gen-ai-aa-mcp-servers</code> ConfigMap. Each entry
+renders in the selected project with its <strong>Source</strong> (<code>Manual</code>), <strong>Status</strong>
+(<code>Token Required</code> for servers that need a token), and <strong>Access details</strong>
+(<code>View</code>). The same ConfigMap-backed list is rendered in every
+dashboard-enabled project.</p>
 </li>
 </ul>
 </div>
@@ -615,7 +655,7 @@ within your project. It organizes assets into two categories:</p>
 <p>Select your working project, <code>abc123-user1</code>, from the <strong>Project</strong> drop-down list.</p>
 </li>
 <li>
-<p>Browse the <strong>Models</strong> tab and the <strong>MCP servers</strong> tab.</p>
+<p>Browse the four tabs — <strong>Models</strong>, <strong>MCP servers</strong>, <strong>Vector stores</strong>, and <strong>Agents</strong>. The exercises in this workshop use the <strong>Models</strong> and <strong>MCP servers</strong> tabs.</p>
 </li>
 </ol>
 </div>
@@ -641,11 +681,12 @@ and available within that specific project.
 <div class="sect2">
 <h3 id="_verify"><a class="anchor" href="#_verify"></a>Verify</h3>
 <div class="paragraph">
-<p>The AI asset endpoints page opens and shows the two asset categories. The
+<p>The AI asset endpoints page opens and shows the four asset tabs — <strong>Models</strong>,
+<strong>MCP servers</strong>, <strong>Vector stores</strong>, and <strong>Agents</strong>. The
 <strong>Models</strong> tab lists models deployed in <code>abc123-user1</code> that were designated as
 available assets, and the <strong>MCP servers</strong> tab lists any MCP servers configured at
 the platform level. An empty page is a valid starting state — the next exercise
-populates the MCP server category.</p>
+populates the MCP servers tab.</p>
 </div>
 <div class="paragraph">
 <p>With the page oriented, the next step is to make a real asset appear on it by
@@ -750,7 +791,7 @@ and is available for use in playground sessions.</p>
 <p>Located the AI Available Assets page in the dashboard under <strong>Gen AI studio → AI asset endpoints</strong></p>
 </li>
 <li>
-<p>Identified the Models and MCP server asset categories and their project scoping</p>
+<p>Identified the four asset tabs — Models, MCP servers, Vector stores, and Agents — and their project scoping, working hands-on in the Models and MCP servers tabs</p>
 </li>
 <li>
 <p>Published the GitHub MCP server to the available assets with the <code>gen-ai-aa-mcp-servers</code> ConfigMap</p>
@@ -769,7 +810,7 @@ and is available for use in playground sessions.</p>
 <p>Asset listings are scoped to the selected project, so the page only shows what is available within that namespace</p>
 </li>
 <li>
-<p>MCP servers become available assets purely through platform-level configuration — no per-project setup</p>
+<p>MCP servers become available assets purely through platform-level configuration — no per-project setup is required, although each dashboard-enabled project renders its own listing of that platform-level list</p>
 </li>
 </ul>
 </div>

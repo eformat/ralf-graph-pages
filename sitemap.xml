@@ -19,6 +19,12 @@
 <loc>https://eformat.github.io/ralf-graph-pages/sitemap-autorag.xml</loc>
 </sitemap>
 <sitemap>
+<loc>https://eformat.github.io/ralf-graph-pages/sitemap-autorag-multilingual.xml</loc>
+</sitemap>
+<sitemap>
+<loc>https://eformat.github.io/ralf-graph-pages/sitemap-autorag-ocr-ingestion.xml</loc>
+</sitemap>
+<sitemap>
 <loc>https://eformat.github.io/ralf-graph-pages/sitemap-claude-code-starter-kit.xml</loc>
 </sitemap>
 <sitemap>
@@ -47,6 +53,9 @@
 </sitemap>
 <sitemap>
 <loc>https://eformat.github.io/ralf-graph-pages/sitemap-kale-jupyterlab.xml</loc>
+</sitemap>
+<sitemap>
+<loc>https://eformat.github.io/ralf-graph-pages/sitemap-kftv2-prometheus-telemetry.xml</loc>
 </sitemap>
 <sitemap>
 <loc>https://eformat.github.io/ralf-graph-pages/sitemap-kubeflow-trainer-v2.xml</loc>
@@ -152,6 +161,9 @@
 </sitemap>
 <sitemap>
 <loc>https://eformat.github.io/ralf-graph-pages/sitemap-rhai-fast-release-images.xml</loc>
+</sitemap>
+<sitemap>
+<loc>https://eformat.github.io/ralf-graph-pages/sitemap-speculator-training-kfp.xml</loc>
 </sitemap>
 <sitemap>
 <loc>https://eformat.github.io/ralf-graph-pages/sitemap-text-mode-multimodal-training.xml</loc>

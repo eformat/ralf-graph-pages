@@ -129,6 +129,22 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">AutoRAG Multilingual Workshop</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../autorag-multilingual/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">AutoRAG OCR Document Ingestion</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../autorag-ocr-ingestion/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Claude Code agent starter kit</span>
       <ul class="versions">
         <li class="version">
@@ -385,6 +401,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Native Prometheus telemetry for Kubeflow Trainer v2 training workloads</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../kftv2-prometheus-telemetry/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">NeMo Guardrails</span>
       <ul class="versions">
         <li class="version">
@@ -481,6 +505,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Speculator training pipeline for Kubeflow Pipelines</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../speculator-training-kfp/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Text-mode training for multimodal models in Training Hub</span>
       <ul class="versions">
         <li class="version">
@@ -551,7 +583,8 @@
 <div class="sectionbody">
 <div class="paragraph">
 <p>In this module you will enable validated tool-calling configuration on your RHOAI
-3.5 cluster and explore the validated arguments it exposes in the model catalog.</p>
+3.6 cluster and explore the validated tool-calling models it surfaces in the
+model catalog.</p>
 </div>
 <div class="paragraph">
 <p><strong>Learning objectives:</strong></p>
@@ -565,23 +598,12 @@
 <p>Enable the feature with the <code>toolCalling</code> dashboard flag in the <code>OdhDashboardConfig</code> custom resource</p>
 </li>
 <li>
-<p>View and copy the validated <code>vllm serve</code> arguments for a model with confirmed tool-calling support</p>
+<p>Locate models with confirmed tool-calling support using the <strong>Validated arguments</strong> &gt; <strong>Tool calling</strong> catalog filter</p>
+</li>
+<li>
+<p>Copy the validated <code>vllm serve</code> runtime command for a model from the <strong>Runtime command</strong> popover on its <strong>Performance insights</strong> tab</p>
 </li>
 </ul>
-</div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-This feature is a <strong>Technology Preview</strong>. The <code>toolCalling</code> flag name, the
-Validated Arguments UI panels, and the exact arguments displayed may change
-between releases.
-</td>
-</tr>
-</table>
 </div>
 </div>
 </div>
@@ -589,18 +611,19 @@ between releases.
 <h2 id="_what_this_feature_adds_to_the_catalog"><a class="anchor" href="#_what_this_feature_adds_to_the_catalog"></a>What this feature adds to the catalog</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Models that Red Hat has validated for tool calling display a <strong>Validated
-Arguments</strong> section on their Model Details page in the model catalog. Expanding
-the <strong>Tool Calling</strong> panel shows the exact <code>vllm serve</code> CLI arguments required to
-enable tool calling for that model, including <code>--tool-call-parser</code>,
-<code>--reasoning-parser</code>, <code>--chat-template</code>, and <code>--enable-auto-tool-choice</code>. The
-catalog also gains a <strong>Validated Arguments</strong> filter that narrows the model list to
-models with confirmed tool-calling support.</p>
+<p>Models that Red Hat has validated for tool calling carry a <strong>Tool calling</strong> label
+on their model cards, and the catalog gains a <strong>Validated arguments</strong> filter that
+narrows the model list to models with confirmed tool-calling support. Opening a
+validated model shows a <strong>Validated</strong> badge on its details page together with a
+<strong>Getting Started</strong> section, and the <strong>Performance insights</strong> tab adds a <strong>Runtime
+command</strong> column whose <strong>View</strong> popover contains the full <code>vllm serve</code> command that
+Red Hat used during benchmark validation for each hardware configuration.</p>
 </div>
 <div class="paragraph">
-<p>Without this feature, running a validated model with tool calling requires you
-to discover the correct parser and chat template combination yourself; with it,
-the catalog hands you the copyable, validated configuration.</p>
+<p>Without this feature, finding models with confirmed tool-calling support means
+reviewing model cards yourself; with it, the catalog filter surfaces the
+validated models and the <strong>Runtime command</strong> popover hands you the copyable,
+validated runtime configuration.</p>
 </div>
 </div>
 </div>
@@ -655,7 +678,7 @@ for all users of the deployment.
 <table>
 <tr>
 <td><i class="conum" data-value="1"></i><b>1</b></td>
-<td><strong>toolCalling</strong> — enables the Validated Arguments section and filter for models with confirmed tool-calling support in the model catalog.</td>
+<td><strong>toolCalling</strong> — enables the <strong>Validated arguments</strong> filter and <strong>Tool calling</strong> labels in the model catalog for models with confirmed tool-calling support.</td>
 </tr>
 </table>
 </div>
@@ -719,6 +742,14 @@ calling</strong> to narrow the catalog to models with confirmed tool-calling sup
 <div class="imageblock">
 <div class="content">
 <a class="image" href="_images/01-validated-arguments-filter.png" target="blank"><img src="_images/01-validated-arguments-filter.png" alt="The AI hub Models catalog with the Validated arguments Tool calling filter checked" width="700"></a>
+</div>
+</div>
+<div class="paragraph">
+<p>The filtered catalog labels every matching model card with <strong>Tool calling</strong>:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<a class="image" href="_images/02-validated-tool-calling-cards.png" target="blank"><img src="_images/02-validated-tool-calling-cards.png" alt="Filtered AI hub Models catalog showing the Tool calling label on validated gemma-4 model cards" width="700"></a>
 </div>
 </div>
 </li>

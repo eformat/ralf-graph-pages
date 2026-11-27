@@ -129,6 +129,22 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">AutoRAG Multilingual Workshop</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../autorag-multilingual/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">AutoRAG OCR Document Ingestion</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../autorag-ocr-ingestion/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Claude Code agent starter kit</span>
       <ul class="versions">
         <li class="version">
@@ -385,6 +401,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Native Prometheus telemetry for Kubeflow Trainer v2 training workloads</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../kftv2-prometheus-telemetry/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">NeMo Guardrails</span>
       <ul class="versions">
         <li class="version">
@@ -481,6 +505,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Speculator training pipeline for Kubeflow Pipelines</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../speculator-training-kfp/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Text-mode training for multimodal models in Training Hub</span>
       <ul class="versions">
         <li class="version">
@@ -567,7 +599,7 @@ and tracing views that observe it.</p>
 <p>Access a workbench IDE terminal from the OpenShift AI dashboard</p>
 </li>
 <li>
-<p>Explore the external model endpoints view and MLflow tracing as agent observability surfaces</p>
+<p>Tour the dashboard model surfaces and MLflow tracing that observe an agent stack, and explain how the External models view is enabled</p>
 </li>
 </ul>
 </div>
@@ -579,8 +611,8 @@ and tracing views that observe it.</p>
 </td>
 <td class="content">
 OpenCode coding-agent deployment is a <strong>Technology Preview</strong> feature. The
-surfaces you explore here (external model endpoints, MLflow tracing) are
-described in the RHOAI 3.5 documentation; the OpenCode-specific deployment
+surfaces you explore here (model catalog, MLflow tracing) are
+described in the RHOAI 3.6 documentation; the OpenCode-specific deployment
 procedure may change between releases.
 </td>
 </tr>
@@ -608,13 +640,13 @@ your workshop LLM endpoint, then export them in your terminal:</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">export LLM_ENDPOINT=$(oc get inferenceservice granite-vllm -n {guid}-{user} -o jsonpath='{.status.url}')/v1
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">export LLM_ENDPOINT=$(oc get inferenceservice granite-asset-demo -n {guid}-{user} -o jsonpath='{.status.url}')/v1
 export LLM_API_KEY="NO_API_KEY"</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>The CPU-only cluster path derives the endpoint from the deployed
-<code>granite-vllm</code> InferenceService route (no token auth on this deployment); a
+<code>granite-asset-demo</code> InferenceService route (no token auth on this deployment); a
 GPU cluster substitutes the facilitator&#8217;s workshop LLM endpoint.</p>
 </div>
 <div class="olist arabic">
@@ -645,7 +677,7 @@ least one model entry, for example:</p>
 <pre>{
   "object": "list",
   "data": [
-    { "id": "your-model-name", "object": "model", ... }
+    { "id": "granite-asset-demo", "object": "model", ... }
   ]
 }</pre>
 </div>
@@ -668,9 +700,18 @@ behavior is observed through the console&#8217;s model views and MLflow tracing.
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>From the OpenShift AI dashboard, navigate to <strong>Data science projects</strong> and
-select your project.</p>
+<p>From the OpenShift AI dashboard, navigate to <strong>Projects</strong> (the <code>/projects</code>
+page) and select your project.</p>
 </li>
+</ol>
+</div>
+<div class="imageblock">
+<div class="content">
+<a class="image" href="_images/02-projects-page.png" target="blank"><img src="_images/02-projects-page.png" alt="The 3.6 dashboard Projects page listing AI projects with the Start basic workbench button in the upper right" width="700"></a>
+</div>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
 <li>
 <p>Open the <strong>Workbenches</strong> tab and launch a workbench by using the link provided
 in the OpenShift AI interface. Once the IDE opens, open its terminal and run:</p>
@@ -690,16 +731,31 @@ in the OpenShift AI interface. Once the IDE opens, open its terminal and run:</p
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>In the dashboard, navigate to <strong>AI hub</strong> → <strong>Models</strong> and select the <strong>External
-models</strong> tab on the Model deployments page to see registered external model
-endpoints in the project, including name, provider, and reconciliation status.</p>
+<p>In the dashboard, navigate to <strong>AI hub</strong> → <strong>Models</strong> (the <code>/ai-hub/models</code>
+page). Explore the model surfaces that back an agent stack in this release:
+the <strong>Catalog</strong>, <strong>Registry</strong>, and <strong>Deployments</strong> tabs, and the model filter tabs
+under the <strong>Validated models by Red Hat AI</strong> banner.</p>
 </li>
+</ol>
+</div>
+<div class="imageblock">
+<div class="content">
+<a class="image" href="_images/03-models-catalog.png" target="blank"><img src="_images/03-models-catalog.png" alt="The AI hub Models page with Catalog" width="700" height="and Deployments tabs"></a>
+</div>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
 <li>
 <p>If your facilitator has MLflow tracing enabled for the agent stack, open the
 MLflow UI and observe where model calls, tool executions, and context assembly
 spans from the onboarding pattern would land.</p>
 </li>
 </ol>
+</div>
+<div class="imageblock">
+<div class="content">
+<a class="image" href="_images/04-agent-traces.png" target="blank"><img src="_images/04-agent-traces.png" alt="The Agent traces page under Observe and monitor with the project selector and Launch MLflow button" width="700"></a>
+</div>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -708,9 +764,11 @@ spans from the onboarding pattern would land.</p>
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-The <strong>External models</strong> tab requires <code>spec.dashboardConfig.externalModels</code>
-to be set to <code>true</code> in the <code>OdhDashboardConfig</code> custom resource. This is a
-platform administrator task:
+Registered external model endpoints appear under <strong>AI hub</strong> → <strong>Models</strong> →
+<strong>External models</strong>. That tab is gated behind a platform configuration flag:
+<code>spec.dashboardConfig.externalModels</code> set to <code>true</code> in the
+<code>OdhDashboardConfig</code> custom resource. Enabling it is a platform administrator
+task:
 </td>
 </tr>
 </table>
@@ -736,13 +794,19 @@ external model endpoints and their provider details.</td>
 </tr>
 </table>
 </div>
+<div class="paragraph">
+<p>When the flag is not enabled — as in this workshop environment — the tab does
+not appear on the Models page; the Catalog, Registry, and Deployments views
+remain available.</p>
+</div>
 <div class="sect2">
 <h3 id="_verify_2"><a class="anchor" href="#_verify_2"></a>Verify</h3>
 <div class="paragraph">
-<p>The workbench terminal prints git and Python versions, the <strong>External models</strong>
-tab lists your project&#8217;s external model endpoints (or is empty if none are
-registered), and MLflow shows a project with tracing experiments when the agent
-stack is deployed. You have now seen every surface an OpenCode deployment
+<p>The workbench terminal prints git and Python versions, the <strong>Models</strong> page under
+<strong>AI hub</strong> shows the Catalog, Registry, and Deployments views (with the
+<strong>External models</strong> tab present only when the platform administrator has enabled
+<code>externalModels</code>), and MLflow shows a project with tracing experiments when the
+agent stack is deployed. You have now seen every surface an OpenCode deployment
 touches: endpoint, terminal, console view, and traces.</p>
 </div>
 </div>
@@ -763,7 +827,7 @@ touches: endpoint, terminal, console view, and traces.</p>
 <p>Opened a workbench IDE terminal and exercised the shell where a terminal-based agent operates</p>
 </li>
 <li>
-<p>Explored the External models dashboard view and the MLflow tracing surface</p>
+<p>Toured the AI hub model surfaces, the External models enablement flag, and the MLflow tracing surface</p>
 </li>
 </ul>
 </div>
@@ -779,7 +843,7 @@ touches: endpoint, terminal, console view, and traces.</p>
 <p>Terminal-based agents depend on the same workbench IDE shells as notebooks</p>
 </li>
 <li>
-<p>Observability for the agent stack spans console model views and MLflow traces</p>
+<p>Observability for the agent stack spans console model views and MLflow traces; the External models view is a platform-administrator flag</p>
 </li>
 </ul>
 </div>
@@ -787,7 +851,7 @@ touches: endpoint, terminal, console view, and traces.</p>
 <p><strong>Next steps:</strong></p>
 </div>
 <div class="paragraph">
-<p>Continue to the conclusion for the RHOAI 3.5 documentation chapters behind this
+<p>Continue to the conclusion for the RHOAI 3.6 documentation chapters behind this
 workshop and pointers to the starter-kit documentation.</p>
 </div>
 </div>
