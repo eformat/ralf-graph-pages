@@ -197,6 +197,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -593,7 +601,8 @@ not be functionally complete.
 </div>
 <div class="paragraph">
 <p>This workshop introduces <strong>MCP Catalog support-tier labeling</strong>: every MCP server card in
-the AI Hub MCP Catalog carries a support tier — <strong>Red Hat</strong>, <strong>Partner</strong>, or <strong>Community</strong> —
+the AI Hub MCP Catalog carries a support tier badge — <strong>Red Hat supported</strong>, <strong>Partner
+supported</strong>, or <strong>Community supported</strong> —
 that tells you who maintains and supports the server. You enable the MCP Lifecycle
 Operator behind the catalog, read the tier labels to pick a server, deploy it into your
 namespace, and verify the resulting <code>MCPServer</code> workload.</p>
@@ -610,10 +619,10 @@ namespace, and verify the resulting <code>MCPServer</code> workload.</p>
 <p>How to enable MCP server lifecycle management with the <code>DataScienceCluster</code> and <code>OdhDashboardConfig</code> resources</p>
 </li>
 <li>
-<p>How to read the support-tier labels (<code>Red Hat</code>, <code>Partner</code>, <code>Community</code>) on MCP server cards</p>
+<p>How to read the support-tier badges (<code>Red Hat supported</code>, <code>Partner supported</code>, <code>Community supported</code>) on MCP server cards</p>
 </li>
 <li>
-<p>How to deploy an MCP server from the catalog and confirm its <code>READY</code> status from the CLI</p>
+<p>How to deploy an MCP server from the catalog and confirm its <code>ACCEPTED</code>/<code>AVAILABLE</code>/<code>VERIFIED</code> conditions from the CLI</p>
 </li>
 </ul>
 </div>
@@ -625,7 +634,7 @@ namespace, and verify the resulting <code>MCPServer</code> workload.</p>
 <div class="ulist">
 <ul>
 <li>
-<p>An OpenShift cluster with RHOAI 3.5 installed (OpenShift 4.22 or later)</p>
+<p>An OpenShift cluster with RHOAI 3.6 installed (OpenShift 4.22 or later)</p>
 </li>
 <li>
 <p>The RHOAI operator installed</p>

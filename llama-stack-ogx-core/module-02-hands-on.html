@@ -204,6 +204,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -585,9 +593,10 @@
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p>In this module you will activate the OGX Operator, deploy an OGX server connected to a vLLM
-inference service and PostgreSQL metadata storage, and build an end-to-end RAG workflow: ingest
-documents into a vector store and query them from a notebook.</p>
+<p>In this module you will activate the OGX Operator, connect to a running OGX server through its
+route, explore the OpenAI-compatible API surface that the server exposes, and build an end-to-end
+RAG workflow: compute embeddings, ground a chat completion in retrieved documents, and leave the
+environment exactly as you found it.</p>
 </div>
 <div class="paragraph">
 <p><strong>Learning objectives:</strong></p>
@@ -598,10 +607,16 @@ documents into a vector store and query them from a notebook.</p>
 <p>Enable the OGX Operator in the DataScienceCluster custom resource</p>
 </li>
 <li>
-<p>Deploy an OGXServer connected to a vLLM inference service, a vector store, and PostgreSQL metadata storage</p>
+<p>Connect to an OGX server and verify its health, model catalog, and chat completions</p>
 </li>
 <li>
-<p>Ingest documents into a vector store and run retrieval-augmented queries with the <code>file_search</code> tool</p>
+<p>Call the API with provider-qualified model IDs</p>
+</li>
+<li>
+<p>Compute embeddings through the MaaS facade pattern</p>
+</li>
+<li>
+<p>Build a grounded RAG loop with pgvector cosine retrieval, and clean up afterwards</p>
 </li>
 </ul>
 </div>
@@ -673,7 +688,7 @@ Operators</strong>; on OpenShift 4.19, click <strong>Operators → Installed Ope
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get pods -n redhat-ods-applications -l name=ogx-k8s-operator</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get pods -n redhat-ods-applications | grep -E '^(ogx|opendatahub-ogx)'</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -681,69 +696,62 @@ Operators</strong>; on OpenShift 4.19, click <strong>Operators → Installed Ope
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>NAME                               READY   STATUS    RESTARTS   AGE
-ogx-k8s-operator-&lt;pod-suffix&gt;      1/1     Running   0          &lt;age&gt;</pre>
+<pre>ogx-k8s-operator-controller-manager-&lt;suffix&gt;     1/1   Running   &lt;n&gt;   &lt;age&gt;
+opendatahub-ogx-operator-&lt;suffix&gt;                1/1   Running   &lt;n&gt;   &lt;age&gt;</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>With the operator running, deploy your first OGX server.</p>
+<p>With the operator running, connect to your first OGX server.</p>
 </div>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_exercise_2_deploy_an_ogx_server"><a class="anchor" href="#_exercise_2_deploy_an_ogx_server"></a>Exercise 2: Deploy an OGX server</h2>
+<h2 id="_exercise_2_meet_your_ogx_server"><a class="anchor" href="#_exercise_2_meet_your_ogx_server"></a>Exercise 2: Meet your OGX server</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>The OGXServer custom resource deploys a server that exposes the OGX APIs in your project. You are
-responsible for provisioning the PostgreSQL instance used for metadata storage; it can run
-in-cluster or be hosted externally, as long as it is reachable from the cluster network.</p>
-</div>
-<div class="admonitionblock important">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-important" title="Important"></i>
-</td>
-<td class="content">
-Create the PostgreSQL credential secret in the same namespace as the OGXServer
-resource. Avoid placing passwords directly on the command line, as they can be stored in shell
-history.
-</td>
-</tr>
-</table>
+<p>The OGXServer custom resource deploys a server that exposes the OGX APIs in your project. For
+this workshop the facilitator has staged a server named <code>aml-ogx</code> in the <code>autorag-ml-demo</code>
+project from the workshop&#8217;s deployment manifests — it wires a vLLM inference model, a vLLM
+embedding model, and a pgvector vector store into one server. In this exercise you inspect the
+resource and open a connection to it.</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>Create a secret that contains only the database password, then create the secret from that file:</p>
+<p>Inspect the server and confirm it is ready. The <code>PROVIDERS</code> column counts the configured
+providers — inference, embedding, and the pgvector vector store:</p>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">echo "%password%" > pg-password.txt
-oc create secret generic postgres-secret --from-file=password=pg-password.txt -n abc123-user1
-rm -f pg-password.txt</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc -n autorag-ml-demo get ogxserver
+oc -n autorag-ml-demo get ogxserver aml-ogx -o jsonpath='{.status.phase}'</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>Expected output: <code>aml-ogx</code> is listed with <code>PHASE</code> <code>Ready</code> and <code>PROVIDERS</code> <code>3</code>.</p>
 </div>
 </li>
 <li>
-<p>Create the <code>ogxserver.yaml</code> file — a shell heredoc with the PostgreSQL
-secret from the previous step. Point <code>VLLM_URL</code> at your vLLM inference
-service; here the <code>granite-vllm</code> predictor from the vLLM ServingRuntime
-workshop (a GPU cluster substitutes its deployed model, e.g.
-<code><a href="https://llama32-3b.&lt;project&gt;.svc.cluster.local/v1" class="bare">https://llama32-3b.&lt;project&gt;.svc.cluster.local/v1</a></code>):</p>
+<p>Look at the resource anatomy — distribution, storage, and the model providers it wires in.
+Do not copy the connection string contents; the Secret reference is all a client needs:</p>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">PGPASSWORD=$(oc get secret postgres-secret -n abc123-user1 -o jsonpath='{.data.password}' | base64 -d)
-oc create secret generic ogx-postgres-conn -n abc123-user1 \
-  --from-literal=connection="postgresql://ogx:${PGPASSWORD}@postgres.abc123-user1.svc.cluster.local:5432/ogx" \
-  --dry-run=client -o yaml | oc apply -n abc123-user1 -f -
-oc label secret ogx-postgres-conn -n abc123-user1 ogx.io/watch=true --overwrite
-cat > ogxserver.yaml <<'EOF'
-apiVersion: ogx.io/v1beta1
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc -n autorag-ml-demo get ogxserver aml-ogx -o yaml</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The fields that matter:</p>
+</div>
+</li>
+</ol>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: ogx.io/v1beta1
 kind: OGXServer
 metadata:
-  name: ogx-custom-server
-  namespace: abc123-user1
+  name: aml-ogx
+  namespace: autorag-ml-demo
 spec:
   distribution:
     name: rh-dev
@@ -751,75 +759,40 @@ spec:
     sql:
       type: postgres
       connectionString:
-        name: ogx-postgres-conn
+        name: aml-ogx-postgres-conn <1>
         key: connection
-EOF</code></pre>
+  providers:
+    inference:
+      remote:
+        vllm:
+          - id: vllm-inference <2>
+            endpoint: http://aml-llama32-3b-conn.autorag-ml-demo.svc.cluster.local:8080/v1
+          - id: vllm-embedding <3>
+            endpoint: http://aml-bge-m3-conn.autorag-ml-demo.svc.cluster.local:8080/v1</code></pre>
 </div>
 </div>
-</li>
-</ol>
-</div>
-<div class="paragraph">
-<p>The fields map to the RHOAI documentation (OGXServer v1beta1):
-<code>distribution.name</code> is an internal image reference (the RHOAI Operator
-resolves <code>rh-dev</code> to the container image in the appropriate registry).
-<code>spec.storage.sql</code> configures the PostgreSQL metadata store — the
-<code>connectionString</code> Secret must carry the <code>ogx.io/watch: "true"</code> label and the
-key holds a <code>postgresql://</code> connection string to your PostgreSQL instance
-(deploy a PostgreSQL instance and Service in your project first; the in-lab
-flow uses an in-cluster PostgreSQL). Inference provider endpoints are
-registered via <code>spec.resources</code> or the server&#8217;s registry — point your client
-at the deployed model&#8217;s OpenAI-compatible API.</p>
-</div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>Apply the OGXServer CR:</p>
-<div class="listingblock execute">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc apply -f ogxserver.yaml -n abc123-user1</code></pre>
-</div>
-</div>
-</li>
-</ol>
-</div>
-<div class="admonitionblock tip">
+<div class="colist arabic">
 <table>
 <tr>
-<td class="icon">
-<i class="fa icon-tip" title="Tip"></i>
-</td>
-<td class="content">
-The <code>rh-dev</code> distribution value is an internal image reference resolved automatically by the
-OpenShift AI Operator; you do not need to replace it with a registry URL.
-</td>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td><strong>connectionString</strong> — the PostgreSQL metadata store; the Secret must carry the
+<code>ogx.io/watch: "true"</code> label so the operator picks it up.</td>
 </tr>
-</table>
-</div>
-<div class="sect2">
-<h3 id="_verify_2"><a class="anchor" href="#_verify_2"></a>Verify</h3>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td><strong>vllm-inference</strong> — the chat model served through a vLLM endpoint.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td><strong>vllm-embedding</strong> — the embedding model served through the same vLLM provider type.
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>Check that the custom resource became ready and the server pods are running:</p>
+<p>Export the server route and verify that it is healthy:</p>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get ogxserver -n abc123-user1
-oc wait --for=jsonpath='{.status.phase}'=Ready ogxserver/ogx-custom-server -n abc123-user1 --timeout=300s
-oc get pods -n abc123-user1 | grep ogx-custom-server</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Expected output: <code>oc get ogxserver</code> lists <code>ogx-custom-server</code>, the <code>oc wait</code> command prints
-<code>condition met</code> once <code>.status.phase</code> is <code>Ready</code>, and the pod listing shows the <code>ogx-custom-server</code>
-pods with <code>STATUS</code> <code>Running</code>.</p>
-</div>
-</li>
-<li>
-<p>Check the server logs for startup output:</p>
-<div class="listingblock execute">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc logs -n abc123-user1 -l app=ogx</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">export OGX="https://$(oc -n autorag-ml-demo get route aml-ogx-tls -o jsonpath='{.spec.host}')"
+curl -s -w "\nHTTP %{http_code}\n" $OGX/v1/health</code></pre>
 </div>
 </div>
 </li>
@@ -827,33 +800,36 @@ pods with <code>STATUS</code> <code>Running</code>.</p>
 </div>
 <div class="paragraph">
 <p>Expected output:</p>
+</div></td>
+</tr>
+</table>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>INFO: Started server process
-INFO: Waiting for application startup.
-INFO: Application startup complete.
-INFO: Uvicorn running on http://['::', '0.0.0.0']:8321</pre>
+<pre>{"status":"OK"}
+HTTP 200</pre>
+</div>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>List the models the server exposes:</p>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">curl -s $OGX/v1/models | jq -r '.data[].id'</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>The server listens on port 8321. The OGX Operator names the service
-<code>&lt;ogxserver-name&gt;-service</code>, so this instance is reachable in-cluster at
-<code><a href="http://ogx-custom-server-service.abc123-user1.svc.cluster.local:8321" class="bare">http://ogx-custom-server-service.abc123-user1.svc.cluster.local:8321</a></code>.</p>
+<p>Expected output:</p>
 </div>
-<div class="paragraph">
-<p>With the base server running, pair it with a vector store and ingest real documents.</p>
+</li>
+</ol>
 </div>
+<div class="listingblock">
+<div class="content">
+<pre>vllm-inference/aml-llama32-3b
+vllm-embedding/aml-bge-m3</pre>
 </div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_exercise_3_ingest_documents_and_query_with_rag"><a class="anchor" href="#_exercise_3_ingest_documents_and_query_with_rag"></a>Exercise 3: Ingest documents and query with RAG</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>The RAG stack connects your OGX server to a vector store so that you can ingest, embed, and query
-domain-specific documents during inference. In this exercise you configure the pgvector provider,
-upload a PDF from a Jupyter notebook, and answer questions grounded in the ingested content.</p>
 </div>
 <div class="admonitionblock important">
 <table>
@@ -862,203 +838,77 @@ upload a PDF from a Jupyter notebook, and answer questions grounded in the inges
 <i class="fa icon-important" title="Important"></i>
 </td>
 <td class="content">
-For RAG you need a remote embedding model reachable from the cluster, for example
-<code>nomic-embed-text-v1-5</code> served through a vLLM embedding endpoint. RAG queries without ingested
-content return empty or non-contextual responses.
+Model IDs are <strong>provider-qualified</strong>: <code>&lt;provider_id&gt;/&lt;model_id&gt;</code>. Every OGX API call
+must use the full qualified ID. Requesting the bare model name returns <code>404</code>:
 </td>
 </tr>
 </table>
 </div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">curl -s -w "\nHTTP %{http_code}\n" $OGX/v1/models/aml-llama32-3b</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Expected output:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>HTTP 404
+{"error":{"message":"Model 'aml-llama32-3b' not found. Use 'client.models.list()' to list available Models."}}</pre>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_verify_2"><a class="anchor" href="#_verify_2"></a>Verify</h3>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>Create a secret that contains the inference model and remote embedding environment variables, replacing <code>&lt;token-identifier&gt;</code> with the API token for your vLLM inference service and <code>&lt;embedding-token&gt;</code> with the API token for your embedding endpoint:</p>
-<div class="listingblock execute">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">export INFERENCE_MODEL="llama-3-2-3b"
-export VLLM_URL="https://llama-32-3b-instruct-predictor:8443/v1"
-export VLLM_TLS_VERIFY="false"
-export VLLM_API_TOKEN="<token-identifier>"
-export VLLM_MAX_TOKENS=16384
-export EMBEDDING_MODEL="nomic-embed-text-v1-5"
-export EMBEDDING_PROVIDER_MODEL_ID="nomic-embed-text-v1-5"
-export VLLM_EMBEDDING_URL="https://nomic-embed-text-v1-5-predictor:8443/v1"
-export VLLM_EMBEDDING_API_TOKEN="<embedding-token>"
-export VLLM_EMBEDDING_MAX_TOKENS=8192
-export VLLM_EMBEDDING_TLS_VERIFY="true"
-oc create secret generic ogx-secret -n abc123-user1 \
-  --from-literal=INFERENCE_MODEL="$INFERENCE_MODEL" \
-  --from-literal=VLLM_URL="$VLLM_URL" \
-  --from-literal=VLLM_TLS_VERIFY="$VLLM_TLS_VERIFY" \
-  --from-literal=VLLM_API_TOKEN="$VLLM_API_TOKEN" \
-  --from-literal=VLLM_MAX_TOKENS="$VLLM_MAX_TOKENS" \
-  --from-literal=EMBEDDING_MODEL="$EMBEDDING_MODEL" \
-  --from-literal=EMBEDDING_PROVIDER_MODEL_ID="$EMBEDDING_PROVIDER_MODEL_ID" \
-  --from-literal=VLLM_EMBEDDING_URL="$VLLM_EMBEDDING_URL" \
-  --from-literal=VLLM_EMBEDDING_TLS_VERIFY="$VLLM_EMBEDDING_TLS_VERIFY" \
-  --from-literal=VLLM_EMBEDDING_API_TOKEN="$VLLM_EMBEDDING_API_TOKEN" \
-  --from-literal=VLLM_EMBEDDING_MAX_TOKENS="$VLLM_EMBEDDING_MAX_TOKENS"</code></pre>
-</div>
-</div>
+<p>The health endpoint returns <code>{"status":"OK"}</code> with HTTP 200.</p>
 </li>
 <li>
-<p>Create a secret with the pgvector connection values, replacing <code>&lt;pgvector-password&gt;</code> with your pgvector user&#8217;s password:</p>
-<div class="listingblock execute">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc create secret generic pgvector-connection -n abc123-user1 \
-  --from-literal=PGVECTOR_HOST="postgres.abc123-user1.svc.cluster.local" \
-  --from-literal=PGVECTOR_PORT="5432" \
-  --from-literal=PGVECTOR_DB="ogx_metadata" \
-  --from-literal=PGVECTOR_USER="ogx" \
-  --from-literal=PGVECTOR_PASSWORD="<pgvector-password>"</code></pre>
-</div>
-</div>
+<p>The model list returns the two provider-qualified IDs.</p>
 </li>
 <li>
-<p>Create a RAG-enabled OGXServer that reads its configuration from these secrets. In the console,
-select <strong>Administrator → Quick Create (+) → Import YAML</strong>, and apply:</p>
-<div class="listingblock">
+<p>The server phase is <code>Ready</code>:</p>
+<div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: ogx.io/v1beta1
-kind: OGXServer
-metadata:
-  name: ogx-rag-server
-  namespace: abc123-user1
-spec:
-  distribution:
-    name: rh-dev
-  workload:
-    replicas: 1
-    storage:
-      size: 5Gi
-  overrides:
-    env:
-      - name: POSTGRES_HOST <1>
-        value: postgres.abc123-user1.svc.cluster.local
-      - name: POSTGRES_PORT
-        value: "5432"
-      - name: POSTGRES_DB
-        value: ogx_metadata
-      - name: POSTGRES_USER
-        value: ogx
-      - name: POSTGRES_PASSWORD
-        valueFrom:
-          secretKeyRef:
-            name: postgres-secret
-            key: password
-      - name: INFERENCE_MODEL <2>
-        valueFrom:
-          secretKeyRef:
-            name: ogx-secret
-            key: INFERENCE_MODEL
-      - name: VLLM_URL
-        valueFrom:
-          secretKeyRef:
-            name: ogx-secret
-            key: VLLM_URL
-      - name: VLLM_API_TOKEN
-        valueFrom:
-          secretKeyRef:
-            name: ogx-secret
-            key: VLLM_API_TOKEN
-      - name: EMBEDDING_MODEL
-        valueFrom:
-          secretKeyRef:
-            name: ogx-secret
-            key: EMBEDDING_MODEL
-      - name: VLLM_EMBEDDING_URL
-        valueFrom:
-          secretKeyRef:
-            name: ogx-secret
-            key: VLLM_EMBEDDING_URL
-      - name: ENABLE_PGVECTOR <3>
-        value: "true"
-      - name: PGVECTOR_HOST <4>
-        valueFrom:
-          secretKeyRef:
-            name: pgvector-connection
-            key: PGVECTOR_HOST
-      - name: PGVECTOR_PORT
-        valueFrom:
-          secretKeyRef:
-            name: pgvector-connection
-            key: PGVECTOR_PORT
-      - name: PGVECTOR_DB
-        valueFrom:
-          secretKeyRef:
-            name: pgvector-connection
-            key: PGVECTOR_DB
-      - name: PGVECTOR_USER
-        valueFrom:
-          secretKeyRef:
-            name: pgvector-connection
-            key: PGVECTOR_USER
-      - name: PGVECTOR_PASSWORD
-        valueFrom:
-          secretKeyRef:
-            name: pgvector-connection
-            key: PGVECTOR_PASSWORD <5></code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc -n autorag-ml-demo wait --for=jsonpath='{.status.phase}'=Ready ogxserver/aml-ogx --timeout=300s</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>Expected output: <code>ogxserver.ogx.io/aml-ogx condition met</code>.</p>
 </div>
 </li>
 </ol>
 </div>
-<div class="colist arabic">
-<table>
-<tr>
-<td><i class="conum" data-value="1"></i><b>1</b></td>
-<td><strong>POSTGRES_</strong>* — the PostgreSQL metadata store; OGX requires PostgreSQL 14 or later for metadata persistence.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="2"></i><b>2</b></td>
-<td><strong>INFERENCE_MODEL</strong> — the vLLM-served LLM identifier; <code>VLLM_URL</code> points at its <code>/v1</code> endpoint.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="3"></i><b>3</b></td>
-<td><strong>ENABLE_PGVECTOR</strong> — enables the <code>remote::pgvector</code> vector_io provider in the OGX server.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="4"></i><b>4</b></td>
-<td><strong>PGVECTOR_</strong>* — the pgvector vector store connection, read from the <code>pgvector-connection</code> secret.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="5"></i><b>5</b></td>
-<td><strong>PGVECTOR_PASSWORD</strong> — credentials must come from secrets, never as plaintext values in the CR.</td>
-</tr>
-</table>
+<div class="paragraph">
+<p>With the connection verified, send your first chat completion.</p>
 </div>
-<div class="admonitionblock tip">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-tip" title="Tip"></i>
-</td>
-<td class="content">
-If you switch between vector store configurations, delete the existing OGX pod to ensure the
-new environment variables and backing store are picked up cleanly.
-</td>
-</tr>
-</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_exercise_3_send_a_chat_completion"><a class="anchor" href="#_exercise_3_send_a_chat_completion"></a>Exercise 3: Send a chat completion</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The chat completions API is OpenAI-compatible: point it at the OGX route, pass a
+provider-qualified model ID, and read the answer from <code>choices[0].message.content</code>.</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>In a workbench in your project, open a Jupyter notebook and install the OGX client:</p>
-<div class="listingblock">
+<p>Send a completion that asks the model to confirm it is up:</p>
+<div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">%pip install ogx_client</code></pre>
-</div>
-</div>
-</li>
-<li>
-<p>Create a client instance and list the available models:</p>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">from ogx_client import OGXClient
-
-client = OGXClient(base_url="http://ogx-rag-server-service:8321")
-models = client.models.list()
-print(models)</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">curl -s $OGX/v1/chat/completions \
+  --header 'Content-Type: application/json' \
+  -d '{
+    "model": "vllm-inference/aml-llama32-3b",
+    "messages": [
+      {"role": "system", "content": "You are a helpful assistant. Reply with exactly one word."},
+      {"role": "user", "content": "Confirm you are available by replying with the word READY."}
+    ]
+  }' | jq '{model, system_fingerprint, content: .choices[0].message.content}'</code></pre>
 </div>
 </div>
 </li>
@@ -1069,9 +919,11 @@ print(models)</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>[Model(identifier='llama-32-3b-instruct', model_type='llm', provider_id='vllm-inference'),
- Model(identifier='nomic-embed-text-v1-5', model_type='embedding', metadata=
- {'embedding_dimension': 768})]</pre>
+<pre>{
+  "model": "vllm-inference/aml-llama32-3b",
+  "system_fingerprint": "vllm-0.31.0+rhaiv.8-596d449d",
+  "content": "READY"
+}</pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -1081,208 +933,64 @@ print(models)</code></pre>
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-Provider IDs can differ between interfaces. In the Python SDK you use the provider name
-directly (for example, <code>provider_id: "pgvector"</code>); in some CLI tools remote providers use a
-prefixed identifier (for example, <code>--vector-db-provider-id remote-pgvector</code>). Use the format that
-matches the interface you are using.
+The <code>system_fingerprint</code> identifies the serving stack — vLLM 0.31.0 with the Red Hat AI
+inference vehicle. Your fingerprint may carry a different short build suffix.
 </td>
 </tr>
 </table>
-</div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>Select an LLM and an embedding model, and register a vector store:</p>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">model_id = next(m.identifier for m in models if m.model_type == "llm")
-embedding_model = next(m for m in models if m.model_type == "embedding")
-embedding_model_id = embedding_model.identifier
-embedding_dimension = int(embedding_model.metadata["embedding_dimension"])
-
-vector_store = client.vector_stores.create(
-    name="my_pgvector_store",
-    extra_body={
-        "embedding_model": embedding_model_id,
-        "embedding_dimension": embedding_dimension,
-        "provider_id": "pgvector",
-    },
-)
-vector_store_id = vector_store.id
-print(vector_store_id)</code></pre>
-</div>
-</div>
-</li>
-<li>
-<p>Download a PDF, upload it to OGX, and add it to the vector store with a chunking strategy:</p>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">import requests
-
-pdf_url = "https://www.federalreserve.gov/aboutthefed/files/quarterly-report-20250822.pdf"
-filename = "quarterly-report-20250822.pdf"
-response = requests.get(pdf_url)
-response.raise_for_status()
-with open(filename, "wb") as f:
-    f.write(response.content)
-
-with open(filename, "rb") as f:
-    file_info = client.files.create(
-        file=(filename, f),
-        purpose="assistants",
-    )
-
-vector_store_file = client.vector_stores.files.create(
-    vector_store_id=vector_store_id,
-    file_id=file_info.id,
-    chunking_strategy={
-        "type": "static",
-        "static": {
-            "max_chunk_size_tokens": 800,
-            "chunk_overlap_tokens": 400,
-        },
-    },
-)
-print(vector_store_file)</code></pre>
-</div>
-</div>
-</li>
-<li>
-<p>Query the ingested content with the Responses API and the <code>file_search</code> tool:</p>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">system_instructions = """You are a precise and reliable AI assistant.
-Use retrieved context when it is available.
-If nothing relevant is found, say so clearly."""
-query = "Summarize the key findings in the report."
-
-response = client.responses.create(
-    model=model_id,
-    input=query,
-    instructions=system_instructions,
-    tools=[
-        {
-            "type": "file_search",
-            "vector_store_ids": [vector_store_id],
-        }
-    ],
-)
-print(response.output_text)</code></pre>
-</div>
-</div>
-</li>
-</ol>
-</div>
-<div class="paragraph">
-<p>When you include the <code>file_search</code> tool with <code>vector_store_ids</code>, OGX retrieves relevant chunks
-from the vector store and provides them to the model as context for the response.</p>
-</div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>Query the vector store directly to inspect the retrieved chunks:</p>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">query_result = client.vector_io.query(
-    vector_store_id=vector_store_id,
-    query="key findings",
-)
-print(query_result)</code></pre>
-</div>
-</div>
-</li>
-</ol>
 </div>
 <div class="sect2">
 <h3 id="_verify_3"><a class="anchor" href="#_verify_3"></a>Verify</h3>
 <div class="ulist">
 <ul>
 <li>
-<p><code>client.vector_stores.files.create()</code> returns a file object with <code>status</code> <code>completed</code>, confirming the PDF was chunked and indexed into <code>my_pgvector_store</code>.</p>
+<p>The response has HTTP 200 and <code>content</code> is <code>READY</code>.</p>
 </li>
 <li>
-<p><code>print(response.output_text)</code> outputs a summary grounded in the report content, and a question about a topic the document does not cover returns a statement that no relevant information was found.</p>
-</li>
-<li>
-<p><code>client.vector_io.query()</code> returns the ingested report chunks matching <code>key findings</code>, confirming the pgvector store holds indexed content.</p>
+<p>The model in the response echoes the provider-qualified ID you sent.</p>
 </li>
 </ul>
 </div>
 <div class="paragraph">
-<p>You now have a working RAG loop. Before scaling it up, test the underlying model endpoints directly
-from the CLI.</p>
+<p>An ungrounded model answers from its training data alone. Next you produce the vectors that
+grounding needs.</p>
 </div>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_exercise_4_test_your_vllm_model_endpoints"><a class="anchor" href="#_exercise_4_test_your_vllm_model_endpoints"></a>Exercise 4: Test your vLLM model endpoints</h2>
+<h2 id="_exercise_4_compute_embeddings_through_the_maas_facade"><a class="anchor" href="#_exercise_4_compute_embeddings_through_the_maas_facade"></a>Exercise 4: Compute embeddings through the MaaS facade</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>To confirm your deployed model is accessible, test the vLLM endpoint with a chat completion
-request. If you selected <strong>Make deployed models available through an external route</strong> during model
-deployment, the endpoint is already exposed outside the cluster.</p>
-</div>
-<div class="admonitionblock warning">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-warning" title="Warning"></i>
-</td>
-<td class="content">
-Manually exposing vLLM model endpoints, for example with <code>oc expose</code>, creates an
-unsecured route unless you configure authentication. Avoid exposing endpoints without security
-controls.
-</td>
-</tr>
-</table>
+<p>RAG starts with embeddings — numeric vectors that capture what a piece of text means, so that
+similar texts land close together in vector space. This environment serves the multilingual
+<code>aml-bge-m3</code> embedding model (1024 dimensions) behind a <strong>MaaS facade</strong>: a small
+OpenAI-compatible proxy that exposes <code>/v1/embeddings</code> for the workshop.</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>Log in to the cluster from the CLI. In the upper-right corner of the web console, click your
-user name, select <strong>Copy login command</strong>, then <strong>Display Token</strong>, and copy the displayed command,
-replacing <code>&lt;token&gt;</code> with the API token shown on that page:</p>
+<p>First, try the OGX-native embeddings endpoint and observe the honest state of this build.
+The server auto-registered <code>aml-bge-m3</code> with the wrong model type, so the native endpoint
+rejects it:</p>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc login --token=<token> --server=https://api.cluster.example.com:6443</code></pre>
-</div>
-</div>
-</li>
-<li>
-<p>If you enabled <strong>Require token authentication</strong> during model deployment, retrieve the model token:</p>
-<div class="listingblock execute">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">export MODEL_TOKEN=$(oc get secret default-name-llama-32-3b-instruct-sa -n abc123-user1 -o jsonpath='{.data.token}' | base64 -d)</code></pre>
-</div>
-</div>
-</li>
-<li>
-<p>Obtain the model endpoint URL from <strong>Endpoint details</strong> on the Deployments page in the RHOAI
-dashboard, or from the route:</p>
-<div class="listingblock execute">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">export MODEL_ENDPOINT="https://$(oc get route llama-32-3b-instruct -n abc123-user1 -o jsonpath='{.spec.host}')"</code></pre>
-</div>
-</div>
-</li>
-<li>
-<p>Test the endpoint with a sample chat completion request:</p>
-<div class="listingblock execute">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">curl -s -k $MODEL_ENDPOINT/v1/chat/completions \
-  --header "Authorization: Bearer $MODEL_TOKEN" \
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">curl -s -w "\nHTTP %{http_code}\n" $OGX/v1/embeddings \
   --header 'Content-Type: application/json' \
-  -d '{
-    "model": "llama-32-3b-instruct",
-    "messages": [
-      {"role": "user", "content": "Hello"}
-    ]
-  }' | jq .</code></pre>
+  -d '{"model": "vllm-embedding/aml-bge-m3", "input": "OGX embeddings probe"}'</code></pre>
 </div>
 </div>
 </li>
 </ol>
+</div>
+<div class="paragraph">
+<p>Expected output:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>HTTP 400
+{"error":{"message":"Model 'vllm-embedding/aml-bge-m3' is of type 'llm' rather than the expected type 'embedding'"}}</pre>
+</div>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -1291,42 +999,362 @@ dashboard, or from the route:</p>
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-The <code>-k</code> flag disables SSL verification and should only be used in test environments or
-with self-signed certificates.
+This is a known limitation of the current OGX build: the operator&#8217;s config render drops
+the static model registration, so the embedding model is typed as <code>llm</code> and the native
+<code>/v1/embeddings</code> returns 400. Once you upgrade to a build that renders the static models
+section (or a fixed operator), the same request returns 200 and the facade step becomes
+optional.
 </td>
 </tr>
 </table>
 </div>
-<div class="sect2">
-<h3 id="_verify_4"><a class="anchor" href="#_verify_4"></a>Verify</h3>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Compute real embeddings through the facade route instead:</p>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">export FACADE="https://$(oc -n autorag-ml-demo get route aml-maas-facade-tls -o jsonpath='{.spec.host}')"
+curl -s $FACADE/v1/embeddings \
+  --header 'Content-Type: application/json' \
+  -d '{"model": "aml-bge-m3", "input": "OGX embeddings via the facade"}' \
+  | jq '{id, model, dims: (.data[0].embedding | length)}'</code></pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
 <div class="paragraph">
-<p>You receive a JSON response containing a chat completion, similar to:</p>
+<p>Expected output:</p>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre>{
-  "id": "chatcmpl-05d24b91b08a4b78b0e084d4cc91dd7e",
-  "object": "chat.completion",
-  "model": "llama-32-3b-instruct",
-  "choices": [{
-    "index": 0,
-    "message": {
-      "role": "assistant",
-      "content": "Hello! It's nice to meet you. Is there something I can help you with or would you like to chat?"
-    },
-    "finish_reason": "stop"
-  }],
-  "usage": {
-    "prompt_tokens": 37,
-    "total_tokens": 62,
-    "completion_tokens": 25
-  }
+  "id": "embd-&lt;hex&gt;",
+  "model": "aml-bge-m3",
+  "dims": 1024
 }</pre>
 </div>
 </div>
+<div class="sect2">
+<h3 id="_verify_4"><a class="anchor" href="#_verify_4"></a>Verify</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>The native endpoint returns HTTP 400 with the <code>llm rather than embedding</code> error — you know
+the boundary of this build.</p>
+</li>
+<li>
+<p>The facade returns HTTP 200 with a 1024-dimensional vector for the same model.</p>
+</li>
+</ul>
+</div>
 <div class="paragraph">
-<p>If you do not receive a response similar to the example, verify that the endpoint URL and token
-are correct, and ensure your model deployment is running.</p>
+<p>With embeddings working, inspect the vector-store surface before you store anything.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_exercise_5_inspect_the_vector_store_surface"><a class="anchor" href="#_exercise_5_inspect_the_vector_store_surface"></a>Exercise 5: Inspect the vector-store surface</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>OGX exposes an OpenAI-compatible vector-store API. On this build you can list stores, but
+creating one fails for the same model-type reason you saw in Exercise 4 — so this workshop
+grounds its RAG answers with <strong>manual retrieval</strong> in Exercise 6 instead. Knowing what works is
+part of working with a real platform.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>List the vector stores. The list is empty — nothing has been created on this server:</p>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">curl -s $OGX/v1/vector_stores | jq '{object, store_count: (.data | length)}'</code></pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Expected output:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>{
+  "object": "list",
+  "store_count": 0
+}</pre>
+</div>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Try to create a store and observe the honest failure — store registration requires an
+embedding-typed model, and this build serves <code>aml-bge-m3</code> as <code>llm</code>:</p>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">curl -s -w "\nHTTP %{http_code}\n" $OGX/v1/vector_stores \
+  --header 'Content-Type: application/json' \
+  -d '{"name": "ogx_rag_store", "embedding_model": "vllm-embedding/aml-bge-m3"}'</code></pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Expected output:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>HTTP 400
+{"error":{"message":"Embedding model 'vllm-embedding/aml-bge-m3' not found or not an embedding model"}}</pre>
+</div>
+</div>
+<div class="sidebarblock">
+<div class="content">
+<div class="title">What a newer build adds</div>
+<div class="paragraph">
+<p>On an OGX build that exposes the Files and Responses APIs, this exercise continues with a
+fully managed ingest-and-search flow, and Exercise 6 becomes a one-call RAG answer:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Upload a document: <code>client.files.create(file=&#8230;&#8203;, purpose="assistants")</code> — the Files API
+stores the object and returns a <code>file_id</code>.</p>
+</li>
+<li>
+<p>Index it into a vector store with a chunking strategy:
+<code>client.vector_stores.files.create(vector_store_id=&#8230;&#8203;, file_id=&#8230;&#8203;, chunking_strategy={"type": "static", &#8230;&#8203;})</code>
+— OGX chunks, embeds, and indexes the file for you.</p>
+</li>
+<li>
+<p>Ask a grounded question with the <code>file_search</code> tool:
+<code>client.responses.create(model=&#8230;&#8203;, input=&#8230;&#8203;, tools=[{"type": "file_search", "vector_store_ids": [&#8230;&#8203;]}])</code>
+— OGX retrieves the matching chunks and hands them to the model as context.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>This flow requires a newer OGX build: this one implements only the inference, models, and
+vector_io APIs — <code>GET /v1/files</code> returns 404. Retry this section once your server runs a
+build whose API surface includes <code>files</code> and <code>responses</code> (check with
+<code>curl -s $OGX/v1/files</code>; a 200 means the flow is available).</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_verify_5"><a class="anchor" href="#_verify_5"></a>Verify</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><code>GET /v1/vector_stores</code> returns HTTP 200 with an empty list, and the create attempt returns
+the documented 400 — you know exactly what this server can and cannot do.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>For the RAG workflow itself, you now take the retrieval step into your own hands.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_exercise_6_build_a_grounded_rag_loop_with_manual_retrieval"><a class="anchor" href="#_exercise_6_build_a_grounded_rag_loop_with_manual_retrieval"></a>Exercise 6: Build a grounded RAG loop with manual retrieval</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Retrieval-augmented generation is a loop: embed your documents, store the vectors, embed the
+question, retrieve the closest chunks by cosine similarity, and pass them to the chat
+completions API as context. On this build you run the storage and retrieval steps yourself
+against the pgvector instance that backs the OGX server — which has the bonus that you can
+<strong>see</strong> every step of the loop instead of treating RAG as a black box.</p>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+Every step below uses a throwaway table named <code>ogx_module02_chunks</code> that you drop at
+the end — the exercise leaves the shared environment exactly as it found it. Do not create or
+modify any other database objects.
+</td>
+</tr>
+</table>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Write three small domain documents to ground against:</p>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mkdir -p chunks
+cat > chunks/c1.txt <<'EOF'
+OGX is the Open GenAI Stack in Red Hat OpenShift AI 3.6. It replaces Llama Stack and
+exposes OpenAI-compatible APIs for chat completions, embeddings, and vector stores.
+The OGX Operator manages OGXServer custom resources through the ogx.io/v1beta1 API group.
+EOF
+cat > chunks/c2.txt <<'EOF'
+Retrieval-augmented generation grounds a language model in your own documents: chunks
+are embedded, stored in a vector database such as PostgreSQL with pgvector, and the
+most similar chunks to a user question are injected into the chat completion prompt
+as context.
+EOF
+cat > chunks/c3.txt <<'EOF'
+pgvector supports cosine distance with the <=> operator. Ordering by
+embedding <=> query_vec returns the nearest neighbours first. The stored dimension
+must match the embedding model output; the aml-bge-m3 model served through the
+MaaS facade produces 1024-dimensional vectors.
+EOF</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Create the throwaway table in the pgvector database that backs the OGX server:</p>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">TABLE=ogx_module02_chunks
+oc exec aml-pgvector-0 -n autorag-ml-demo -- psql -U ogx -d ogx \
+  -c "CREATE TABLE $TABLE (id text, source text, content text, embedding vector(1024))"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Expected output: <code>CREATE TABLE</code>.</p>
+</div>
+</li>
+<li>
+<p>Ingest each chunk: embed it through the facade, then insert the vector. The <code>vector</code> column
+stores the 1024 dimensions as a PostgreSQL array literal:</p>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">for f in chunks/c*.txt; do
+  id=$(basename "$f" .txt)
+  vec=$(curl -s "$FACADE/v1/embeddings" -H 'Content-Type: application/json' \
+        -d "$(jq -n --arg t "$(cat "$f")" '{model:"aml-bge-m3", input:$t}')" \
+        | jq -r '.data[0].embedding | join(",")')
+  body=$(sed "s/'/''/g" "$f")
+  oc exec aml-pgvector-0 -n autorag-ml-demo -- psql -U ogx -d ogx \
+    -c "INSERT INTO $TABLE (id, source, content, embedding) VALUES ('$id', '$id.txt', '$body', '[$vec]')"
+done</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Expected output: three <code>INSERT 0 1</code> lines, one per chunk.</p>
+</div>
+</li>
+<li>
+<p>Retrieve: embed the question with the same model, then order by cosine distance. The
+<code>&lt;&#8658;</code> operator is pgvector&#8217;s cosine distance — <code>1 - distance</code> is the similarity:</p>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">QUESTION="How does RAG ground the model in my own documents?"
+VEC=$(curl -s "$FACADE/v1/embeddings" -H 'Content-Type: application/json' \
+      -d "$(jq -n --arg t "$QUESTION" '{model:"aml-bge-m3", input:$t}')" \
+      | jq -r '.data[0].embedding | join(",")')
+oc exec aml-pgvector-0 -n autorag-ml-demo -- psql -U ogx -d ogx \
+  -c "SELECT id, source, round(1 - (embedding <=> '[$VEC]')::numeric, 4) AS similarity
+      FROM $TABLE ORDER BY embedding <=> '[$VEC]' LIMIT 3"</code></pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Expected output — the RAG chunk ranks first:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre> id | source | similarity
+----+--------+------------
+ c2 | c2.txt |     0.5707
+ c3 | c3.txt |     0.4560
+ c1 | c1.txt |     0.3816
+(3 rows)</pre>
+</div>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Ground the answer: pull the top chunks back out of the table and pass them to the chat
+completions API as context. The model must answer from the context only:</p>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">CTX=$(oc exec aml-pgvector-0 -n autorag-ml-demo -- psql -U ogx -d ogx -t -A -c \
+      "SELECT content FROM $TABLE ORDER BY embedding <=> '[$VEC]' LIMIT 2")
+jq -n --arg m "vllm-inference/aml-llama32-3b" --arg c "$CTX" --arg q "$QUESTION" \
+   '{model:$m, messages:[
+      {role:"system", content:"You are a precise assistant. Answer using ONLY the retrieved context. If the context does not contain the answer, say so clearly."},
+      {role:"user", content:("Context:\n" + $c + "\n\nQuestion: " + $q)}]}' > rag-request.json
+curl -s "$OGX/v1/chat/completions" -H 'Content-Type: application/json' -d @rag-request.json \
+  | jq '{model, system_fingerprint, answer: .choices[0].message.content}'</code></pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Expected output — an answer grounded in the retrieved chunk, not in generic knowledge:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>{
+  "model": "vllm-inference/aml-llama32-3b",
+  "system_fingerprint": "vllm-0.31.0+rhaiv.8-596d449d",
+  "answer": "According to the context, Retrieval-augmented generation grounds a language model in your own documents by embedding chunks, storing them in a vector database (specifically, PostgreSQL with pgvector), and then using these embedded chunks as context to the chat completion prompt."
+}</pre>
+</div>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Clean up. Drop the throwaway table and confirm the vector-store list is unchanged:</p>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc exec aml-pgvector-0 -n autorag-ml-demo -- psql -U ogx -d ogx \
+  -c "DROP TABLE $TABLE"
+curl -s "$OGX/v1/vector_stores" | jq '{object, store_count: (.data | length)}'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Expected output: <code>DROP TABLE</code>, and the list shows <code>store_count: 0</code> again.</p>
+</div>
+</li>
+</ol>
+</div>
+<div class="sect2">
+<h3 id="_verify_6"><a class="anchor" href="#_verify_6"></a>Verify</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>The retrieval step ranks the RAG chunk (<code>c2</code>) first with the highest similarity score.</p>
+</li>
+<li>
+<p>The grounded answer quotes the retrieved context instead of answering generically.</p>
+</li>
+<li>
+<p>Ask an ungrounded follow-up — replace the question with something the chunks do not cover
+(for example <code>What is the capital of France?</code> sent with the same context) and confirm the
+model says the context does not contain the answer.</p>
+</li>
+<li>
+<p><code>DROP TABLE</code> succeeds and no <code>ogx_module02</code> tables remain:</p>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc exec aml-pgvector-0 -n autorag-ml-demo -- psql -U ogx -d ogx \
+  -t -c "SELECT tablename FROM pg_tables WHERE tablename LIKE 'ogx_module02%'"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Expected output: no rows.</p>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>You have now run a complete RAG loop by hand. Module 03 looks at what happens when you run
+more than one OGX server, and how the facade pattern from Exercise 4 generalizes.</p>
 </div>
 </div>
 </div>
@@ -1340,13 +1368,21 @@ are correct, and ensure your model deployment is running.</p>
 <div class="ulist">
 <ul>
 <li>
-<p>Activated the OGX Operator in the DataScienceCluster and confirmed the operator pod running</p>
+<p>Activated the OGX Operator in the DataScienceCluster and confirmed the operator pods running</p>
 </li>
 <li>
-<p>Deployed OGXServer instances backed by vLLM inference, PostgreSQL metadata storage, and a pgvector vector store</p>
+<p>Connected to a staged OGXServer backed by vLLM inference, vLLM embeddings, and pgvector</p>
 </li>
 <li>
-<p>Ingested a PDF into a vector store and ran grounded RAG queries with the <code>file_search</code> tool</p>
+<p>Sent chat completions with provider-qualified model IDs and read the serving fingerprint</p>
+</li>
+<li>
+<p>Computed 1024-dimensional embeddings through the MaaS facade, and mapped the API surface that
+this build exposes — including where it honestly stops</p>
+</li>
+<li>
+<p>Built a grounded RAG loop: facade embeddings, pgvector cosine retrieval, and a
+context-constrained chat completion — with net-zero cleanup</p>
 </li>
 </ul>
 </div>
@@ -1356,13 +1392,19 @@ are correct, and ensure your model deployment is running.</p>
 <div class="ulist">
 <ul>
 <li>
-<p>The OGXServer CR is the single entry point for wiring providers: inference, embeddings, vector store, and metadata all come from environment variables sourced from secrets</p>
+<p>The OGXServer CR is the single entry point for wiring providers: inference, embedding, and
+vector storage all come from one custom resource</p>
 </li>
 <li>
-<p>Ingestion is a two-step flow — upload the file with the Files API, then index it into a vector store with a chunking strategy</p>
+<p>Model IDs are provider-qualified (<code>vllm-inference/aml-llama32-3b</code>); bare names 404</p>
 </li>
 <li>
-<p>The <code>file_search</code> tool on the OpenAI-compatible Responses API is what turns a plain chat into RAG</p>
+<p>The MaaS facade is the documented embeddings path on builds where the operator render drops
+the static model registration — the native endpoint returns 400 until then</p>
+</li>
+<li>
+<p>RAG is a loop you can run by hand: embed, store, retrieve by cosine distance, ground the
+prompt — doing it manually once teaches you what every RAG framework automates</p>
 </li>
 </ul>
 </div>
@@ -1370,8 +1412,8 @@ are correct, and ensure your model deployment is running.</p>
 <p><strong>Next steps:</strong></p>
 </div>
 <div class="paragraph">
-<p>With the base RAG stack working, tune retrieval modes and scale the deployment for availability in
-Module 03.</p>
+<p>With the RAG loop understood end to end, scale out to multiple OGX servers, inspect the storage
+layer, and explore the facade pattern in depth in Module 03.</p>
 </div>
 </div>
 </div>

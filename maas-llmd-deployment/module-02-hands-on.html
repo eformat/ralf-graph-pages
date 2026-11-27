@@ -201,6 +201,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -598,7 +606,7 @@ MaaS gateway with an OpenAI-compatible API key.</p>
 <p>Generate an MaaS API key bound to your subscription</p>
 </li>
 <li>
-<p>Call the model through the MaaS gateway with body-based routing and verify token rate limits</p>
+<p>Call the model through the MaaS gateway at its model URL path and verify token rate limits</p>
 </li>
 </ul>
 </div>
@@ -730,7 +738,7 @@ missing, check the MaaS controller logs for errors:</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc logs -n redhat-ai-gateway-infra -l app=maas-controller --tail=50</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc logs -n redhat-ods-applications -l app=maas-controller --tail=50</code></pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -740,10 +748,11 @@ missing, check the MaaS controller logs for errors:</p>
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-The default MaaS infrastructure namespace in RHOAI 3.5 is
-<code>redhat-ai-gateway-infra</code>. To determine the infrastructure namespace for your
-deployment, run <code>oc get maastenantconfig default-tenant -n models-as-a-service
--o jsonpath='{.status.infraNamespace}'</code>.
+The MaaS controller runs in the <code>redhat-ods-applications</code> namespace; the
+<code>redhat-ai-gateway-infra</code> namespace hosts the <code>maas-api</code> service. To determine
+the MaaS infrastructure namespace for your deployment, run <code>oc get
+maastenantconfig default-tenant -n models-as-a-service -o
+jsonpath='{.status.infraNamespace}'</code>.
 </td>
 </tr>
 </table>
@@ -797,6 +806,45 @@ subscription. To create API keys with custom expiration dates, navigate to
 </tr>
 </table>
 </div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The dedicated MaaS portal UI is optional (Technology Preview) in RHOAI
+3.6 and is not required for this workshop; all steps here use the RHOAI
+dashboard and the <code>oc</code> CLI with the OpenAI-compatible REST API.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+You can also create an API key from the CLI with your OpenShift login
+token, without the dashboard:
+</td>
+</tr>
+</table>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">curl -X POST "https://maas.apps.cluster.example.com/maas-api/v1/api-keys" \
+  -H "Authorization: Bearer $(oc whoami -t)" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"maas-llmd-demo-key"}'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The response contains a <code>key</code> field with an <code>sk-oai-</code> prefixed value; store it
+securely as it is shown only once.</p>
+</div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
@@ -840,7 +888,9 @@ jsonpath='{.spec.domain}')"</code>. A successful gateway URL looks like
 </ol>
 </div>
 <div class="paragraph">
-<p>Example response in OpenAI-compatible format:</p>
+<p>Example response in OpenAI-compatible format (live shape; the model <code>id</code> is
+publisher-qualified as <code>publishers/&lt;namespace&gt;/models/&lt;model&gt;</code>, so the model
+name appears as the trailing segment):</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -848,11 +898,18 @@ jsonpath='{.spec.domain}')"</code>. A successful gateway URL looks like
   "object": "list",
   "data": [
     {
-      "id": "maas-llmd-demo",
+      "id": "publishers/abc123-user1/models/maas-llmd-demo",
+      "created": 1795794255,
       "object": "model",
-      "created": 1758520800,
-      "owned_by": "llm",
-      "ready": true
+      "owned_by": "abc123-user1/maas-llmd-demo",
+      "kind": "LLMInferenceService",
+      "url": "https://maas.apps.cluster.example.com",
+      "ready": true,
+      "subscriptions": [
+        {
+          "name": "maas-llmd-demo-subscription"
+        }
+      ]
     }
   ]
 }</pre>
@@ -861,12 +918,12 @@ jsonpath='{.spec.domain}')"</code>. A successful gateway URL looks like
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>Call the model using body-based routing on the standard
-<code>/v1/chat/completions</code> endpoint. The <code>model</code> field in the request body
-determines which model receives the request:</p>
+<p>Call the model through its model URL path on the MaaS gateway. Each published
+model is exposed at a namespace-scoped path — the same external API endpoint
+URL that the <strong>AI asset endpoints</strong> dialog displayed in step 3:</p>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">curl -X POST "${MAAS_URL}/v1/chat/completions" \
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">curl -X POST "${MAAS_URL}/abc123-user1/maas-llmd-demo/v1/chat/completions" \
   -H "Authorization: Bearer $paste-your-generated-api-key" \
   -H "Content-Type: application/json" \
   -d '{"model":"maas-llmd-demo","messages":[{"role":"user","content":"Explain quantum computing in simple terms."}],"max_tokens":150,"temperature":0.7}'</code></pre>
@@ -881,24 +938,24 @@ determines which model receives the request:</p>
 <div class="listingblock">
 <div class="content">
 <pre>{
-  "id": "chatcmpl-abc123",
+  "id": "chatcmpl-61127b27-cd33-4f7f-a6d6-0d07f32ad6d5",
   "object": "chat.completion",
-  "created": 1758520800,
+  "created": 1795798132,
   "model": "maas-llmd-demo",
   "choices": [
     {
       "index": 0,
       "message": {
         "role": "assistant",
-        "content": "Quantum computing is a type of computing that uses quantum mechanics..."
+        "content": "Quantum computing is a type of computing that uses the principles of quantum mechanics to process information and solve problems. Unlike classical computers, which use bits (1s and 0s) to represent and store data, quantum computers use quantum bits or qubits..."
       },
-      "finish_reason": "stop"
+      "finish_reason": "length"
     }
   ],
   "usage": {
-    "prompt_tokens": 12,
-    "completion_tokens": 45,
-    "total_tokens": 57
+    "prompt_tokens": 37,
+    "completion_tokens": 150,
+    "total_tokens": 187
   }
 }</pre>
 </div>
@@ -906,14 +963,13 @@ determines which model receives the request:</p>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>Optional: test legacy path-based routing, which uses a per-model URL path and
-is supported for backwards compatibility with existing integrations:</p>
+<p>Optional: list the models served at your model URL path to confirm the exact
+model ids the endpoint accepts — both the bare name and the
+publisher-qualified id:</p>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">curl -X POST "${MAAS_URL}/llm/maas-llmd-demo/v1/chat/completions" \
-  -H "Authorization: Bearer $paste-your-generated-api-key" \
-  -H "Content-Type: application/json" \
-  -d '{"model":"maas-llmd-demo","messages":[{"role":"user","content":"test"}],"max_tokens":10}'</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">curl -X GET "${MAAS_URL}/abc123-user1/maas-llmd-demo/v1/models" \
+  -H "Authorization: Bearer $paste-your-generated-api-key"</code></pre>
 </div>
 </div>
 </li>
@@ -925,7 +981,7 @@ to the endpoint:</p>
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">for i in $(seq 1 20); do
   curl -s -o /dev/null -w "%{http_code}\n" \
     -H "Authorization: Bearer $paste-your-generated-api-key" \
-    "${MAAS_URL}/llm/maas-llmd-demo/v1/chat/completions" \
+    "${MAAS_URL}/abc123-user1/maas-llmd-demo/v1/chat/completions" \
     -H "Content-Type: application/json" \
     -d '{"model":"maas-llmd-demo","messages":[{"role":"user","content":"test"}],"max_tokens":50}'
 done | sort | uniq -c</code></pre>
@@ -938,14 +994,18 @@ done | sort | uniq -c</code></pre>
 <p>The output should include a mix of <code>200</code> and <code>429</code> status codes, confirming
 that the subscription token limits from Exercise 1 are enforced. If your
 subscription has high token limits, this test may not trigger rate limiting;
-in that case verify that the <code>TokenRateLimitPolicy</code> exists for the model.</p>
+in that case verify that the <code>TokenRateLimitPolicy</code> exists for the model. On
+the workshop subscription the generated policy <code>maas-trlp-maas-llmd-demo</code>
+allows 10,000 tokens per minute, so a 20-request burst with small <code>max_tokens</code>
+values typically returns all `200`s — the token limit is still enforced at the
+gateway.</p>
 </div>
 <div class="sect2">
 <h3 id="_verify_2"><a class="anchor" href="#_verify_2"></a>Verify</h3>
 <div class="ulist">
 <ul>
 <li>
-<p>The <code>/v1/models</code> response includes <code>maas-llmd-demo</code></p>
+<p>The <code>/v1/models</code> response includes <code>maas-llmd-demo</code> as part of the publisher-qualified model id</p>
 </li>
 <li>
 <p>Chat completion requests return responses in the OpenAI-compatible JSON format</p>
@@ -960,7 +1020,7 @@ in that case verify that the <code>TokenRateLimitPolicy</code> exists for the mo
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">curl -s -o /dev/null -w "%{http_code}\n" \
   -H "Authorization: Bearer invalid-key" \
   -H "Content-Type: application/json" \
-  -X POST "${MAAS_URL}/llm/maas-llmd-demo/v1/chat/completions" \
+  -X POST "${MAAS_URL}/abc123-user1/maas-llmd-demo/v1/chat/completions" \
   -d '{"model":"maas-llmd-demo","messages":[{"role":"user","content":"test"}],"max_tokens":10}'</code></pre>
 </div>
 </div>
@@ -1004,7 +1064,7 @@ governed it end to end with MaaS.</p>
 <p>Generated a subscription-scoped API key from the AI asset endpoints dialog</p>
 </li>
 <li>
-<p>Called the llm-d-served model through the MaaS gateway with body-based routing and tested rate limiting</p>
+<p>Called the llm-d-served model through the MaaS gateway at its model URL path and tested rate limiting</p>
 </li>
 </ul>
 </div>
@@ -1017,7 +1077,7 @@ governed it end to end with MaaS.</p>
 <p>Subscriptions and authorization policies work together: subscription for quota, policy for gateway access</p>
 </li>
 <li>
-<p>Body-based routing on <code>/v1/chat/completions</code> gives drop-in compatibility with any OpenAI-compatible SDK</p>
+<p>The per-model URL path on the MaaS gateway is OpenAI-compatible, so any OpenAI-compatible SDK or <code>curl</code> client can call it</p>
 </li>
 <li>
 <p>Token rate limits from the subscription are enforced by the <code>TokenRateLimitPolicy</code> at the gateway</p>
@@ -1028,7 +1088,7 @@ governed it end to end with MaaS.</p>
 <p><strong>Next steps:</strong></p>
 </div>
 <div class="paragraph">
-<p>Continue to the conclusion for links to the full RHOAI 3.5 documentation on
+<p>Continue to the conclusion for links to the full RHOAI 3.6 documentation on
 MaaS governance and distributed inference with llm-d.</p>
 </div>
 </div>

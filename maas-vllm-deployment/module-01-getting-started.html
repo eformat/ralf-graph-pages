@@ -201,6 +201,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -592,7 +600,7 @@ workshop cluster is ready to govern vLLM-served models.</p>
 <div class="ulist">
 <ul>
 <li>
-<p>Explain how vLLM models reach the MaaS gateway in RHOAI 3.5</p>
+<p>Explain how vLLM models reach the MaaS gateway in RHOAI 3.6</p>
 </li>
 <li>
 <p>Enable the vLLM deployment on MaaS flag in the OdhDashboardConfig resource</p>
@@ -621,7 +629,7 @@ here may change between releases.
 <h2 id="_exercise_1_enable_the_vllm_deployment_on_maas_feature_flag"><a class="anchor" href="#_exercise_1_enable_the_vllm_deployment_on_maas_feature_flag"></a>Exercise 1: Enable the vLLM deployment on MaaS feature flag</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>MaaS in Red Hat OpenShift AI 3.5 supports multiple serving runtimes: models can be
+<p>MaaS in Red Hat OpenShift AI 3.6 supports multiple serving runtimes: models can be
 served with <code>llm-d</code> distributed inference or with vLLM runtimes, and both share the
 same MaaS governance layer of subscriptions, quotas, and API keys. vLLM runtime
 support is a <strong>Technology Preview</strong> feature, so the dashboard hides it behind a flag.</p>
@@ -757,7 +765,7 @@ oc get pods -n ${INFRA_NS} -l app=maas-controller</code></pre>
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-In RHOAI 3.5 the default infrastructure namespace is
+In RHOAI 3.6 the default infrastructure namespace is
 <code>redhat-ai-gateway-infra</code>. To resolve the actual namespace for your deployment, run
 <code>oc get maastenantconfig default-tenant -n models-as-a-service
 -o jsonpath='{.status.infraNamespace}'</code>. If the <code>maastenantconfig</code> lookup returns an

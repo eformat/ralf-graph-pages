@@ -201,6 +201,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -931,7 +939,7 @@ authentication</strong> section (<strong>Token secret</strong> field).</p>
 derived from the <code>InferenceService</code> status. With <strong>Require token
 authentication</strong> (wizard path), copy the token from the deployment&#8217;s <strong>Token
 authentication</strong> section in the dashboard into <code>$TOKEN</code>; the CPU-only
-alternative deploys without auth, so a placeholder works there:</p>
+alternative deploys without auth, so any non-empty token works there:</p>
 <div class="listingblock execute">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">export INFER_HOST=$(oc get inferenceservice granite-vllm -n abc123-user1 -o jsonpath='{.status.url}' | sed -e 's|https://||' -e 's|:443$||')

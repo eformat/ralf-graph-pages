@@ -204,6 +204,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -725,9 +733,9 @@ notebook (repeat the SDK exercise from module 2 with a new experiment name).</p>
 </li>
 <li>
 <p>Confirm the new run&#8217;s artifacts resolve under your bucket: in the MLflow UI
-or the dashboard <strong>Experiments (MLflow)</strong> page, inspect the run&#8217;s artifact URI
-— it should point to <code>s3://my-mlflow-bucket/mlflow-artifacts/&#8230;&#8203;</code> rather than the
-default <code>workspaces/&lt;project_name&gt;</code> path.</p>
+at the <code>/mlflow</code> path of the RHOAI dashboard URL, inspect the run&#8217;s artifact
+URI — it should point to <code>s3://my-mlflow-bucket/mlflow-artifacts/&#8230;&#8203;</code> rather than
+the default <code>workspaces/&lt;project_name&gt;</code> path.</p>
 </li>
 </ol>
 </div>
@@ -821,7 +829,9 @@ spec:
 than the server default, replace <code>&lt;experiment_id_1&gt;</code> and <code>&lt;experiment_id_2&gt;</code>
 with the numeric IDs of your experiments and add them to the
 <code>longRetentionAllowlist</code> field (up to 64 IDs). You can find an experiment&#8217;s
-numeric ID in the MLflow UI or the dashboard <strong>Experiments (MLflow)</strong> page:</p>
+numeric ID in the MLflow UI at the <code>/mlflow</code> path of the RHOAI dashboard URL —
+it is shown in the experiment URL and in the <strong>About this run</strong> panel of a run&#8217;s
+detail page:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">spec:
@@ -877,16 +887,25 @@ archival.</p>
 </div>
 </li>
 <li>
-<p>Set a per-experiment retention override from the RHOAI dashboard: navigate
-to the experiment, click the three-dot menu, select <strong>Edit Experiment</strong>, enter
-a retention period such as <code>7d</code> in the <strong>Trace archival retention</strong> field, and
-click <strong>Save</strong>. A shorter experiment retention takes effect automatically; a
-longer one takes effect only if the experiment ID is in the
-<code>longRetentionAllowlist</code>.</p>
+<p>Review the per-experiment retention controls in the MLflow UI at the
+<code>/mlflow</code> path of the RHOAI dashboard URL: open your experiment and click the
+three-dot menu. The <strong>Edit experiment</strong> dialog edits the experiment name and
+description; on current builds, retention is not set per experiment in this
+dialog. A shorter experiment retention takes effect automatically; a longer
+one takes effect only if the experiment ID is in the <code>longRetentionAllowlist</code>
+(previous step).</p>
 </li>
 <li>
-<p>Confirm the retention in the dashboard: the experiment now shows an
-<strong>Archive after</strong> badge with the expected retention period.</p>
+<p>If you added experiment IDs to the <code>longRetentionAllowlist</code>, confirm the
+<code>MLflow</code> CR accepted them:</p>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get mlflow mlflow -n redhat-ods-applications -o jsonpath='{.spec.traceArchival.longRetentionAllowlist}'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Expected output shows the allowlisted experiment IDs.</p>
+</div>
 </li>
 </ol>
 </div>
@@ -1014,7 +1033,7 @@ longer present:</p>
 <p>Overrode artifact storage for your project with the <code>MLflowConfig</code> resource and an <code>mlflow-artifact-connection</code> S3 connection</p>
 </li>
 <li>
-<p>Enabled trace archival in the <code>MLflow</code> CR and verified the operator created the archival CronJob, with a per-experiment retention override from the dashboard</p>
+<p>Enabled trace archival in the <code>MLflow</code> CR and verified the operator created the archival CronJob, with longer retention grants handled through the <code>longRetentionAllowlist</code></p>
 </li>
 <li>
 <p>Disabled the workbench integration by removing the <code>opendatahub.io/mlflow-instance</code> annotation and confirmed the RoleBinding and environment variables were cleaned up</p>

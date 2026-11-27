@@ -201,6 +201,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -593,7 +601,7 @@ with llm-d</strong> deployment resource and publish it to MaaS.</p>
 <div class="ulist">
 <ul>
 <li>
-<p>Explain how MaaS and the llm-d distributed inference path fit together in RHOAI 3.5</p>
+<p>Explain how MaaS and the llm-d distributed inference path fit together in RHOAI 3.6</p>
 </li>
 <li>
 <p>Verify the MaaS custom resources, tenant configuration, and llm-d inference gateway</p>
@@ -624,8 +632,9 @@ here may change between releases.
 </td>
 <td class="content">
 Both capabilities must be enabled by a cluster administrator before
-you deploy. MaaS requires <code>kserve.modelsAsService</code> set to <code>Managed</code> in the
-DataScienceCluster resource, and distributed inference requires the Gateway API
+you deploy. MaaS requires the <code>aigateway</code> component set to <code>Managed</code> in the
+DataScienceCluster resource (the <code>ModelsAsAServiceReady</code> status condition shows
+<code>True</code>), and distributed inference requires the Gateway API
 with a Gateway named <code>openshift-ai-inference</code> in the <code>openshift-ingress</code>
 namespace. Models deployed for MaaS use the <code>LLMInferenceService</code> architecture,
 which integrates with the MaaS gateway for subscription-based quota enforcement.
@@ -661,28 +670,40 @@ model.</p>
 <div class="listingblock">
 <div class="content">
 <pre>aitenants.maas.opendatahub.io
+configs.maas.opendatahub.io
+externalmodels.maas.opendatahub.io
 maasauthpolicies.maas.opendatahub.io
 maasmodelrefs.maas.opendatahub.io
 maassubscriptions.maas.opendatahub.io
-maastenantconfigs.maas.opendatahub.io</pre>
+maastenantconfigs.maas.opendatahub.io
+tenants.maas.opendatahub.io</pre>
 </div>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>Confirm that the Tenant custom resource exists and shows a <code>Ready</code> status:</p>
+<p>Confirm that the MaaS tenant configuration resource exists and shows a <code>Ready</code> status:</p>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get tenants.maas.opendatahub.io default-tenant -n models-as-a-service</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get maastenantconfig default-tenant -n models-as-a-service</code></pre>
 </div>
 </div>
 </li>
 </ol>
 </div>
 <div class="paragraph">
-<p>The resource should show <code>Ready</code> in the status column. If it shows <code>False</code> or
-<code>Degraded</code>, verify that User Workload Monitoring is enabled on the cluster and
-that all platform prerequisites are met.</p>
+<p>Expected output:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>NAME             READY   REASON       AGE
+default-tenant   True    Reconciled   5d</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The resource should show <code>READY</code> as <code>True</code> with reason <code>Reconciled</code>. If it
+shows <code>False</code>, verify that User Workload Monitoring is enabled on the cluster
+and that all platform prerequisites are met.</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
@@ -690,14 +711,16 @@ that all platform prerequisites are met.</p>
 <p>Confirm that MaaS is enabled in the DataScienceCluster resource:</p>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get datasciencecluster default-dsc -o jsonpath='{.spec.components.kserve.modelsAsService.managementState}'</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get dsc default-dsc -o jsonpath='{.status.conditions[?(@.type=="ModelsAsAServiceReady")].status}'</code></pre>
 </div>
 </div>
 </li>
 </ol>
 </div>
 <div class="paragraph">
-<p>The output is <code>Managed</code> when MaaS is enabled.</p>
+<p>The output is <code>True</code> when MaaS is enabled. In RHOAI 3.6, Models-as-a-Service is
+governed by the <code>aigateway</code> component (which includes the <code>Model as a service</code>
+release) instead of a field under the <code>kserve</code> component as in earlier releases.</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
@@ -722,13 +745,13 @@ external entry point must be configured for this Gateway service.</p>
 <div class="ulist">
 <ul>
 <li>
-<p>The five <code>maas.opendatahub.io</code> CRDs are listed</p>
+<p>The eight <code>maas.opendatahub.io</code> CRDs are listed</p>
 </li>
 <li>
-<p>The <code>default-tenant</code> Tenant resource shows <code>Ready</code></p>
+<p>The <code>default-tenant</code> MaaSTenantConfig resource shows <code>READY=True</code> (reason <code>Reconciled</code>)</p>
 </li>
 <li>
-<p><code>modelsAsService</code> management state is <code>Managed</code></p>
+<p>The <code>ModelsAsAServiceReady</code> status condition on the DataScienceCluster is <code>True</code></p>
 </li>
 <li>
 <p>The <code>openshift-ai-inference</code> GatewayClass and Gateway both exist</p>
@@ -747,7 +770,7 @@ dashboard wizard.</p>
 <div class="sectionbody">
 <div class="paragraph">
 <p>In this exercise you deploy a generative model from your project using the
-wizard and select the <strong>Distributed inference with llm-d</strong> deployment resource.</p>
+wizard and select the <strong>LLM inference service with llm-d</strong> deployment method.</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
@@ -759,21 +782,22 @@ wizard and select the <strong>Distributed inference with llm-d</strong> deployme
 <p>Click the <strong>Deployments</strong> tab, then click <strong>Deploy model</strong> to open the wizard.</p>
 </li>
 <li>
-<p>In the <strong>Model details</strong> section, select your storage connection and model path,
-select <strong>Generative AI model (Example, LLM)</strong> as the model type, make sure the
-<strong>Use legacy deployment method</strong> checkbox is unchecked, then click <strong>Next</strong>.</p>
+<p>In the <strong>Model details</strong> section, choose where the model is located (for
+example, <strong>OCI compliant registry</strong>), provide the access type and model location
+details (the registry host and model URI), select <strong>Generative AI model
+(Example, LLM)</strong> as the model type, then click <strong>Next</strong>.</p>
 </li>
 <li>
 <p>In the <strong>Model deployment</strong> section, enter a unique deployment name using
 lowercase letters, numbers, and hyphens, for example <code>maas-llmd-demo</code>, select
-an appropriate hardware profile, and select <strong>Distributed inference with llm-d</strong>
-as the deployment resource.</p>
+an appropriate hardware profile, and select <strong>LLM inference service with llm-d</strong>
+as the deployment method.</p>
 </li>
 </ol>
 </div>
 <div class="imageblock">
 <div class="content">
-<a class="image" href="_images/01-deploy-wizard-llmd.png" target="blank"><img src="_images/01-deploy-wizard-llmd.png" alt="Model deployment section with the Distributed inference with llm-d deployment resource selected" width="700"></a>
+<a class="image" href="_images/02-deploy-wizard-llmd-live.png" target="blank"><img src="_images/02-deploy-wizard-llmd-live.png" alt="Live RHOAI 3.6 Deploy model wizard with the LLM inference service with llm-d deployment method selected" width="700"></a>
 </div>
 </div>
 <div class="olist arabic">
@@ -785,8 +809,10 @@ replicas for high availability. Click <strong>Next</strong>.</p>
 </li>
 <li>
 <p>In the <strong>Advanced settings</strong> section, under <strong>Model availability</strong>, select
-<strong>Publish as MaaS</strong> to make the model accessible to users through the MaaS
-gateway, then click <strong>Next</strong>.</p>
+<strong>Subscribed users</strong> to publish the model as MaaS and make it accessible to users
+through the MaaS gateway. The wizard reminds you that an administrator must
+configure subscriptions and authorization policies under <strong>Settings &gt; MaaS
+governance</strong> before users can call the model. Click <strong>Next</strong>.</p>
 </li>
 <li>
 <p>In the <strong>Review</strong> section, verify your configuration settings and click
@@ -816,6 +842,11 @@ access it. You do that in Module 02.
 <li>
 <p>Verify that the model appears on the <strong>Deployments</strong> tab with a checkmark in
 the <strong>Status</strong> column.</p>
+<div class="imageblock">
+<div class="content">
+<a class="image" href="_images/03-deployments-ready-llmd.png" target="blank"><img src="_images/03-deployments-ready-llmd.png" alt="Live RHOAI 3.6 project Deployments tab showing maas-llmd-demo with the Distributed inference with llm-d resource and Ready status" width="700"></a>
+</div>
+</div>
 </li>
 <li>
 <p>Verify that the model was published to MaaS:</p>
@@ -881,7 +912,7 @@ Next you grant user access to it with subscriptions and authorization policies.<
 <p>Models deployed for MaaS use the <code>LLMInferenceService</code> architecture, not the legacy KServe serving path</p>
 </li>
 <li>
-<p><strong>Publish as MaaS</strong> creates a <code>MaaSModelRef</code> that registers the model for subscription assignment</p>
+<p><strong>Subscribed users</strong> (publish as MaaS) creates a <code>MaaSModelRef</code> that registers the model for subscription assignment</p>
 </li>
 <li>
 <p>The <code>openshift-ai-inference</code> Gateway fronts all Distributed Inference with llm-d traffic</p>

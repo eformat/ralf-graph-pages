@@ -200,6 +200,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -605,7 +613,7 @@ Link feature that connects and secures your backend Model Context Protocol
 <div class="ulist">
 <ul>
 <li>
-<p>What the MCP gateway does and where it fits in RHOAI 3.5 and Connectivity Link</p>
+<p>What the MCP gateway does and where it fits in RHOAI 3.6 and Connectivity Link</p>
 </li>
 <li>
 <p>Install the MCP gateway Operator with OLM and deploy a gateway with a Gateway object, MCP listener, and <code>MCPGatewayExtension</code> CR</p>
@@ -632,7 +640,7 @@ Link feature that connects and secures your backend Model Context Protocol
 <p>MCP Lifecycle Operator enabled</p>
 </li>
 <li>
-<p>An OpenShift cluster with RHOAI 3.5 installed</p>
+<p>An OpenShift cluster with RHOAI 3.6 installed</p>
 </li>
 <li>
 <p>Red Hat Connectivity Link 1.4.1 or later installed</p>
@@ -648,7 +656,10 @@ Link feature that connects and secures your backend Model Context Protocol
 <td class="content">
 Red Hat Connectivity Link 1.4.2 or later is required for the
 multi-tenancy (cross-namespace reference) flow used by the <code>MCPGatewayExtension</code>
-CR in Module 01.
+CR in Module 01. Connectivity Link 1.5 — the current release on this workshop
+environment — delivers the <code>mcp-gateway-controller</code> in the <code>kuadrant-system</code>
+namespace; where it is present, its <code>mcp.kuadrant.io</code> CRDs satisfy the
+prerequisites and Module 01 Exercise 1 can be skipped.
 </td>
 </tr>
 </table>

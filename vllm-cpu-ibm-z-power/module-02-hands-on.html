@@ -201,6 +201,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -742,8 +750,10 @@ which is the only mode for the vLLM CPU ServingRuntime on IBM Z and IBM Power.</
 </tr>
 <tr>
 <td><i class="conum" data-value="3"></i><b>3</b></td>
-<td><strong>runtime:</strong> The vLLM CPU ServingRuntime you selected; KServe resolves it from the
-deployment&#8217;s own namespace.</td>
+<td><strong>runtime:</strong> The vLLM CPU ServingRuntime you selected — the wizard instantiates the
+pre-installed <strong>vLLM CPU (ppc64le/s390x) ServingRuntime for KServe</strong> template
+(ClusterServingRuntime <code>csr-kserve-vllm-cpu</code>) into your project, and KServe resolves it
+from the deployment&#8217;s own namespace.</td>
 </tr>
 <tr>
 <td><i class="conum" data-value="4"></i><b>4</b></td>

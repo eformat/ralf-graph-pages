@@ -198,6 +198,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -589,13 +597,13 @@ catalog into your working project, and verify the resulting workload from the CL
 <div class="ulist">
 <ul>
 <li>
-<p>Explain what the <strong>Red Hat</strong>, <strong>Partner</strong>, and <strong>Community</strong> support tiers mean on MCP server cards</p>
+<p>Explain what the <strong>Red Hat supported</strong>, <strong>Partner supported</strong>, and <strong>Community supported</strong> tiers mean on MCP server cards</p>
 </li>
 <li>
 <p>Enable MCP server lifecycle management with the <code>DataScienceCluster</code> and <code>OdhDashboardConfig</code> resources</p>
 </li>
 <li>
-<p>Deploy an MCP server from the AI Hub MCP Catalog and confirm its <code>READY</code> status</p>
+<p>Deploy an MCP server from the AI Hub MCP Catalog and confirm its <code>ACCEPTED</code>, <code>AVAILABLE</code>, and <code>VERIFIED</code> conditions</p>
 </li>
 <li>
 <p>Monitor and remove an <code>MCPServer</code> custom resource from the CLI</p>
@@ -612,7 +620,8 @@ catalog into your working project, and verify the resulting workload from the CL
 This feature is a <strong>Technology Preview</strong>. Technology Preview features are not
 supported with Red Hat production service-level agreements (SLAs) and might not be
 functionally complete. Red Hat does not recommend using them in production. The
-<code>MCPServer</code> custom resource API version is <code>v1alpha1</code>; CRD types and fields can change
+<code>MCPServer</code> custom resource API version is <code>v1beta1</code> (the CRD also serves a legacy
+<code>v1alpha1</code> API); CRD types and fields can change
 in a future release without a migration path, so the commands and manifests shown here
 may change between releases.
 </td>
@@ -627,12 +636,16 @@ may change between releases.
 <div class="paragraph">
 <p>The AI Hub MCP Catalog is a federated plugin in the Red Hat OpenShift AI dashboard,
 pre-loaded with MCP servers from Red Hat, technology partners, and the open source
-community. A separate <code>model-metadata-collection</code> data container provides the catalog
-metadata used for MCP server discovery.</p>
+community. The catalog data — including each server&#8217;s support tier — is delivered by
+the AI Hub <code>Catalog</code> custom resource, whose catalog workload runs the
+<code>registry.redhat.io/rhai/ai-hub-catalog-rhel9</code> image. The support-tier information is
+part of this catalog payload; the <code>gen-ai-aa-mcp-servers</code> and <code>mcp-catalog-sources</code>
+configmaps in the dashboard namespaces do not carry tier data.</p>
 </div>
 <div class="paragraph">
-<p>The <strong>support tier</strong> is a label shown on every server card alongside the server name,
-description, and supported tools. It tells you who maintains and supports that server:</p>
+<p>The <strong>support tier</strong> is a badge shown on every server card alongside the server name,
+description, and supported tools. The badge text tells you who maintains and supports
+that server:</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
@@ -647,15 +660,15 @@ description, and supported tools. It tells you who maintains and supports that s
 </thead>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Red Hat</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Red Hat supported</strong></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Fully supported by Red Hat.</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Partner</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Partner supported</strong></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Supported by the technology partner who maintains the server.</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Community</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Community supported</strong></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Best-effort support from the open source community.</p></td>
 </tr>
 </tbody>
@@ -663,8 +676,11 @@ description, and supported tools. It tells you who maintains and supports that s
 <div class="paragraph">
 <p>The <code>mcplifecycleoperator</code> component is the deployment runtime behind the catalog. It
 watches for <code>MCPServer</code> custom resources and provisions the required <code>Deployment</code>,
-<code>Service</code>, and <code>NetworkPolicies</code> automatically. It defaults to <code>Removed</code> in RHOAI 3.5,
-so an administrator must enable it explicitly before the catalog&#8217;s deploy action works.</p>
+<code>Service</code>, and <code>NetworkPolicies</code> automatically. On this workshop cluster the component
+ships enabled — <code>managementState: Managed</code> in the <code>DataScienceCluster</code> — so the
+catalog&#8217;s deploy action works out of the box. On a cluster where the component has not
+been enabled yet, an administrator must set it to <code>Managed</code> explicitly before the
+catalog&#8217;s deploy action works; the exercise below walks through that step.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -691,8 +707,9 @@ Link, which must be installed independently if your scenario requires it.</p>
 <i class="fa icon-important" title="Important"></i>
 </td>
 <td class="content">
-Deploying MCP servers from the MCP Catalog requires a cluster administrator
-to enable the MCP Lifecycle Operator first. Until then, the <strong>Deploy MCP server</strong> button
+Deploying MCP servers from the MCP Catalog requires the MCP Lifecycle
+Operator to be enabled (<code>managementState: Managed</code>). If it is not, a cluster
+administrator must enable it first; until then, the <strong>Deploy MCP server</strong> button
 on the server details page is disabled.
 </td>
 </tr>
@@ -808,32 +825,83 @@ tier to choose a server, and deploy it into your working project.</p>
 </li>
 <li>
 <p>Browse the available MCP servers. Each card displays the server name, a description,
-the supported tools, and the support tier (<code>Red Hat</code>, <code>Partner</code>, or <code>Community</code>).</p>
-</li>
-</ol>
-</div>
+the supported tools, and the support tier badge (<code>Red Hat supported</code>, <code>Partner
+supported</code>, or <code>Community supported</code>).</p>
 <div class="imageblock">
 <div class="content">
 <a class="image" href="_images/01-catalog-support-tiers.png" target="blank"><img src="_images/01-catalog-support-tiers.png" alt="MCP server cards in the AI Hub MCP Catalog showing the support tier badge" width="700"></a>
 </div>
 </div>
-<div class="olist arabic">
-<ol class="arabic">
+</li>
 <li>
 <p>Filter the catalog by deployment mode or supported transport protocols to find a
-server that meets your requirements. For the smoothest start, pick a server labeled
-with the <strong>Red Hat</strong> support tier.</p>
+server that meets your requirements. For the smoothest start, pick a server carrying
+the <strong>Red Hat supported</strong> tier badge whose deployment mode is <strong>Local to cluster</strong> — this
+lab deploys <code>com.redhat/insights-mcp-server</code>, the Red Hat Lightspeed MCP server: a
+<strong>Red Hat supported</strong> server that runs inside your own project.</p>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p><strong>Not every catalog server can be deployed this way.</strong> Some servers — for example
+<code>com.redhat/openshift-mcp-server</code> — require an <strong>MCP gateway</strong>. When the cluster has no
+gateway available, their <strong>Deploy MCP server</strong> button is disabled and the page shows
+the reason instead:</p>
+</div>
+<div class="paragraph">
+<p>+</p>
+</div>
+<div class="quoteblock">
+<blockquote>
+<div class="paragraph">
+<p>This MCP server requires an MCP gateway, and none is available. Ask your cluster
+administrator to set up an MCP gateway.</p>
+</div>
+</blockquote>
+</div>
+<div class="paragraph">
+<p>In the RHOAI 3.6 catalog, 8 of the 9 servers — all with deployment mode <strong>Local to
+cluster</strong> — deploy without a gateway, so pick one of those, as this lab does with
+<code>com.redhat/insights-mcp-server</code>. Setting up an MCP gateway is optional and out of
+scope for this workshop.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
 </li>
 <li>
 <p>Click the server you want to deploy to open its details page. Review the server
-metadata: the list of tools it exposes, the supported capabilities, and whether the
-server requires a service account.</p>
+metadata: the tools it exposes, the <strong>Provider</strong> (<code>Red Hat</code>), the supported transport
+types (<code>http-streaming</code>, <code>SSE</code>), the deployment mode (<strong>Local to cluster</strong>), and the
+README. For <code>com.redhat/insights-mcp-server</code>, the README <strong>Prerequisites</strong> section
+lists what the server needs: service account credentials from console.redhat.com and
+a Kubernetes secret named <code>insights-credentials</code> with <code>client-id</code> and <code>client-secret</code>
+keys.</p>
+</li>
+<li>
+<p>Before deploying, create the <code>insights-credentials</code> secret in your working project.
+The deploy dialog references these keys through <code>secretKeyRef</code> entries but does not
+create the secret itself. Use your own service account credentials from
+console.redhat.com in place of the placeholder values:</p>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc create secret generic insights-credentials \
+  --from-literal=client-id=<your-client-id> \
+  --from-literal=client-secret=<your-client-secret> \
+  -n abc123-user1</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The command confirms with <code>secret/insights-credentials created</code>.</p>
+</div>
 </li>
 <li>
 <p>Click <strong>Deploy MCP server</strong>.</p>
-</li>
-</ol>
-</div>
 <div class="admonitionblock note">
 <table>
 <tr>
@@ -843,36 +911,100 @@ server requires a service account.</p>
 <td class="content">
 <div class="paragraph">
 <p>The <strong>Deploy MCP server</strong> button stays disabled if the MCP Lifecycle Operator is not
-enabled on the cluster. Recheck Exercise 1 if the button is greyed out.</p>
+enabled on the cluster. Recheck Exercise 1 if the button is greyed out. It is also
+disabled for servers that require an MCP gateway, as described above.</p>
 </div>
 </td>
 </tr>
 </table>
 </div>
-<div class="olist arabic">
-<ol class="arabic">
+</li>
 <li>
-<p>In the deployment dialog, review the YAML configuration field. If the MCP server
-requires a service account, set the <code>serviceAccountName</code> field under <code>runtime:</code> and
-<code>security:</code>, replacing <code>&lt;service_account_name&gt;</code> with the name of an existing
-<code>ServiceAccount</code> in your project:</p>
+<p>In the <strong>Deploy MCP server</strong> dialog, review the fields:</p>
+<div class="openblock">
+<div class="content">
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Deployment name</strong> — free text; as you type, the dialog shows the resulting
+resource name (<code>The resource name will be &lt;name&gt;.</code>). Enter <code>insights-mcp-demo</code>.</p>
+</li>
+<li>
+<p><strong>OCI image</strong> — prefilled from the catalog metadata
+(<code>ghcr.io/redhatinsights/red-hat-lightspeed-mcp:latest</code>) and read-only.</p>
+</li>
+<li>
+<p><strong>Project</strong> — select your working project, <code>abc123-user1</code>.</p>
+</li>
+<li>
+<p><strong>YAML configuration</strong> — an editable YAML snippet prefilled from the server&#8217;s
+catalog metadata, with the note: <em>"This YAML has been prefilled from the selected
+server&#8217;s metadata in the catalog. Edit as needed."</em></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</li>
+<li>
+<p>Edit the YAML configuration: add the <code>arguments</code> list under <code>config:</code>. The container
+image starts the MCP server in <code>stdio</code> mode by default, which suits local process
+transports; inside Kubernetes there is no stdin, so with the default arguments the
+container starts, exits immediately (exit code <code>0</code>), and restarts in a loop without
+ever becoming available. The <code>arguments</code> override switches the server to the HTTP
+transport that matches the catalog&#8217;s streamable-http metadata and the dialog&#8217;s
+<code>port</code> and <code>path</code> values:</p>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">spec:
-  runtime: <i class="conum" data-value="1"></i><b>(1)</b>
-    security:
-      serviceAccountName: &lt;service_account_name&gt; <i class="conum" data-value="2"></i><b>(2)</b></code></pre>
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">config:
+  port: 8000
+  path: /mcp
+  arguments:
+    - http
+    - --host
+    - 0.0.0.0
+  env:
+    - name: LIGHTSPEED_CLIENT_ID
+      valueFrom:
+        secretKeyRef:
+          name: insights-credentials
+          key: client-id
+    - name: LIGHTSPEED_CLIENT_SECRET
+      valueFrom:
+        secretKeyRef:
+          name: insights-credentials
+          key: client-secret</code></pre>
 </div>
 </div>
-<div class="colist arabic">
+<div class="paragraph">
+<p>When <code>arguments</code> is not set, the container image&#8217;s own default arguments (its
+<code>CMD</code>/<code>ENTRYPOINT</code>) apply. Here the override starts the server with the <code>http</code>
+transport listening on <code>0.0.0.0:8000</code>, matching <code>port: 8000</code> and <code>path: /mcp</code>.</p>
+</div>
+<div class="admonitionblock note">
 <table>
 <tr>
-<td><i class="conum" data-value="1"></i><b>1</b></td>
-<td><strong><code>runtime</code></strong> — the runtime section of the server configuration presented in the deployment dialog.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="2"></i><b>2</b></td>
-<td><strong><code>serviceAccountName</code></strong> — the name of a <code>ServiceAccount</code> resource that already exists in your namespace. Required only if the server metadata says the server needs one.</td>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p><strong>Troubleshooting:</strong> if you deploy without this edit, the pod never becomes ready:
+<code>oc get pods</code> shows the container exiting with <code>STATUS</code> <code>Completed</code> (exit code <code>0</code>)
+and climbing <code>RESTARTS</code>, <code>oc logs</code> returns no container logs, and the <code>MCPServer</code>
+stays <code>AVAILABLE=False</code>. The fix is the same <code>arguments</code> override — either edit the
+YAML in the dialog and redeploy, or patch the existing resource:</p>
+</div>
+<div class="paragraph">
+<p>+</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc patch mcpserver insights-mcp-demo -n abc123-user1 --type=json \
+  -p '[{"op":"add","path":"/spec/config/arguments","value":["http","--host","0.0.0.0"]}]'</code></pre>
+</div>
+</div>
+</td>
 </tr>
 </table>
 </div>
@@ -880,15 +1012,18 @@ requires a service account, set the <code>serviceAccountName</code> field under 
 <li>
 <p>Confirm the deployment by clicking <strong>Deploy</strong> in the dialog. The MCP Catalog submits
 the deployment request to the MCP Lifecycle Operator, which creates an <code>MCPServer</code>
-custom resource in your namespace and provisions the required <code>Deployment</code> and
-<code>Service</code>.</p>
+custom resource (<code>apiVersion: mcp.x-k8s.io/v1beta1</code>, annotated with the catalog
+server it came from) in your namespace and provisions the required <code>Deployment</code> and
+<code>Service</code>. The dashboard redirects to the <strong>Deployments</strong> tab, where a row for
+<code>insights-mcp-demo</code> appears immediately with status <code>Initializing</code> and changes to
+<code>Available</code> within about 30 seconds.</p>
 </li>
 </ol>
 </div>
 <div class="sect2">
 <h3 id="_verify_2"><a class="anchor" href="#_verify_2"></a>Verify</h3>
 <div class="paragraph">
-<p>Confirm that the <code>MCPServer</code> custom resource shows a <code>READY</code> status of <code>True</code>:</p>
+<p>Confirm that the <code>MCPServer</code> custom resource is accepted, available, and verified:</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
@@ -896,12 +1031,40 @@ custom resource in your namespace and provisions the required <code>Deployment</
 </div>
 </div>
 <div class="paragraph">
-<p>The output shows your MCP server with <code>READY</code> status as <code>True</code>, for example:</p>
+<p>The output shows your MCP server with <code>ACCEPTED</code>, <code>AVAILABLE</code>, and <code>VERIFIED</code> all
+<code>True</code>, plus the in-cluster service <code>ADDRESS</code>, for example:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>NAME                READY   ACCEPTED   IMAGE   PORT   ADDRESS   AGE
-my-mcp-server   True    True       ...     ...    ...       2m</pre>
+<pre>NAME                ACCEPTED   AVAILABLE   VERIFIED   IMAGE                                                  PORT   ADDRESS                                                            AGE
+insights-mcp-demo   True       True        True       ghcr.io/redhatinsights/red-hat-lightspeed-mcp:latest   8000   http://insights-mcp-demo.abc123-user1.svc.cluster.local:8000/mcp   43s</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Confirm the pod is <code>Running</code> and the server started its HTTP transport:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get pods -n abc123-user1</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>insights-mcp-demo-59958dc6dc-j77gd                          1/1     Running   0          43s</pre>
+</div>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc logs deployment/insights-mcp-demo -n abc123-user1</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Look for the transport lines in the log output:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>Starting Insights MCP server with args: Namespace(readonly=True, transport=http, host=0.0.0.0, port=8000)
+Running HTTP transport on host: 0.0.0.0, port: 8000</pre>
 </div>
 </div>
 <div class="admonitionblock tip">
@@ -912,16 +1075,20 @@ my-mcp-server   True    True       ...     ...    ...       2m</pre>
 </td>
 <td class="content">
 <div class="paragraph">
-<p>Run <code>oc explain mcpserver.spec.runtime</code> to view all available runtime configuration
-fields for the CRD version installed on your cluster.</p>
+<p>The <code>MCPServer</code> custom resource uses the <code>mcp.x-k8s.io/v1beta1</code> API version. Run
+<code>oc explain mcpserver.spec --api-version=mcp.x-k8s.io/v1beta1</code> to view all available
+configuration fields (such as the required <code>spec.config</code> section) for the CRD version
+installed on your cluster.</p>
 </div>
 </td>
 </tr>
 </table>
 </div>
 <div class="paragraph">
-<p>In the dashboard, return to <strong>AI hub</strong> → <strong>MCP servers</strong> and confirm the server appears on
-the <strong>Deployments</strong> tab.</p>
+<p>In the dashboard, return to <strong>AI hub</strong> → <strong>MCP servers</strong> — the page has the <strong>Catalog</strong>,
+<strong>Registry</strong>, and <strong>Deployments</strong> tabs — and open the <strong>Deployments</strong> tab. The row for
+<code>insights-mcp-demo</code> lists <code>com.redhat/insights-mcp-server</code> as the MCP server, the
+creation time, the status <code>Available</code>, and a <strong>View</strong> link to the running service.</p>
 </div>
 <div class="paragraph">
 <p>With a real <code>MCPServer</code> running in your project, the last step is to read its health
@@ -948,16 +1115,18 @@ delete it and confirm the operator cleans up after it.</p>
 </div>
 </li>
 <li>
-<p>Review the status conditions for your server. Replace <code>my-mcp-server</code> with your
+<p>Review the status conditions for your server. Replace <code>insights-mcp-demo</code> with your
 server name:</p>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc describe mcpserver my-mcp-server -n abc123-user1</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc describe mcpserver insights-mcp-demo -n abc123-user1</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Look for a condition with <code>type: Ready</code> and <code>status: True</code> to confirm the server is
-running and ready to accept connections.</p>
+<p>Look for the <code>Accepted</code>, <code>Available</code>, and <code>Verified</code> conditions with <code>status: True</code>
+(for example, <code>Available=True (Available)</code>) to confirm the server is running,
+verified by the operator handshake, and ready to accept connections at the service
+address reported by <code>oc get mcpservers</code>.</p>
 </div>
 </li>
 <li>
@@ -980,7 +1149,7 @@ resources, and the server is no longer available to your agents.</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc delete mcpserver my-mcp-server -n abc123-user1</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc delete mcpserver insights-mcp-demo -n abc123-user1</code></pre>
 </div>
 </div>
 </li>
@@ -1015,10 +1184,10 @@ resources, and the server is no longer available to your agents.</p>
 <p>Enabled the MCP Lifecycle Operator and the <code>mcpCatalog</code> dashboard feature flag on the cluster</p>
 </li>
 <li>
-<p>Read the support-tier labels (<code>Red Hat</code>, <code>Partner</code>, <code>Community</code>) on MCP server cards in the AI Hub MCP Catalog</p>
+<p>Read the support-tier badges (<code>Red Hat supported</code>, <code>Partner supported</code>, <code>Community supported</code>) on MCP server cards in the AI Hub MCP Catalog</p>
 </li>
 <li>
-<p>Deployed an MCP server from the catalog, verified its <code>READY</code> status, and removed it again</p>
+<p>Deployed <code>com.redhat/insights-mcp-server</code> from the catalog gateway-free, watched it reach <code>Available</code>, and verified its <code>ACCEPTED</code>/<code>AVAILABLE</code>/<code>VERIFIED</code> conditions from the CLI</p>
 </li>
 </ul>
 </div>
@@ -1032,8 +1201,19 @@ resources, and the server is no longer available to your agents.</p>
 technology partner, or best-effort from the community</p>
 </li>
 <li>
-<p>The <code>mcplifecycleoperator</code> component defaults to <code>Removed</code> and must be set to
-<code>Managed</code> in the <code>DataScienceCluster</code> before the catalog&#8217;s deploy action is available</p>
+<p>Most catalog servers — 8 of 9, all with deployment mode <strong>Local to cluster</strong> — deploy
+without an MCP gateway; servers that require one keep their <strong>Deploy MCP server</strong>
+button disabled until an administrator provides a gateway</p>
+</li>
+<li>
+<p>The <code>mcplifecycleoperator</code> component must be set to <code>Managed</code> in the
+<code>DataScienceCluster</code> for the catalog&#8217;s deploy action to be available; this workshop
+cluster ships the component already enabled</p>
+</li>
+<li>
+<p>The deploy dialog prefills YAML from the catalog metadata; server images that
+default to <code>stdio</code> transport need <code>config.arguments</code> (here <code>http --host 0.0.0.0</code>)
+to serve HTTP inside the cluster</p>
 </li>
 <li>
 <p>The operator turns catalog cards into <code>MCPServer</code> custom resources and provisions the
@@ -1047,7 +1227,7 @@ technology partner, or best-effort from the community</p>
 <div class="paragraph">
 <p>To upgrade or scale a deployed server, or to route MCP traffic through the governed
 entry point of the MCP Gateway Operator, see the <strong>Working with the MCP catalog</strong> chapter
-in the RHOAI 3.5 documentation linked from the conclusion.</p>
+in the RHOAI 3.6 documentation linked from the conclusion.</p>
 </div>
 </div>
 </div>

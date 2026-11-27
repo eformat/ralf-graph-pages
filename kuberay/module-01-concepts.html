@@ -204,6 +204,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -586,7 +594,7 @@
 <div class="sectionbody">
 <div class="paragraph">
 <p>In this module you will understand what the KubeRay Operator is, how it fits into the
-distributed workloads infrastructure in Red Hat OpenShift AI 3.5, and which operators
+distributed workloads infrastructure in Red Hat OpenShift AI 3.6, and which operators
 and custom resources back Ray-based workloads.</p>
 </div>
 <div class="paragraph">
@@ -612,7 +620,7 @@ and custom resources back Ray-based workloads.</p>
 <div class="sectionbody">
 <div class="paragraph">
 <p>Distributed workloads enable data scientists to use multiple cluster nodes in parallel
-for faster data processing and model training. In OpenShift AI 3.5, <strong>Ray-based
+for faster data processing and model training. In OpenShift AI 3.6, <strong>Ray-based
 distributed workloads</strong> use the <code>kueue</code> and <code>ray</code> components. The infrastructure that
 makes this work includes:</p>
 </div>
@@ -679,16 +687,38 @@ application launcher icon and then click <strong>OpenShift Console</strong>.</p>
 <td class="content">
 <div class="paragraph">
 <p>The CodeFlare SDK is the Python front door; KubeRay and Kueue are the Kubernetes
-machinery behind it. You can drive the same flow with <code>oc</code> and YAML, but the SDK
-handles mTLS certificates and queue discovery for you.</p>
+machinery behind it. You can drive the same flow with <code>oc</code> and YAML (YAML Ain&#8217;t
+Markup Language), but the SDK handles mTLS certificates and queue discovery for
+you.</p>
 </div>
 </td>
 </tr>
 </table>
 </div>
+<div class="sect2">
+<h3 id="_verify"><a class="anchor" href="#_verify"></a>Verify</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>The OpenShift AI dashboard navigation shows <strong>Observe &amp; monitor</strong> &#8594; <strong>Workload
+metrics</strong>, and the application launcher opens the OpenShift Console.</p>
+</li>
+<li>
+<p>You can name the components of the distributed workloads stack and the custom
+resource each one drives: KubeRay Operator &#8594; <code>RayCluster</code>; Red Hat build of
+Kueue &#8594; <code>Workload</code>, <code>LocalQueue</code>, and <code>ClusterQueue</code>.</p>
+</li>
+<li>
+<p>You can explain the flow in your own words: the CodeFlare SDK requests a Ray
+cluster, Kueue admits the request against the local and cluster queues, and
+the KubeRay Operator creates the head and worker pods.</p>
+</li>
+</ul>
+</div>
 <div class="paragraph">
 <p>Bridging the concepts to reality: in the next exercise you inspect the actual
 operators and CRDs in your cluster.</p>
+</div>
 </div>
 </div>
 </div>
@@ -740,7 +770,7 @@ rayclusters.ray.io      2025-04-02T14:22:31Z</pre>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>Confirm the Ray and Kueue components are installed in the <code>redhat-ods-applications</code>
+<p>Confirm the KubeRay operator pod is running in the <code>redhat-ods-applications</code>
 namespace:</p>
 </li>
 </ol>
@@ -751,12 +781,37 @@ namespace:</p>
 </div>
 </div>
 <div class="paragraph">
-<p>Expected output (names include the operator pods; exact hash suffixes vary):</p>
+<p>Expected output (exact hash suffixes vary; the Ray module operator pod may also be listed):</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>kueue-controller-manager-5c8f9d6b7c-xxxxx        1/1     Running
-ray-operator-controller-manager-d94fc7b55-xxxxx  2/2     Running</pre>
+<pre>kuberay-operator-65d898df7b-hqf54                     1/1     Running
+ray-module-operator-controller-manager-6b77886c-vpgnk 1/1     Running</pre>
+</div>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Confirm the Red Hat build of Kueue controller pods are running in the
+<code>openshift-kueue-operator</code> namespace (they do not run in
+<code>redhat-ods-applications</code>):</p>
+</li>
+</ol>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get pods -n openshift-kueue-operator</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Expected output (exact hash suffixes vary):</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>kueue-controller-manager-67f857c7d-bw49w    1/1     Running
+kueue-controller-manager-67f857c7d-qp5bj    1/1     Running
+openshift-kueue-operator-5794d4cf69-25nbg   1/1     Running
+openshift-kueue-operator-5794d4cf69-wdnvk   1/1     Running</pre>
 </div>
 </div>
 <div class="olist arabic">
@@ -769,13 +824,46 @@ Module 02):</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get localqueues -n user1</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get localqueues -n abc123-user1</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>If no <code>LocalQueue</code> resources are listed, your cluster administrator has not defined a
-default local queue — you must specify <code>local_queue</code> in each notebook configuration,
-as described in Module 02.</p>
+<p>Expected output (on this workshop cluster the project defines a default LocalQueue
+named <code>default</code>; queue names and workload counts vary with your project):</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>NAME          CLUSTERQUEUE   PENDING WORKLOADS   ADMITTED WORKLOADS
+default       l40s-dra-cq    0                   4
+workshop-lq   workshop-cq    1                   1</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>On this workshop cluster your project has a default <code>LocalQueue</code> named <code>default</code>
+(the <code>kueue.x-k8s.io/default-queue: 'true'</code> annotation), backed by the
+<code>l40s-dra-cq</code> cluster queue.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>If your project instead lists no <code>LocalQueue</code> resources, your cluster
+administrator has not defined a default local queue — you must specify
+<code>local_queue</code> in each notebook configuration, as described in Module 02.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The recorded demo and the Module 02 and Module 03 exercises run in a separate
+shared project, <code>kuberay-workshop</code> — its <code>workshop-lq</code> local queue submits to the
+<code>kuberay-workshop-cq</code> cluster queue, while your own <code>abc123-user1</code> project keeps
+the default <code>LocalQueue</code> shown here.</p>
 </div>
 <div class="paragraph">
 <p>The OpenShift console lists the RayClusters the KubeRay Operator manages in your
@@ -784,7 +872,7 @@ appears here:</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get rayclusters -n {guid}-{user}</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get rayclusters -n abc123-user1</code></pre>
 </div>
 </div>
 <div class="imageblock">
@@ -793,18 +881,20 @@ appears here:</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_verify"><a class="anchor" href="#_verify"></a>Verify</h3>
+<h3 id="_verify_2"><a class="anchor" href="#_verify_2"></a>Verify</h3>
 <div class="ulist">
 <ul>
 <li>
 <p><code>oc get crd rayclusters.ray.io</code> returns the CRD instead of <code>NotFound</code>.</p>
 </li>
 <li>
-<p>The Ray operator and Kueue controller pods show <code>Running</code> in
-<code>redhat-ods-applications</code>.</p>
+<p>The <code>kuberay-operator</code> pod shows <code>Running</code> in <code>redhat-ods-applications</code>, and the
+<code>kueue-controller-manager</code> pods show <code>Running</code> in <code>openshift-kueue-operator</code>.</p>
 </li>
 <li>
-<p>You can list local queues in your project (or you have noted that none exist).</p>
+<p>You can list local queues in your project (on this cluster, the <code>default</code>
+LocalQueue in <code>abc123-user1</code>; the shared <code>kuberay-workshop</code> project used by
+the recorded demo and Modules 02–03 has the <code>workshop-lq</code> LocalQueue).</p>
 </li>
 </ul>
 </div>
@@ -849,9 +939,18 @@ appears here:</p>
 <div class="paragraph">
 <p><strong>Next steps:</strong></p>
 </div>
-<div class="paragraph">
-<p>With the concepts and cluster plumbing confirmed, you are ready to create a Ray
-cluster and run a real distributed workload in Module 02.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Create a Ray cluster from a Jupyter notebook with the CodeFlare SDK in Module 02</p>
+</li>
+<li>
+<p>Run a real distributed workload on that cluster and watch Kueue admit it against your local queue</p>
+</li>
+<li>
+<p>Move on to Module 03 to run Ray from an AI pipeline and diagnose failure states</p>
+</li>
+</ul>
 </div>
 </div>
 </div>

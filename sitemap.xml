@@ -40,6 +40,9 @@
 <loc>https://eformat.github.io/ralf-graph-pages/sitemap-external-metering-per-user.xml</loc>
 </sitemap>
 <sitemap>
+<loc>https://eformat.github.io/ralf-graph-pages/sitemap-feast-mcp-server.xml</loc>
+</sitemap>
+<sitemap>
 <loc>https://eformat.github.io/ralf-graph-pages/sitemap-feature-store-feast.xml</loc>
 </sitemap>
 <sitemap>

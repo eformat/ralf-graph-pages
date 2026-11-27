@@ -201,6 +201,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -626,7 +634,7 @@ inference pool. Operators configure the tiers; placement happens automatically
 at runtime — you do not tag or route individual cache entries.</p>
 </div>
 <div class="paragraph">
-<p>In Red Hat OpenShift AI 3.5 this capability is a <strong>Developer Preview</strong> feature and
+<p>In Red Hat OpenShift AI 3.6 this capability is a <strong>Developer Preview</strong> feature and
 works together with <strong>Distributed Inference with llm-d</strong>, the serving stack that
 provides the routing layer where cache-aware decisions are made.</p>
 </div>
@@ -671,14 +679,47 @@ shedding to protect the inference pool.</p>
 </li>
 <li>
 <p><strong>Scheduling layer</strong> — decides <strong>where</strong> each request is routed among the available
-model replicas using scorer plugins.</p>
+model replicas using scheduling plugins (producers, filters, and scorers).</p>
 </li>
 </ul>
 </div>
 <div class="paragraph">
-<p>If you do not specify custom scheduler configuration, the system uses an
-optimized default profile that combines four scorer plugins with weights
-2:2:3:2:</p>
+<p>On RHOAI 3.6 the default scheduling configuration ships as a platform-managed
+<code>LLMInferenceServiceConfig</code> named
+<code>v3-6-0-kserve-config-llm-scheduler-eppconfig-default</code> in the
+<code>redhat-ods-applications</code> namespace. It is active in this cluster (status
+<code>Ready=True</code>, <code>ConfigInUse=True</code>) and the two workshop models deployed in your
+project use it — the preset&#8217;s status lists them under <code>referencedBy</code> (you will
+read that status hands-on in module 02). Its inline scheduler configuration
+(<code>spec.router.scheduler.config.inline</code>) is an <code>EndpointPickerConfig</code> (apiVersion
+<code>llm-d.ai/v1</code>) that wires four plugins. You can read it directly from the
+cluster:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get llminferenceserviceconfig -n redhat-ods-applications \
+  v3-6-0-kserve-config-llm-scheduler-eppconfig-default -o yaml</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Look for the <code>spec.router.scheduler.config.inline</code> section — it matches this
+excerpt:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: llm-d.ai/v1
+kind: EndpointPickerConfig
+plugins:
+- type: approx-prefix-cache-producer
+- type: inflight-load-producer
+- type: prefix-cache-affinity-filter
+- type: token-load-scorer
+schedulingProfiles:
+- name: default
+  plugins:
+  - pluginRef: prefix-cache-affinity-filter
+  - pluginRef: token-load-scorer</code></pre>
+</div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
@@ -688,41 +729,42 @@ optimized default profile that combines four scorer plugins with weights
 </colgroup>
 <thead>
 <tr>
-<th class="tableblock halign-left valign-top">Scorer</th>
-<th class="tableblock halign-left valign-top">Default weight</th>
-<th class="tableblock halign-left valign-top">What it optimizes</th>
+<th class="tableblock halign-left valign-top">Plugin</th>
+<th class="tableblock halign-left valign-top">Role</th>
+<th class="tableblock halign-left valign-top">What it does</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>queue-scorer</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">2</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Routes requests to replicas with shorter queues to distribute load evenly</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>approx-prefix-cache-producer</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Producer</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Computes approximate prefix-cache metadata for each request by hashing prompt blocks, estimating which replicas already hold the matching cached KV blocks</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>kv-cache-utilization-scorer</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">2</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Routes requests to replicas with more available KV cache capacity, preventing cache eviction</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>inflight-load-producer</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Producer</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Publishes each replica&#8217;s in-flight load — requests currently being processed — as metadata for the scheduling stages</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>prefix-cache-scorer</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">3</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Routes requests with similar prompt prefixes to the same replica for cache reuse</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>prefix-cache-affinity-filter</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Filter</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Narrows the candidate replicas to those that already hold the request&#8217;s prompt-prefix blocks, so follow-up turns reuse cached state instead of recomputing it</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>no-hit-lru-scorer</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">2</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Least-recently-used tiebreaker that distributes new prompt patterns when no cache hit is found</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>token-load-scorer</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Scorer</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Ranks the remaining candidates by token load, spreading concurrent requests evenly across the inference pool</p></td>
 </tr>
 </tbody>
 </table>
 <div class="paragraph">
-<p>This default profile prioritizes KV cache reuse while maintaining balanced load
-distribution. The prefix-cache-scorer uses hash-based cache hit detection, which
-works in disconnected environments. For workloads with subtle prompt variations
-and network access, an optional <code>precise-prefix-cache-scorer</code> upgrade uses
-token-level matching, at the cost of a Tokenizer sidecar that downloads tokenizer
-models during pod startup.</p>
+<p>This is the 3.6 scheduling model: <strong>producers</strong> run first and compute request
+metadata (prefix-cache state, in-flight load), then the active scheduling
+profile combines a <strong>filter</strong> with a <strong>scorer</strong>. The profile named <code>default</code>
+activates <code>prefix-cache-affinity-filter</code> and <code>token-load-scorer</code>: cache affinity
+decides which replicas can serve a request most cheaply, and token-load scoring
+keeps the pool balanced. Queue-depth and KV-cache-utilization thresholds live in
+the flow-control layer you read about above, not in the scheduling profile.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -744,19 +786,48 @@ stack.</p>
 <div class="sect2">
 <h3 id="_verify_2"><a class="anchor" href="#_verify_2"></a>Verify</h3>
 <div class="paragraph">
-<p>In the RHOAI dashboard, under <strong>Settings</strong>, an administrator sees <strong>llm-d routing
-configurations</strong> and <strong>llm-d topology configurations</strong> pages. If you have
-administrator access, open both pages now — the topology page shows its empty
-state (no configuration templates exist yet) and the routing page the same; you
-will work with router configurations in the next module.</p>
+<p>Confirm that the default scheduling configuration is present and ready on your
+cluster:</p>
 </div>
-<div class="imageblock">
+<div class="listingblock execute">
 <div class="content">
-<a class="image" href="_images/01-llmd-topology-configurations.png" target="blank"><img src="_images/01-llmd-topology-configurations.png" alt="The Settings &gt; llm-d topology configurations page in an empty state" width="700"></a>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get llminferenceserviceconfig -n redhat-ods-applications \
+  v3-6-0-kserve-config-llm-scheduler-eppconfig-default</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Now that you have mapped the Endpoint Picker layers and scorer profile, you will confirm the llm-d serving stack is present in your cluster.</p>
+<p>Expected output (the <code>AGE</code> value will differ on your cluster):</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>NAME                                                   READY   REASON   AGE
+v3-6-0-kserve-config-llm-scheduler-eppconfig-default   True             4d13h</pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>READY=True</code> means the platform validated the configuration. On this workshop
+cluster two models are already deployed and reference it, so its status also
+reports <code>ConfigInUse=True</code>:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get llminferenceserviceconfig -n redhat-ods-applications \
+  v3-6-0-kserve-config-llm-scheduler-eppconfig-default \
+  -o jsonpath='{range .status.conditions[*]}{.type}={.status}{"\n"}{end}'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Expected output:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>ConfigInUse=True
+Ready=True</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now that you have mapped the Endpoint Picker layers and the default scheduling
+profile, you will confirm the llm-d serving stack is present in your cluster.</p>
 </div>
 </div>
 </div>
@@ -785,27 +856,44 @@ yet. Both are fine for this guided tour.</p>
 </div>
 </li>
 <li>
-<p>List the <code>LLMInferenceServiceConfig</code> templates that back the llm-d topology
-and router options in the deployment wizard:</p>
+<p>List the <code>LLMInferenceServiceConfig</code> presets that ship with the platform:</p>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get llminferenceserviceconfig -A</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get llminferenceserviceconfig -n redhat-ods-applications --show-labels</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Expected output lists configurations such as topology presets and, if your
-administrator created them, router configs whose names often contain <code>router</code>.
-Each configuration carries an <code>opendatahub.io/config-type</code> label — topology
-templates are labeled with their topology type (for example
-<code>workload-single-node</code>), router templates with the value <code>router</code>. Note the
-namespaces they live in.</p>
+<p>Expected output lists around 40 named presets, including
+<code>v3-6-0-kserve-config-llm-scheduler-eppconfig-default</code> (the scheduling
+configuration you read about in Exercise 2) and per-accelerator templates such
+as <code>v3-6-0-ea-2-kserve-config-llm-single-node-template-nvidia-cuda</code>. These
+presets are reusable building blocks: an <code>LLMInferenceService</code> assembles its
+serving stack by referencing them by name through <code>spec.baseRefs</code>, rather than
+embedding the full configuration each time.</p>
+</div>
+<div class="paragraph">
+<p>Labels on presets are optional metadata, not a classification system: in this
+environment 28 of the 43 presets carry no <code>opendatahub.io/config-type</code> label at
+all, and 15 are tagged <code>opendatahub.io/config-type=accelerator</code> — their names end
+in the accelerator they target (for example <code>nvidia-cuda</code> or <code>amd-rocm</code>).
+Router- or topology-labeled templates that shipped with earlier releases are not
+part of RHOAI 3.6 — a cluster-wide search confirms none exist:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get llminferenceserviceconfig -A -l opendatahub.io/config-type=router</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Expected output: <code>No resources found</code>.</p>
 </div>
 </li>
 <li>
-<p>Open the RHOAI dashboard, navigate to <strong>Data Science Projects</strong>, select your
-project, and click <strong>Deploy model</strong>. In the wizard, expand <strong>Advanced routing</strong> and
-observe that a <strong>Default optimized routing</strong> option is pre-selected — that default
-is the 4-scorer profile you read about above.</p>
+<p>If your environment includes the RHOAI dashboard, navigate to <strong>Data Science
+Projects</strong>, select your project, and click <strong>Deploy model</strong>. In the wizard, expand
+<strong>Advanced routing</strong> and observe that <strong>Default optimized routing</strong> is pre-selected —
+that default is the producer/filter/scorer profile you read about above, and it
+is the routing mode this workshop uses.</p>
 </li>
 </ol>
 </div>
@@ -846,10 +934,10 @@ section of the model deployment wizard.</p>
 <p>Explained how hierarchical KV cache tiering increases effective cache size and prefix reuse</p>
 </li>
 <li>
-<p>Mapped the llm-d Endpoint Picker layers and the default 2:2:3:2 scorer profile</p>
+<p>Mapped the llm-d Endpoint Picker layers and the default producer/filter/scorer scheduling profile</p>
 </li>
 <li>
-<p>Confirmed the llm-d serving resources and wizard surfaces exist in your cluster</p>
+<p>Confirmed the llm-d serving resources and the default scheduling configuration exist in your cluster</p>
 </li>
 </ul>
 </div>
@@ -865,7 +953,7 @@ section of the model deployment wizard.</p>
 <p>The default scheduler profile already balances KV cache reuse against load distribution</p>
 </li>
 <li>
-<p>Router configurations are optional enhancements layered on top of the default routing</p>
+<p>Custom routing presets are optional: an <code>LLMInferenceService</code> references named <code>LLMInferenceServiceConfig</code> presets through <code>spec.baseRefs</code>, and the default profile already provides cache-aware routing</p>
 </li>
 </ul>
 </div>
@@ -873,8 +961,9 @@ section of the model deployment wizard.</p>
 <p><strong>Next steps:</strong></p>
 </div>
 <div class="paragraph">
-<p>Continue to the next module, where you explore a KV-cache-aware router
-configuration and the metrics that show cache behavior in action.</p>
+<p>Continue to the next module, where you inspect the live scheduling and
+flow-control configuration of the llm-d scheduler and the metrics that show
+cache behavior in action.</p>
 </div>
 </div>
 </div>

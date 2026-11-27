@@ -204,6 +204,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -868,15 +876,15 @@ oc get tokenratelimitpolicy -n abc123-user1</code></pre>
 <p>Your subscription and authorization policy drive the gateway policies that
 the MaaS controller generates: a <code>TokenRateLimitPolicy</code> carrying the model&#8217;s
 token limits, plus the gateway authentication policy that enforces API key
-checks. In OpenShift AI 3.5 the controller aggregates authentication into a
+checks. In OpenShift AI 3.6 the controller aggregates authentication into a
 single gateway-scoped <code>AuthPolicy</code> (<code>maas-gateway-auth</code>) per gateway rather
 than one policy per model, so the policy list may show the aggregated
 resource instead of per-model entries. If the policies are missing, check the
-controller logs:</p>
+<code>maas-api</code> logs:</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc logs -n redhat-ai-gateway-infra -l app=maas-controller --tail=50</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc logs -n redhat-ai-gateway-infra -l app.kubernetes.io/name=maas-api --tail=50</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -946,10 +954,10 @@ exported in module 02):</p>
 </li>
 <li>
 <p>Optional: cap the maximum key expiration for all users by editing the
-Tenant custom resource:</p>
+<code>MaasTenantConfig</code> custom resource in the tenant namespace:</p>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc patch tenants.maas.opendatahub.io default-tenant -n models-as-a-service \
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc patch maastenantconfig default-tenant -n models-as-a-service \
   --type merge \
   -p '{"spec":{"apiKeys":{"maxExpirationDays":90}}}'</code></pre>
 </div>
@@ -960,7 +968,7 @@ default maximum is 90 days.</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get tenants.maas.opendatahub.io default-tenant -n models-as-a-service -o jsonpath='{.spec.apiKeys.maxExpirationDays}'</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get maastenantconfig default-tenant -n models-as-a-service -o jsonpath='{.spec.apiKeys.maxExpirationDays}'</code></pre>
 </div>
 </div>
 <div class="paragraph">

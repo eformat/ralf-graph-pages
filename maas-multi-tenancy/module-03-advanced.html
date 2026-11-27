@@ -204,6 +204,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -1071,8 +1079,10 @@ tenants. To use external models in a multitenant deployment, access them
 through the default tenant gateway.</p>
 </li>
 <li>
-<p><strong>Cross-tenant access prevention is enforced at every layer.</strong> API keys return
-HTTP 404 with an <code>API key not found</code> error against another tenant&#8217;s gateway;
+<p><strong>Cross-tenant access prevention is enforced at every layer.</strong> API keys are
+denied with HTTP 403 against another tenant&#8217;s gateway — the tenant-scoped
+<code>API key not found</code> lookup runs at that tenant&#8217;s <code>maas-api</code> internal
+validation endpoint and the gateway surfaces only the deny;
 OIDC tokens are validated against the tenant-specific identity provider
 configuration; <code>GET /v1/subscriptions</code> returns only the requesting tenant&#8217;s
 data; and <code>GET /v1/models</code> returns only models associated with the tenant

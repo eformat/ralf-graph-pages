@@ -201,6 +201,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -632,61 +640,98 @@ from the token without requiring OpenShift group creation or synchronization.</p
 </tr>
 </table>
 </div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>In the OpenShift AI dashboard, click <strong>Settings → MaaS governance</strong>.</p>
-</li>
-<li>
-<p>Click <strong>Create subscription</strong>.</p>
-</li>
-</ol>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>If you still need to register the client application or create the user groups
+in your external OIDC provider, use the provider&#8217;s realm administrator
+credentials. With the Red Hat build of Keycloak, log in with the temporary
+admin account from the <code>keycloak-initial-admin</code> Secret — the regular admin
+user in the realm has no realm-management roles.</p>
+</div>
+</td>
+</tr>
+</table>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>In the <strong>Create subscription</strong> form, configure the subscription:</p>
-<div class="olist loweralpha">
-<ol class="loweralpha" type="a">
-<li>
-<p><strong>Name</strong>: enter a descriptive name, for example <code>oidc-data-scientists</code>.</p>
-</li>
-<li>
-<p><strong>Priority</strong>: set a numeric priority level. Higher numbers indicate higher
-priority when a user belongs to multiple groups with different
-subscriptions.</p>
-</li>
-<li>
-<p><strong>Groups</strong>: enter the group names <strong>exactly as they appear in your OIDC
-provider&#8217;s group claims</strong>. For example, if your OIDC token includes
-<code>groups: ["data-scientists"]</code>, enter <code>data-scientists</code>. You can select
-OpenShift groups or enter custom group names from your external OIDC
-provider.</p>
-</li>
-</ol>
+<p>Create the subscription and its matching authorization policy as custom
+resources. The <code>MaaSSubscription</code> defines quota and the entitled groups; the
+<code>MaaSAuthPolicy</code> authorizes those groups to access the model endpoints
+through the API gateway. This path works on every build:</p>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">cat > maas-subscription.yaml <<EOF
+apiVersion: maas.opendatahub.io/v1alpha1
+kind: MaaSSubscription
+metadata:
+  name: oidc-data-scientists
+  namespace: models-as-a-service
+spec:
+  owner:
+    groups:
+      - name: data-scientists
+  priority: 1
+  tokenMetadata:
+    costCenter: na
+    organizationId: na
+  modelRefs:
+    - name: example-model
+      namespace: abc123-user1
+      tokenRateLimits:
+        - limit: 10000
+          window: 1h
+---
+apiVersion: maas.opendatahub.io/v1alpha1
+kind: MaaSAuthPolicy
+metadata:
+  name: oidc-data-scientists-access
+  namespace: models-as-a-service
+spec:
+  subjects:
+    groups:
+      - name: data-scientists
+  modelRefs:
+    - name: example-model
+      namespace: abc123-user1
+EOF
+oc apply -f maas-subscription.yaml</code></pre>
+</div>
 </div>
 </li>
 <li>
-<p>Configure models and token limits:</p>
+<p>Replace the example values with your own before you apply the manifest:</p>
 <div class="olist loweralpha">
 <ol class="loweralpha" type="a">
 <li>
-<p>Click <strong>Add models</strong> and add at least one published model.</p>
+<p><strong>owner.groups</strong> and <strong>subjects.groups</strong>: the group names <strong>exactly as they
+appear in your OIDC provider&#8217;s group claims</strong>. For example, if your OIDC
+token includes <code>groups: ["data-scientists"]</code>, enter <code>data-scientists</code>. You
+can select OpenShift groups or enter custom group names from your external
+OIDC provider.</p>
 </li>
 <li>
-<p>Click <strong>Add token limit</strong> for each model and enter the allowed tokens with
-the time period and unit (hour, minute, or second). At least one token
-limit is required per model.</p>
+<p><strong>modelRefs</strong>: the name and project namespace of a model published on your
+cluster — the <code>MaaSModelRef</code> name and its namespace, for example a model
+you deployed through the MaaS deployment flow.</p>
+</li>
+<li>
+<p><strong>tokenRateLimits</strong>: the allowed tokens per model with the time window
+(<code>s</code>, <code>m</code>, or <code>h</code>). At least one token rate limit is required per model
+unless you set <code>unlimited: true</code> on the model reference.</p>
+</li>
+<li>
+<p><strong>priority</strong>: optional. Higher numbers have higher priority when a user
+belongs to multiple groups with different subscriptions. Defaults to <code>0</code>.</p>
 </li>
 </ol>
 </div>
-</li>
-<li>
-<p>Select <strong>Create a matching authorization policy</strong> to automatically create an
-authorization policy with the same groups and models as the subscription.</p>
-</li>
-<li>
-<p>Click <strong>Create subscription</strong>.</p>
 </li>
 </ol>
 </div>
@@ -710,25 +755,50 @@ authorization policy to keep them synchronized.</p>
 </tr>
 </table>
 </div>
+<div class="paragraph">
+<p>In the OpenShift AI dashboard you can also create the subscription through the
+form instead of applying the manifest: click
+<strong>Settings → MaaS governance</strong> and <strong>Create subscription</strong>, configure the same
+values (name, priority, groups, at least one published model with a token
+limit), and select <strong>Create a matching authorization policy</strong> so the form
+creates both resources. The form creates the same <code>MaaSSubscription</code> and
+<code>MaaSAuthPolicy</code> custom resources shown above.</p>
+</div>
 <div class="sect2">
 <h3 id="_verify"><a class="anchor" href="#_verify"></a>Verify</h3>
 <div class="paragraph">
-<p>In the OpenShift AI dashboard, navigate to <strong>Settings → MaaS governance</strong> and
-confirm the new subscription appears with a status of <strong>Active</strong>. Click the
-subscription name to review its groups, models, token limits, and priority
-level.</p>
+<p>Confirm the subscription and its matching authorization policy exist in the
+<code>models-as-a-service</code> namespace:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get maassubscription -n models-as-a-service
+oc get maasauthpolicy -n models-as-a-service</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Both commands list your subscription (<code>oidc-data-scientists</code>) and your
+authorization policy (<code>oidc-data-scientists-access</code>).</p>
 </div>
 <div class="paragraph">
 <p>Confirm the groups are stored on the <code>MaaSSubscription</code> custom resource:</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get maassubscription -n models-as-a-service -o yaml</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get maassubscription oidc-data-scientists -n models-as-a-service -o yaml</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>The output includes the subscription with your OIDC group names under
-<code>spec.owner.groups</code>.</p>
+<p>The output includes your OIDC group names under <code>spec.owner.groups</code> and your
+models and token rate limits under <code>spec.modelRefs</code>; the authorization policy
+carries the same groups under <code>spec.subjects.groups</code> and the same model
+references under <code>spec.modelRefs</code>.</p>
+</div>
+<div class="paragraph">
+<p>The subscription also appears under <strong>Settings → MaaS governance</strong> in the
+OpenShift AI dashboard with a status of <strong>Active</strong>; click
+the subscription name to review its groups, models, token limits, and priority
+level.</p>
 </div>
 <div class="paragraph">
 <p>Now that you have created the subscription and matching authorization policy,
@@ -750,17 +820,16 @@ through the MaaS management API:</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash"># Paste the access token you obtained from your OIDC provider
 export OIDC_TOKEN=<user-access-token-from-your-oidc-provider>
-export MAAS_GATEWAY_URL=https://$(oc get route -n openshift-ingress \
-  -l gateway.networking.k8s.io/gateway-name=maas-default-gateway \
-  -o jsonpath='{.items[0].spec.host}')
+export MAAS_GATEWAY_URL=https://$(oc get gateway maas-default-gateway \
+  -n openshift-ingress \
+  -o jsonpath={.spec.listeners[0].hostname})
 curl -k -H "Authorization: Bearer $OIDC_TOKEN" \
   "$MAAS_GATEWAY_URL/maas-api/v1/models" | jq .</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>The gateway hostname is the <code>$MAAS_GATEWAY_URL</code> value you captured in module 1
-(derived from the gateway Route — on clusters where the listener hostname is
-empty, the Route carries the external hostname).</p>
+(derived from the gateway listener hostname — the same command as module 1).</p>
 </div>
 <div class="paragraph">
 <p>If authentication is successful, the API returns a list of models available to

@@ -204,6 +204,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -612,7 +620,7 @@ also inspect the cluster resources that back the feature.</p>
 <h2 id="_exercise_1_what_llminferenceservice_changes"><a class="anchor" href="#_exercise_1_what_llminferenceservice_changes"></a>Exercise 1: What LLMInferenceService changes</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p><code>LLMInferenceService</code> (apiVersion <code>serving.kserve.io/v1alpha1</code>) replaces the default
+<p><code>LLMInferenceService</code> (apiVersion <code>serving.kserve.io/v1alpha2</code>) replaces the default
 <code>InferenceService</code> for generative LLM serving. One declarative CR describes the whole
 serving stack: the model location, the workload template, and the llm-d routing
 components. The controller then composes the underlying Deployment, Gateway API objects,
@@ -650,7 +658,10 @@ these templates to discover them.</p>
 </div>
 <div class="paragraph">
 <p>The dashboard&#8217;s topology selector offers four validated deployment patterns, plus the Wide
-expert parallelism (WideEP) pattern for MoE models — a Developer Preview in RHOAI 3.5. For
+expert parallelism (WideEP) pattern for MoE models. In RHOAI 3.6 the WideEP dependencies are
+tracked by the <code>KserveLLMInferenceServiceWideEPDependencies</code> condition in the
+<code>DataScienceCluster</code> status — <code>True</code> means the dependencies are installed and the pattern is
+available on your cluster. For
 the full pattern-by-pattern table (when to use each pattern and its model-size band), follow
 <a href="../llmd-core/module-01-concepts.html" class="xref page">Module 01 of the Distributed Inference with
 llm-d (core) workshop</a>.</p>
@@ -662,7 +673,8 @@ templates carry an <code>opendatahub.io/config-type</code> label whose value —
 <code>workload-multi-node-data-parallel-pd</code> — must match the selected topology.</p>
 </div>
 <div class="paragraph">
-<p>Router templates carry the same label with the value <code>router</code>, plus an
+<p>Router configurations follow the same label mechanism: the llmd-core walkthrough creates
+them with an <code>opendatahub.io/config-type: router</code> label plus an
 <code>opendatahub.io/supported-topologies</code> annotation (a JSON array of topology strings) that
 the dashboard uses to filter which routers appear for a given topology selection.</p>
 </div>
@@ -678,7 +690,7 @@ the dashboard uses to filter which routers appear for a given topology selection
 <p>Navigate to <strong>Data Science Projects</strong> → your project → <strong>Models</strong>.</p>
 </li>
 <li>
-<p>Click <strong>Deploy model</strong>; the wizard offers <strong>Distributed inference with llm-d</strong> as a
+<p>Click <strong>Deploy model</strong>; the wizard offers <strong>LLM inference service with llm-d</strong> as a
 deployment method for generative AI models.</p>
 </li>
 </ol>
@@ -691,9 +703,10 @@ deployment method for generative AI models.</p>
 </td>
 <td class="content">
 <div class="paragraph">
-<p><code>LLMInferenceService</code> itself is GA in RHOAI 3.5, but the <strong>LLM deployment topology
-selector wizard</strong> (chapter 2 of the llm-d deployment guide) is a <strong>Technology Preview</strong>
-feature. Treat wizard-only capabilities as subject to change.</p>
+<p><code>LLMInferenceService</code> and <code>LLMInferenceServiceConfig</code> are <strong>generally available</strong> in RHOAI
+3.6.0. The platform ships a library of ready-to-use accelerator configurations — the
+<code>v3-6-0-*</code> <code>LLMInferenceServiceConfig</code> templates in the <code>redhat-ods-applications</code> namespace.
+List them with <code>oc get llminferenceserviceconfigs -n redhat-ods-applications</code>.</p>
 </div>
 </td>
 </tr>
@@ -703,7 +716,7 @@ feature. Treat wizard-only capabilities as subject to change.</p>
 <h3 id="_verify"><a class="anchor" href="#_verify"></a>Verify</h3>
 <div class="paragraph">
 <p>You can name the five spec sections of <code>LLMInferenceService</code> (<code>model</code>, <code>router</code>,
-<code>scheduler</code>, <code>template</code>, <code>baseRefs</code>) and you found the <strong>Distributed inference with
+<code>scheduler</code>, <code>template</code>, <code>baseRefs</code>) and you found the <strong>LLM inference service with
 llm-d</strong> deployment method in the wizard.</p>
 </div>
 <div class="paragraph">

@@ -201,6 +201,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -592,7 +600,7 @@ for cost attribution and showback reporting to finance teams.</p>
 <div class="ulist">
 <ul>
 <li>
-<p>Enable per-user usage metrics with <code>captureUser</code> and understand the Prometheus cardinality trade-off</p>
+<p>Enable MaaS usage logging and the usage metrics dashboard with the <code>maasconfig</code> Config</p>
 </li>
 <li>
 <p>Navigate the MaaS observability dashboard: filters, time ranges, and the Token Consumption by User table</p>
@@ -621,12 +629,13 @@ APIs and manifests shown here may change between releases.
 </div>
 </div>
 <div class="sect1">
-<h2 id="_exercise_1_enable_per_user_usage_metrics"><a class="anchor" href="#_exercise_1_enable_per_user_usage_metrics"></a>Exercise 1: Enable per-user usage metrics</h2>
+<h2 id="_exercise_1_enable_usage_logging_and_the_usage_metrics_dashboard"><a class="anchor" href="#_exercise_1_enable_usage_logging_and_the_usage_metrics_dashboard"></a>Exercise 1: Enable usage logging and the usage metrics dashboard</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>The dashboard can break token consumption down per user, but the <code>user</code> label is
-disabled by default in MaaS metrics (<code>captureUser: false</code>) for privacy and
-cardinality considerations.</p>
+<p>The usage-logs pipeline and the usage metrics dashboard are both controlled by
+the cluster-scoped <code>maasconfig</code> Config <code>default</code>. Module 01 flipped these
+switches; this exercise re-checks them from the CLI and confirms the tenant
+side is reconciled before you walk the dashboard.</p>
 </div>
 <div class="admonitionblock warning">
 <table>
@@ -635,10 +644,11 @@ cardinality considerations.</p>
 <i class="fa icon-warning" title="Warning"></i>
 </td>
 <td class="content">
-Enabling <code>captureUser</code> with a large number of users can significantly
-increase the Prometheus database size, because every user becomes a new label
-value on the usage metrics. For a workshop cluster with a handful of users this
-is fine; on a production cluster, weigh the cardinality cost first.
+Enabling <code>usageLogging</code> writes one structured usage-log entry per MaaS
+gateway request into the Loki-based pipeline, and per-user attribution stores
+the authenticated user ID (<code>user_id</code>) on those logs. For a workshop cluster
+with a handful of users this is fine; on a production cluster, weigh the
+storage cost and the privacy implications of user-level attribution first.
 </td>
 </tr>
 </table>
@@ -646,27 +656,67 @@ is fine; on a production cluster, weigh the cardinality cost first.
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>Patch the Tenant custom resource to turn on per-user metrics collection:</p>
+<p>Confirm the <code>maasconfig</code> Config has both usage switches on (the Config is
+cluster-scoped, so the command carries no <code>-n</code> namespace flag):</p>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc patch tenants.maas.opendatahub.io default-tenant -n models-as-a-service \
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc patch configs.maas.opendatahub.io default \
   --type merge \
   -p '{
     "spec": {
-      "telemetry": {
-        "enabled": true,
-        "metrics": {
-          "captureUser": true
-        }
-      }
+      "usageLogging": true,
+      "usageMetricsDashboard": true
     }
   }'</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>The <code>captureUser: true</code> setting adds the username from API key ownership or
-OIDC authentication to the collected usage metrics, which is what populates the
-<strong>User</strong> column of the dashboard&#8217;s per-user table.</p>
+<p>The <code>usageLogging: true</code> switch routes the gateway usage logs into the
+usage-logs pipeline, and <code>usageMetricsDashboard: true</code> deploys the Perses usage
+dashboard that Exercise 2 walks through. The patch is idempotent — if Module 01
+already enabled the switches, it reports back with no change.</p>
+</div>
+</li>
+<li>
+<p>Verify that both switches report <code>true</code>:</p>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get configs.maas.opendatahub.io default \
+  -o jsonpath='{.spec.usageLogging}{" "}{.spec.usageMetricsDashboard}'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Expected output:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>true true</pre>
+</div>
+</div>
+</li>
+<li>
+<p>Verify that the per-tenant <code>MaasTenantConfig</code> resource is reconciled:</p>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get maastenantconfigs.maas.opendatahub.io default-tenant -n models-as-a-service</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Expected output shows the tenant config in a ready state:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>NAME             READY   REASON       AGE
+default-tenant   True    Reconciled   5d18h</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Per-user attribution rides on the usage-log entries: when the tenant config&#8217;s
+<code>spec.telemetry.logs.captureUser</code> is <code>true</code>, each usage log carries the
+authenticated user ID (<code>user_id</code>) — the value that populates the <strong>User</strong> column
+of the usage views. <code>captureUser</code> defaults to <code>false</code> for privacy reasons;
+enable it deliberately on the tenant config if your showback needs per-user
+rows.</p>
 </div>
 </li>
 <li>
@@ -675,7 +725,7 @@ requests through the MaaS gateway with any API key you created in the MaaS
 workshop, so the usage metrics have data to report.</p>
 </li>
 <li>
-<p>Verify that per-user metrics are being collected. In the OpenShift console,
+<p>Verify that the usage-metrics pipeline is reachable. In the OpenShift console,
 navigate to <strong>Observe</strong> → <strong>Metrics</strong> and run:</p>
 <div class="listingblock execute">
 <div class="content">
@@ -685,9 +735,9 @@ navigate to <strong>Observe</strong> → <strong>Metrics</strong> and run:</p>
 </div>
 </div>
 <div class="paragraph">
-<p>The result should include the <code>authorized_hits_total</code> metric labeled by
-<code>subscription</code>, <code>model</code>, and <code>limitador_namespace</code> — and, with <code>captureUser</code>
-enabled, broken out per user.</p>
+<p>The command succeeds against the usage-metrics pipeline; the result is empty
+until MaaS model traffic flows. Once traffic is present, the metric is labeled
+with <code>limitador_namespace</code> — the subscription namespace that made the requests.</p>
 </div>
 </li>
 </ol>
@@ -697,7 +747,11 @@ enabled, broken out per user.</p>
 <div class="ulist">
 <ul>
 <li>
-<p>The Tenant resource accepts the patch and remains <code>Ready</code>/<code>Reconciled</code>.</p>
+<p>The <code>maasconfig</code> Config reports <code>usageLogging: true</code> and
+<code>usageMetricsDashboard: true</code>.</p>
+</li>
+<li>
+<p>The <code>MaasTenantConfig</code> resource shows <code>READY: True</code>, <code>REASON: Reconciled</code>.</p>
 </li>
 <li>
 <p><code>authorized_hits_total</code> appears in <strong>Observe</strong> → <strong>Metrics</strong> after MaaS traffic.</p>
@@ -705,8 +759,8 @@ enabled, broken out per user.</p>
 </ul>
 </div>
 <div class="paragraph">
-<p>With per-user metrics flowing into Prometheus, the console dashboard can now
-render them — the next exercise walks it end to end.</p>
+<p>With usage logging enabled and the usage metrics deployed, the console
+dashboard can now render MaaS usage — the next exercise walks it end to end.</p>
 </div>
 </div>
 </div>
@@ -722,6 +776,21 @@ metering system — for production chargeback workflows that require precise
 billing data, access the Limitador metrics endpoint directly rather than using
 Prometheus or the dashboard CSV export.</p>
 </div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The <strong>Usage (legacy)</strong> tab queries Prometheus — the Limitador and Authorino
+metrics enabled in Exercise 1 — so it renders independently of the LokiStack.
+The Loki-backed <strong>Usage</strong> and <strong>My Usage</strong> tabs, and the usage-log pipeline behind
+them, require a Running LokiStack.
+</td>
+</tr>
+</table>
+</div>
 <div class="imageblock">
 <div class="content">
 <a class="image" href="_images/02-usage-dashboard.png" target="blank"><img src="_images/02-usage-dashboard.png" alt="MaaS observability dashboard Usage tab" width="700"></a>
@@ -730,15 +799,21 @@ Prometheus or the dashboard CSV export.</p>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>In the OpenShift AI dashboard, click <strong>Observe &amp; monitor</strong> → <strong>Dashboard</strong> in the
-left navigation menu.</p>
+<p>In the OpenShift AI dashboard, click <strong>Observe &amp; monitor</strong> → <strong>Metrics</strong> in the
+left navigation menu. The RHOAI 3.6 documentation names the menu
+item <strong>Dashboard</strong>; on the current build the same observability dashboard page
+(route <code>/observe-and-monitor/dashboard</code>, titled <strong>Observability metrics</strong>) is
+listed as <strong>Metrics</strong>.</p>
 <div class="paragraph">
-<p>The Observability dashboard page displays three tabs: <strong>Cluster</strong>, <strong>Models</strong>, and
-<strong>Usage</strong>.</p>
+<p>The page presents the Perses dashboards as a single row of tabs — <strong>Cluster</strong>,
+<strong>Models</strong>, <strong>LLM Traffic</strong>, <strong>LLM Utilization</strong>, <strong>Usage (legacy)</strong>, <strong>LLM
+Performance</strong>, <strong>Usage</strong>, and <strong>My Usage</strong> — rather than the three-tab
+<strong>Cluster</strong>/<strong>Models</strong>/<strong>Usage</strong> layout the documentation describes.</p>
 </div>
 </li>
 <li>
-<p>Click the <strong>Usage</strong> tab to view Models-as-a-Service usage metrics.</p>
+<p>Click the <strong>Usage (legacy)</strong> tab (the documentation&#8217;s <strong>Usage</strong> tab) to view
+Models-as-a-Service usage metrics.</p>
 </li>
 <li>
 <p>Optional: To change the time range, select a value from the <strong>Time period</strong>
@@ -920,10 +995,12 @@ Operator to be installed and configured on the cluster (checked in Module 01).</
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>In the OpenShift AI dashboard, click <strong>Observe &amp; monitor</strong> → <strong>Dashboard</strong>.</p>
+<p>In the OpenShift AI dashboard, click <strong>Observe &amp; monitor</strong> → <strong>Metrics</strong> (the
+observability dashboard page; the documentation calls the menu item
+<strong>Dashboard</strong>).</p>
 </li>
 <li>
-<p>Click the <strong>Usage</strong> tab.</p>
+<p>Click the <strong>Usage (legacy)</strong> tab (the documentation&#8217;s <strong>Usage</strong> tab).</p>
 </li>
 <li>
 <p>Optional: Configure filters to export specific usage data:</p>
@@ -1012,14 +1089,14 @@ deployment), traces include span attributes for <code>tenant.name</code>,
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-The downloaded RHOAI 3.5 documentation describes the metrics-based
+The RHOAI 3.6 documentation describes the metrics-based
 dashboard workflow in detail (Govern LLM access with Models-as-a-Service,
 "Monitor Models-as-a-Service usage by using the observability dashboard"), but
 does not yet publish step-by-step configuration commands for the Loki-based log
 pipeline or for enabling the user-scoped dashboards — those are described in the
-3.5 release notes as Technology Preview enhancements. Expect the configuration
-surface to appear in a later release; consult the release notes and your Red Hat
-contact for the current state.
+3.6 release notes as Technology Preview enhancements. The <code>maasconfig</code> switches
+you enabled in Exercise 1 are the Technology Preview configuration surface;
+consult the release notes and your Red Hat contact for the current state.
 </td>
 </tr>
 </table>
@@ -1035,7 +1112,7 @@ contact for the current state.
 <div class="ulist">
 <ul>
 <li>
-<p>Enabled per-user usage metrics with <code>captureUser</code> and weighed its Prometheus cardinality cost</p>
+<p>Enabled usage logging and the usage metrics dashboard via the <code>maasconfig</code> Config and confirmed the <code>MaasTenantConfig</code> resource is reconciled</p>
 </li>
 <li>
 <p>Navigated the MaaS observability dashboard: filters, time ranges, overview metrics, and the Token Consumption by User table</p>
@@ -1054,7 +1131,7 @@ contact for the current state.
 <p>The dashboard is showback-grade, not billing-grade — production chargeback needs the Limitador metrics endpoint or external metering</p>
 </li>
 <li>
-<p><code>captureUser</code> drives the <strong>User</strong> column of the per-user table and grows Prometheus storage with user count</p>
+<p>The usage switches live on the cluster-scoped <code>maasconfig</code> Config; per-user <code>user_id</code> attribution on the usage logs is governed by the tenant config&#8217;s <code>spec.telemetry.logs.captureUser</code> (default <code>false</code>)</p>
 </li>
 <li>
 <p>The Loki-based pipeline adds 30-day object-storage retention and user-scoped read-only dashboards for monthly billing cycles</p>

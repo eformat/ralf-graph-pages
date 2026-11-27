@@ -204,6 +204,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -585,8 +593,8 @@
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p>In this module you will work with the admin side of the llm-d feature: the topology
-selector wizard and its <code>LLMInferenceServiceConfig</code> templates, router configurations
+<p>In this module you will work with the admin side of the llm-d feature: the accelerator
+configuration templates behind the deployment wizard, router configurations
 with <code>baseRefs</code> merge behavior, and the disaggregated prefill/decode topology.</p>
 </div>
 <div class="paragraph">
@@ -595,13 +603,13 @@ with <code>baseRefs</code> merge behavior, and the disaggregated prefill/decode 
 <div class="ulist">
 <ul>
 <li>
-<p>Enable the topology selector and follow the topology template walkthrough in the llmd-core workshop</p>
+<p>Manage accelerator configurations in the dashboard and follow the template walkthrough in the llmd-core workshop</p>
 </li>
 <li>
 <p>Follow the router template and <code>baseRefs</code> merge walkthrough in the llmd-core workshop</p>
 </li>
 <li>
-<p>Deploy a disaggregated prefill/decode workload with the <code>prefill</code> spec section</p>
+<p>Understand the disaggregated prefill/decode topology and its <code>prefill</code> spec section (conceptual — it requires GPU capacity)</p>
 </li>
 </ul>
 </div>
@@ -613,9 +621,11 @@ with <code>baseRefs</code> merge behavior, and the disaggregated prefill/decode 
 </td>
 <td class="content">
 <div class="paragraph">
-<p>The LLM deployment topology selector wizard is a <strong>Technology Preview</strong> feature in RHOAI
-3.5. The <code>LLMInferenceService</code> and <code>LLMInferenceServiceConfig</code> APIs themselves are GA;
-only the dashboard wizard and its template management pages are preview.</p>
+<p>The <code>LLMInferenceService</code> and <code>LLMInferenceServiceConfig</code> APIs are <strong>generally available</strong>
+in RHOAI 3.6.0. The dashboard&#8217;s template management surface is <strong>Model deployment settings →
+LLM accelerator configurations</strong> — "Manage accelerator configurations for LLM inference
+service deployments. Enabled configurations are available in the deployment wizard." (The
+earlier <strong>Settings → llm-d topology configurations</strong> page no longer exists in 3.6.)</p>
 </div>
 </td>
 </tr>
@@ -624,62 +634,58 @@ only the dashboard wizard and its template management pages are preview.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_exercise_1_topology_configuration_templates_admin"><a class="anchor" href="#_exercise_1_topology_configuration_templates_admin"></a>Exercise 1: Topology configuration templates (admin)</h2>
+<h2 id="_exercise_1_accelerator_configuration_templates_admin"><a class="anchor" href="#_exercise_1_accelerator_configuration_templates_admin"></a>Exercise 1: Accelerator configuration templates (admin)</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Non-single-node topologies are disabled in the wizard until an administrator creates the
-required templates. The wizard is gated behind the <code>llmdTemplates</code> feature flag.</p>
+<p>Accelerator configurations are <code>LLMInferenceServiceConfig</code> templates that the deployment
+wizard discovers through their <code>opendatahub.io/config-type: accelerator</code> label. RHOAI 3.6
+preloads the platform namespace with 43 of them — 22 in the <code>v3-6-0-ea-2-<strong></code> wave and 21 in
+the <code>v3-6-0-kserve-</strong></code> wave — and the 15 accelerator-typed ones surface in the dashboard&#8217;s
+<strong>LLM accelerator configurations</strong> tab. No feature flag is needed; the tab ships enabled.</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>As a cluster administrator, enable the <code>llmdTemplates</code> feature flag in the
-<code>OdhDashboardConfig</code> resource, following the documented OdhDashboardConfig
-patch pattern:</p>
+<p>As a cluster administrator, open <strong>Model deployment settings</strong> → <strong>LLM accelerator
+configurations</strong> in the RHOAI dashboard. The page reads: "Manage accelerator configurations
+for LLM inference service deployments. Enabled configurations are available in the
+deployment wizard." Each row is a versioned accelerator configuration (for example, the
+vLLM CPU configuration at runtime version <code>0.31.0+rhaiv.2.cpu</code>) with an <strong>Enabled</strong> toggle.</p>
+</li>
+<li>
+<p>Verify the same set from the CLI:</p>
 </li>
 </ol>
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc patch odhdashboardconfig odh-dashboard-config -n redhat-ods-applications \
-  --type merge \
-  -p '{"spec":{"dashboardConfig":{"llmdTemplates":true}}}'</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get llminferenceserviceconfigs -n redhat-ods-applications | wc -l
+oc get llminferenceserviceconfigs -n redhat-ods-applications \
+  -o jsonpath='{range .items[*]}{.metadata.name}{"\t"}{.metadata.labels.opendatahub\.io/config-type}{"\n"}{end}' \
+  | grep -c accelerator</code></pre>
 </div>
 </div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
 <div class="paragraph">
-<p>The docs name the <code>llmdTemplates</code> flag as a prerequisite but do not show its
-YAML layout — the <code>spec.dashboardConfig</code> merge-patch pattern above is the one
-documented for other dashboard feature flags, such as <code>llmGatewayField</code>.
-Confirm the exact flag key against the live console before patching:
-<code>oc get odhdashboardconfig odh-dashboard-config -n redhat-ods-applications -o yaml</code>.</p>
-</div>
-</td>
-</tr>
-</table>
+<p>Expected output: <code>43</code> platform configurations in total, <code>15</code> of them typed <code>accelerator</code>
+(those are the rows the tab lists and the wizard discovers).</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>Then create the topology configuration itself by following
+<p>To add your own configuration, click <strong>Add LLM accelerator configuration</strong> and complete
+the form, or create the <code>LLMInferenceServiceConfig</code> directly with the CLI — following
 <a href="../llmd-core/module-03-advanced.html" class="xref page">Manage topology and router configuration
-templates</a> in the llmd-core workshop: open <strong>Settings</strong> → <strong>llm-d topology configurations</strong>,
-click <strong>Add</strong>, pick the <strong>Multi-node data-parallel</strong> topology type, choose <strong>Start from
-sample</strong>, name the configuration, and click <strong>Create</strong>. That walkthrough also covers the
-action menu for editing, duplicating, and deleting existing templates.</p>
+templates</a> in the llmd-core workshop for the field-by-field walkthrough. That walkthrough
+also covers editing, duplicating, and deleting existing templates.</p>
 </li>
 <li>
-<p>Verify the two settings that drive wizard discovery — the <code>opendatahub.io/config-type</code>
-label matches your topology (<code>workload-multi-node-data-parallel</code> for this exercise), and
-the <code>spec.workers</code> replica and resource settings match your cluster capacity. For
-prefill/decode topologies, <code>spec.scheduler.replicas</code> must be <code>1</code> or greater — the
-scheduler is required for KV-cache-aware request routing.</p>
+<p>Verify the settings that drive wizard discovery — the <code>opendatahub.io/config-type</code>
+label value must match a topology the wizard offers (<code>workload-single-node</code>,
+<code>workload-multi-node-data-parallel</code>, <code>workload-single-node-pd</code>, or
+<code>workload-multi-node-data-parallel-pd</code>), and the <code>spec.workers</code> replica and resource
+settings must match your cluster capacity. For prefill/decode topologies,
+<code>spec.scheduler.replicas</code> must be <code>1</code> or greater — the scheduler is required for
+KV-cache-aware request routing.</p>
 </li>
 </ol>
 </div>
@@ -704,26 +710,35 @@ it with <code>baseRefs field is forbidden in LLMInferenceServiceConfig</code>. O
 <div class="ulist">
 <ul>
 <li>
-<p>Your new configuration appears on the <strong>llm-d topology configurations</strong> page.</p>
+<p>Your new configuration appears on the <strong>LLM accelerator configurations</strong> tab with an
+<strong>Enabled</strong> toggle.</p>
 </li>
 <li>
-<p>In <strong>Data Science Projects</strong> → your project → <strong>Deploy model</strong>, the <strong>Multi-node
-data-parallel</strong> topology radio button is now enabled instead of grayed out.</p>
+<p>In <strong>Data Science Projects</strong> → your project → <strong>Deploy model</strong>, the wizard&#8217;s accelerator
+configuration dropdown lists the enabled configurations — the wizard discovers them through
+their <code>opendatahub.io/config-type</code> labels.</p>
 </li>
 <li>
-<p>The single-node topology has a built-in default (<code>single-node-default</code>) and is always
-available.</p>
+<p>When a service references a configuration, its <code>ConfigInUse</code> condition flips to <code>True</code>
+with the message <code>referenced by N LLMInferenceService(s)</code> — you saw this on the CPU
+configuration in Module 02.</p>
 </li>
 </ul>
 </div>
+<div class="paragraph">
+<p>The screenshots below are 3.5-era and predate the 3.6 surface: the old <strong>Settings → llm-d
+topology configurations</strong> page has been replaced by <strong>Model deployment settings → LLM
+accelerator configurations</strong>, and the 3.6 wizard lists accelerator configurations in its
+dropdown.</p>
+</div>
 <div class="imageblock">
 <div class="content">
-<a class="image" href="_images/03-llmd-topology-settings.png" target="blank"><img src="_images/03-llmd-topology-settings.png" alt="The llm-d topology configurations page listing the enabled Multi-node data-parallel configuration" width="700"></a>
+<a class="image" href="_images/03-llmd-topology-settings.png" target="blank"><img src="_images/03-llmd-topology-settings.png" alt="3.5-era screenshot: the former llm-d topology configurations page" width="700"></a>
 </div>
 </div>
 <div class="imageblock">
 <div class="content">
-<a class="image" href="_images/03-deploy-wizard-llmd-multinode.png" target="blank"><img src="_images/03-deploy-wizard-llmd-multinode.png" alt="The Deploy model wizard showing the topology options with Single node selected and Multi-node available once a topology configuration exists" width="700"></a>
+<a class="image" href="_images/03-deploy-wizard-llmd-multinode.png" target="blank"><img src="_images/03-deploy-wizard-llmd-multinode.png" alt="3.5-era screenshot: the Deploy model wizard showing the topology options with Single node selected and Multi-node available once a topology configuration exists. In 3.6 the wizard lists the enabled accelerator configurations in its dropdown." width="700"></a>
 </div>
 </div>
 <div class="paragraph">
@@ -737,18 +752,18 @@ available.</p>
 <div class="sectionbody">
 <div class="paragraph">
 <p>Router <code>LLMInferenceServiceConfig</code> templates are optional enhancements — KV-cache-aware
-scheduling, intelligent gateway routing, circuit breaking. A router template carries the
-<code>opendatahub.io/config-type: router</code> label plus an <code>opendatahub.io/supported-topologies</code>
-annotation (a JSON array of topology strings); the wizard only offers it under <strong>Advanced
-routing</strong> for the topologies it lists.</p>
+scheduling, intelligent gateway routing, circuit breaking. In the llmd-core walkthrough, a
+router template carries the <code>opendatahub.io/config-type: router</code> label plus an
+<code>opendatahub.io/supported-topologies</code> annotation (a JSON array of topology strings); the
+wizard only offers it under <strong>Advanced routing</strong> for the topologies it lists.</p>
 </div>
 <div class="paragraph">
 <p>The full walkthrough is in the llmd-core workshop — follow
 <a href="../llmd-core/module-03-advanced.html" class="xref page">Module 03: Advanced Usage</a> to create the
 KV-cache-aware router template with its inline <code>prefix-cache-scorer</code>/<code>queue-scorer</code> plugin
 chain, deploy a model with it from the wizard&#8217;s <strong>Advanced routing</strong> section, and verify the
-merge order: the generated <code>LLMInferenceService</code> <code>spec.baseRefs</code> array lists the topology
-preset (<code>kserve-system</code> namespace) first and your selected router second, so your router
+merge order: the controller applies the platform base preset
+(<code>v3-6-0-kserve-config-llm-template</code>) first and your selected router second, so your router
 settings override preset defaults.</p>
 </div>
 <div class="sect2">
@@ -760,8 +775,9 @@ settings override preset defaults.</p>
 list; selecting an incompatible topology hides it.</p>
 </li>
 <li>
-<p>The generated <code>LLMInferenceService</code> <code>spec.baseRefs</code> array includes the topology preset
-config (<code>kserve-system</code> namespace) followed by your selected router configuration.</p>
+<p>The generated <code>LLMInferenceService</code> includes the platform base preset configuration
+followed by your selected router configuration — the same merge order you observed in
+Module 02 (<code>source=Preset</code> first, <code>source=UserRef</code> second in <code>status.appliedConfigs</code>).</p>
 </li>
 <li>
 <p>Test requests to the deployed model still return <code>200</code> (Module 02, Exercise 2 pattern).</p>
@@ -782,6 +798,23 @@ config (<code>kserve-system</code> namespace) followed by your selected router c
 generation (decode, memory-intensive) into specialized replica sets. It requires
 RDMA-capable networking (InfiniBand or RoCE v2) — NIXL KV cache transfers between pods
 need RDMA even when both pods run on the same node.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>This exercise is <strong>conceptual</strong> in this workshop: disaggregated serving needs GPU nodes plus
+RDMA-capable networking, and this workshop cluster has zero GPU nodes — that is exactly why
+Module 02 used the CPU path. Treat the manifest below as reference material; everything in
+it applies unchanged on a GPU-capable cluster.</p>
+</div>
+</td>
+</tr>
+</table>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -857,7 +890,7 @@ spec:
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>Apply the configuration and check that both replica sets start:</p>
+<p>On a GPU-capable cluster, apply the configuration and check that both replica sets start:</p>
 </li>
 </ol>
 </div></td>
@@ -928,13 +961,13 @@ scheduler configuration the controller applied.</p>
 <div class="ulist">
 <ul>
 <li>
-<p>Enabled the topology selector with the <code>llmdTemplates</code> flag and followed the llmd-core topology template walkthrough</p>
+<p>Toured the <strong>LLM accelerator configurations</strong> tab and followed the llmd-core accelerator template walkthrough</p>
 </li>
 <li>
 <p>Followed the llmd-core router template and <code>baseRefs</code> merge walkthrough</p>
 </li>
 <li>
-<p>Deployed a disaggregated prefill/decode workload and confirmed the automatic scheduler profiles</p>
+<p>Walked the disaggregated prefill/decode topology and its automatic scheduler profiles (conceptual — needs GPUs)</p>
 </li>
 </ul>
 </div>
@@ -944,10 +977,10 @@ scheduler configuration the controller applied.</p>
 <div class="ulist">
 <ul>
 <li>
-<p>Topology and router <code>LLMInferenceServiceConfig</code> templates are admin-controlled; their labels and annotations are what the wizard filters on</p>
+<p>Accelerator <code>LLMInferenceServiceConfig</code> templates are admin-controlled in <strong>Model deployment settings → LLM accelerator configurations</strong>; their <code>opendatahub.io/config-type</code> labels are what the wizard filters on</p>
 </li>
 <li>
-<p>In a generated <code>LLMInferenceService</code>, <code>baseRefs</code> merges the topology preset first and your selected router second</p>
+<p>In a generated <code>LLMInferenceService</code>, the platform base preset merges first and your selected configuration second</p>
 </li>
 <li>
 <p>The <code>prefill</code> stanza switches on disaggregated serving, with scheduler profiles the controller configures and locks automatically</p>

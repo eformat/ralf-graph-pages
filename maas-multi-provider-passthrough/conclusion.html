@@ -200,6 +200,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -603,19 +611,31 @@
 <div class="sect1">
 <h2 id="_resources"><a class="anchor" href="#_resources"></a>Resources</h2>
 <div class="sectionbody">
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The Models-as-a-Service guide on docs.redhat.com is currently published for RHOAI 3.5 — the 3.6 product documentation is not yet published. The links below point at the published 3.5 guide.
+</td>
+</tr>
+</table>
+</div>
 <div class="ulist">
 <ul>
 <li>
-<p><a href="https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/3.5/html/govern_llm_access_with_models-as-a-service/multi-provider-api-passthrough-for-external-models">Multi-provider API passthrough for external models</a> — the feature chapter: when to use passthrough, how to enable it with the <code>apiFormat</code> field, Vertex AI behavior differences, and the limitations</p>
+<p><a href="https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/3.5/html/govern_llm_access_with_models-as-a-service/deploy-and-manage-models-as-a-service#multi-provider-api-passthrough-overview_maas-external-models">Multi-provider API passthrough for external models</a> — the feature chapter: when to use passthrough, how to enable it with the <code>apiFormat</code> field, Vertex AI behavior differences, and the limitations</p>
 </li>
 <li>
-<p><a href="https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/3.5/html/govern_llm_access_with_models-as-a-service/supported-api-formats-and-passthrough-behavior-for-external-models">Supported API formats and passthrough behavior for external models</a> — format detection, <code>apiFormat</code> values and passthrough eligibility, the decision matrix, and per-provider authentication headers</p>
+<p><a href="https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/3.5/html/govern_llm_access_with_models-as-a-service/deploy-and-manage-models-as-a-service#multi-provider-passthrough-formats-reference_maas-external-models">Supported API formats and passthrough behavior for external models</a> — format detection, <code>apiFormat</code> values and passthrough eligibility, the decision matrix, and per-provider authentication headers</p>
 </li>
 <li>
-<p><a href="https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/3.5/html/govern_llm_access_with_models-as-a-service/configure-routing-to-external-model-providers">Configure routing to external model providers</a> — the two-resource <code>ExternalProvider</code>/<code>ExternalModel</code> architecture, the API key secret, <code>MaaSModelRef</code>, and subscription governance this workshop follows</p>
+<p><a href="https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/3.5/html/govern_llm_access_with_models-as-a-service/deploy-and-manage-models-as-a-service#configure-routing-external-model-providers_maas-external-models">Configure routing to external model providers</a> — the two-resource <code>ExternalProvider</code>/<code>ExternalModel</code> architecture, the API key secret, <code>MaaSModelRef</code>, and subscription governance this workshop follows</p>
 </li>
 <li>
-<p><a href="https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/3.5/html/govern_llm_access_with_models-as-a-service/use-single-url-passthrough-with-ai-coding-tools">Use single-URL passthrough with AI coding tools</a> — Claude Code and OpenAI SDK configuration with <code>ANTHROPIC_BASE_URL</code>/<code>OPENAI_BASE_URL</code> and body-based model routing</p>
+<p><a href="https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/3.5/html/govern_llm_access_with_models-as-a-service/deploy-and-manage-models-as-a-service#use-single-url-passthrough-with-ai-tools_maas-external-models">Use single-URL passthrough with AI coding tools</a> — Claude Code and OpenAI SDK configuration with <code>ANTHROPIC_BASE_URL</code>/<code>OPENAI_BASE_URL</code> and body-based model routing</p>
 </li>
 <li>
 <p><a href="index.html" class="xref page">Back to the workshop overview</a></p>

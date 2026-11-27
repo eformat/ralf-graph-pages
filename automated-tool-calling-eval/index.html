@@ -203,6 +203,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -585,8 +593,9 @@
 <div class="sectionbody">
 <div class="paragraph">
 <p>This workshop introduces <strong>Automated tool-calling evaluation-data generation for custom MCP servers</strong>:
-the EvalHub MCP server and agent skills that let AI coding agents discover evaluation providers,
-submit jobs, and interpret results through tool-calling on Red Hat OpenShift AI.</p>
+the EvalHub Model Context Protocol (MCP) server and agent skills that let AI coding agents
+discover evaluation providers, submit jobs, and interpret results through tool-calling on
+Red Hat OpenShift AI (RHOAI).</p>
 </div>
 <div class="paragraph">
 <p><strong>What you will learn:</strong></p>
@@ -615,16 +624,10 @@ submit jobs, and interpret results through tool-calling on Red Hat OpenShift AI.
 <div class="ulist">
 <ul>
 <li>
-<p>RHOAI operator installed</p>
-</li>
-<li>
-<p>MCP server deployed</p>
-</li>
-<li>
 <p>An OpenShift cluster with RHOAI 3.6 installed</p>
 </li>
 <li>
-<p>The TrustyAI component in your <code>DataScienceCluster</code> set to <code>Managed</code>, with EvalHub deployed by the TrustyAI Operator</p>
+<p>The TrustyAI component in your <code>DataScienceCluster</code> set to <code>Managed</code> — the TrustyAI Operator deploys EvalHub, and the hands-on module deploys the EvalHub MCP server</p>
 </li>
 <li>
 <p>An MCP client such as Claude Code installed on your workstation</p>

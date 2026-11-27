@@ -204,6 +204,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -931,10 +939,10 @@ endpoint before applying the Secret — never put a real key in source control.<
       "provider_id": "garak-kfp", <2>
       "parameters": {
         "kfp_config": {
-          "endpoint": "https://ds-pipeline-dspa.abc123-user1.svc.cluster.local:8443",
+          "endpoint": "https://ds-pipeline-data-science-pipelines.abc123-user1.svc.cluster.local:8443",
           "namespace": "abc123-user1",
           "s3_secret_name": "aws-connection-mlpipeline",
-          "s3_endpoint": "http://minio-dspa.abc123-user1.svc.cluster.local:9000",
+          "s3_endpoint": "http://minio.minio.svc.cluster.local:9000",
           "s3_bucket": "mlpipeline",
           "verify_ssl": false
         }, <3>
@@ -974,7 +982,13 @@ the benchmark <code>id</code> must be <code>intents</code>.</td>
 <tr>
 <td><i class="conum" data-value="3"></i><b>3</b></td>
 <td><strong>kfp_config</strong> — connection details for the Kubeflow Pipelines backend that
-orchestrates the assessment. The <code>s3_secret_name</code> Secret must contain
+orchestrates the assessment. The <code>s3_endpoint</code>, bucket, and credentials must
+match the object store configured on the pipeline server; discover them with
+<code>oc get dspa data-science-pipelines -n abc123-user1 -o
+jsonpath='{.spec.objectStorage.externalStorage}'</code>. In this workshop environment
+the pipeline server uses an external MinIO service at
+<code>minio.minio.svc.cluster.local:9000</code> with bucket <code>kale-pipelines</code> and the
+<code>kale-minio-creds</code> Secret. The <code>s3_secret_name</code> Secret must contain
 <code>AWS_ACCESS_KEY_ID</code>, <code>AWS_SECRET_ACCESS_KEY</code>, <code>AWS_S3_BUCKET</code>,
 <code>AWS_DEFAULT_REGION</code>, and <code>AWS_S3_ENDPOINT</code>.</td>
 </tr>

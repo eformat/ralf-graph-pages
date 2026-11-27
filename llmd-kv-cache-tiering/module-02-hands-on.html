@@ -201,6 +201,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -582,10 +590,11 @@
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p>In this module you will work through the cache-aware routing workflow end to end:
-you will inspect a KV-cache-aware router configuration, apply it to a model
-deployment from the RHOAI dashboard, and observe the metrics that show KV cache
-behavior during inference.</p>
+<p>In this module you will work through the cache-aware routing workflow end to
+end: you will inspect the live scheduling and flow-control configuration that
+makes RHOAI 3.6 model serving KV-cache-aware, verify that this routing stack is
+attached to and running for the deployed model in your project, and observe the
+metrics that show KV cache behavior during inference.</p>
 </div>
 <div class="paragraph">
 <p><strong>Learning objectives:</strong></p>
@@ -593,32 +602,49 @@ behavior during inference.</p>
 <div class="ulist">
 <ul>
 <li>
-<p>Recognize the labels and annotations that make a router configuration KV-cache-aware</p>
+<p>Inspect the live KV-cache-aware scheduling preset and the scheduler&#8217;s effective flow-control configuration with <code>oc</code></p>
 </li>
 <li>
-<p>Select a router configuration in the model deployment wizard and verify it on the deployed model</p>
+<p>Verify the cache-aware routing stack on a deployed model — the routing presets in <code>spec.baseRefs</code>, the running pods, and the serving-path conditions</p>
 </li>
 <li>
-<p>Observe KV cache utilization and prefix cache hit metrics for your inference pool</p>
+<p>Observe the live <code>llm_d_epp_</code> metrics that report KV cache utilization and flow control for your inference pool</p>
 </li>
 </ul>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_exercise_1_explore_a_kv_cache_aware_router_configuration"><a class="anchor" href="#_exercise_1_explore_a_kv_cache_aware_router_configuration"></a>Exercise 1: Explore a KV-cache-aware router configuration</h2>
+<h2 id="_exercise_1_explore_the_kv_cache_aware_routing_configuration"><a class="anchor" href="#_exercise_1_explore_the_kv_cache_aware_routing_configuration"></a>Exercise 1: Explore the KV-cache-aware routing configuration</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Router configurations are <code>LLMInferenceServiceConfig</code> resources that provide
-advanced routing capabilities for LLM deployments, including KV cache-aware
-scheduling and intelligent request gateway routing. Unlike topology
-configurations, which define the fundamental deployment structure, router
-configurations are optional enhancements. The dashboard only offers router
-configurations whose <code>opendatahub.io/supported-topologies</code> annotation includes
-the deployment topology you selected.</p>
+<p>Routing behavior for llm-d model serving is assembled from <strong>routing presets</strong>:
+<code>LLMInferenceServiceConfig</code> resources that an <code>LLMInferenceService</code> combines
+into its effective configuration. A deployment names presets in its
+<code>spec.baseRefs</code> list, and the platform adds its well-known defaults on top —
+the <code>PresetsCombined=True</code> condition on the <code>LLMInferenceService</code> reports that
+the combination succeeded. Custom presets are optional, and none are
+pre-provisioned in this environment: RHOAI 3.6 ships no router-labeled
+configs, which you can verify yourself:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get llminferenceserviceconfig -A -l opendatahub.io/config-type=router</code></pre>
+</div>
 </div>
 <div class="paragraph">
-<p>A router configuration that is KV-cache-aware carries the following structure:</p>
+<p>Expected output:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>No resources found</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Creating a custom router preset is YAML-driven, not a dashboard exercise. For
+reference — so you can recognize the shape if you meet one in the wild — this
+is what a custom router preset looks like. Do not create it; this workshop
+inspects the live default instead:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -649,43 +675,274 @@ spec:
 <table>
 <tr>
 <td><i class="conum" data-value="1"></i><b>1</b></td>
-<td><strong><code>opendatahub.io/config-type: router</code></strong> — marks this as a router
-configuration; the dashboard queries all resources with this label.</td>
+<td><strong><code>opendatahub.io/config-type: router</code></strong> — an optional categorizing label;
+RHOAI 3.6 ships no presets carrying the <code>router</code> value, so a preset like this
+is something an administrator would author as YAML.</td>
 </tr>
 <tr>
 <td><i class="conum" data-value="2"></i><b>2</b></td>
-<td><strong><code>opendatahub.io/supported-topologies</code></strong> — a JSON array of topology types;
-users only see this router when deploying models for one of the listed
-topologies.</td>
+<td><strong><code>opendatahub.io/supported-topologies</code></strong> — optional metadata describing
+which deployment topologies the preset suits.</td>
 </tr>
 <tr>
 <td><i class="conum" data-value="3"></i><b>3</b></td>
-<td><strong><code>spec.scheduler.replicas</code></strong> — the scheduler component is required for
-KV cache-aware request routing.</td>
+<td><strong><code>spec.router.scheduler.replicas</code></strong> — the scheduler replica; the
+KV-cache-aware routing component runs here.</td>
 </tr>
 <tr>
 <td><i class="conum" data-value="4"></i><b>4</b></td>
-<td><strong>Scorer weights</strong> — the scheduler combines plugin scores; a heavy
-<code>prefix-cache-scorer</code> weight prioritizes cache reuse over even load balancing.
+<td><strong>Inline plugin config</strong> — this reference example uses the older
+scorer-weight format; the 3.6 default preset instead uses the <code>llm-d.ai/v1</code>
+producer/filter/scorer plugins you met in module 01.</td>
+</tr>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_inspect_the_live_default_scheduling_preset"><a class="anchor" href="#_inspect_the_live_default_scheduling_preset"></a>Inspect the live default scheduling preset</h3>
+<div class="paragraph">
+<p>The KV-cache-aware scheduling default is itself a preset, shipped and managed
+by the platform. Module 01 introduced its four plugins; here you open the live
+resource and read it:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get llminferenceserviceconfig -n redhat-ods-applications \
+  v3-6-0-kserve-config-llm-scheduler-eppconfig-default -o yaml</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>spec.router.scheduler.config.inline</code> section holds the scheduling
+configuration — apiVersion <code>llm-d.ai/v1</code>, kind <code>EndpointPickerConfig</code>, with
+scheduling profile <code>default</code> activating the prefix-cache-affinity filter and
+the token-load scorer:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: llm-d.ai/v1
+kind: EndpointPickerConfig
+plugins:
+- type: approx-prefix-cache-producer
+- type: inflight-load-producer
+- type: prefix-cache-affinity-filter
+- type: token-load-scorer
+schedulingProfiles:
+- name: default
+  plugins:
+  - pluginRef: prefix-cache-affinity-filter
+  - pluginRef: token-load-scorer</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>status</code> section tells you this preset is live and in use (timestamps and
+ages will differ on your cluster):</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">status:
+  conditions:
+  - message: referenced by 2 LLMInferenceService(s)
+    reason: InUse
+    severity: Info
+    status: "True"
+    type: ConfigInUse
+  - status: "True"
+    type: Ready
+  referencedBy:
+  - name: cpu-demo-llm
+    namespace: abc123-user1
+  - name: maas-llmd-demo
+    namespace: abc123-user1</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>ConfigInUse=True</code> with a <code>referencedBy</code> list naming the two models deployed in
+your project namespace (<code>abc123-user1</code>) — this is the preset your models are
+actually scheduled with.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_read_the_schedulers_effective_flow_control_configuration"><a class="anchor" href="#_read_the_schedulers_effective_flow_control_configuration"></a>Read the scheduler&#8217;s effective flow-control configuration</h3>
+<div class="paragraph">
+<p>The scheduling preset decides <strong>where</strong> each request is routed. The flow-control
+layer decides <strong>when</strong> requests are dispatched — module 01 noted that the
+queue-depth and KV-cache-utilization thresholds live there. That layer is the
+llm-d router scheduler process itself, and its effective configuration is
+passed to it as the <code>--config-text</code> container argument. Find the scheduler pod
+and print the argument:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">POD=$(oc get pods -n abc123-user1 \
+  -l app.kubernetes.io/component=llminferenceservice-router-scheduler \
+  -o jsonpath='{.items[0].metadata.name}')
+oc get pod $POD -n abc123-user1 -o jsonpath='{.spec.containers[0].args[1]}'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Expected output:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: llm-d.ai/v1alpha1
+featureGates:
+- flowControl
+flowControl:
+  saturationDetector:
+    pluginRef: utilization-detector
+kind: EndpointPickerConfig
+plugins:
+- name: utilization-detector
+  parameters:
+    kvCacheUtilThreshold: 0.8
+    metricsStalenessThreshold: 200ms
+    queueDepthThreshold: 5
+  type: utilization-detector
+- parameters:
+    scheme: https
+  type: metrics-data-source</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This is the KV-cache-aware control loop, in the cluster&#8217;s own words:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>metrics-data-source</code> with <code>scheme: https</code> — the scheduler reads live pool
+metrics over TLS, and <code>metricsStalenessThreshold: 200ms</code> says a metric older
+than that is too stale to schedule on.</p>
+</li>
+<li>
+<p><code>kvCacheUtilThreshold: 0.8</code> — a replica whose KV cache utilization crosses
+80% counts as saturated.</p>
+</li>
+<li>
+<p><code>queueDepthThreshold: 5</code> — five or more requests waiting in a queue also
+counts as saturation.</p>
+</li>
+<li>
+<p><code>saturationDetector.pluginRef: utilization-detector</code> — the plugin that
+combines these signals for flow control: when a replica is saturated, new
+requests are queued (back-pressured) instead of being pushed onto
+cache-hot replicas.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>You will watch the matching metrics in Exercise 3.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_verify"><a class="anchor" href="#_verify"></a>Verify</h3>
+<div class="paragraph">
+<p>You read the live default scheduling preset (<code>llm-d.ai/v1</code>, profile <code>default</code>,
+the four llm-d plugins, <code>ConfigInUse=True</code> and <code>Ready=True</code>, referencing both
+workshop models) and the scheduler&#8217;s effective flow-control configuration
+(<code>utilization-detector</code> with <code>kvCacheUtilThreshold: 0.8</code>,
+<code>queueDepthThreshold: 5</code>, metrics over <code>https</code> with a 200 ms staleness
+threshold) — and you can explain what makes the router treat a replica as
+saturated.</p>
+</div>
+<div class="paragraph">
+<p>Now that you have seen the configuration the routing stack runs with, you will verify that the deployed model actually uses it.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_exercise_2_verify_the_cache_aware_routing_stack_on_the_deployed_model"><a class="anchor" href="#_exercise_2_verify_the_cache_aware_routing_stack_on_the_deployed_model"></a>Exercise 2: Verify the cache-aware routing stack on the deployed model</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Your project namespace (<code>abc123-user1</code>) already contains the workshop&#8217;s model
+deployment <code>maas-llmd-demo</code>, deployed with default optimized routing. Rather
+than creating a new deployment in the dashboard wizard, you will verify —
+entirely with <code>oc</code> — that the cache-aware routing stack you inspected in
+Exercise 1 is attached to and running for this model. The same three checks
+apply to any model you deploy later.</p>
+</div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>In the RHOAI dashboard, click <strong>Settings</strong> and then <strong>llm-d routing
-configurations</strong>. This page is visible to administrators only.</p>
+<p>Confirm the routing presets the model references. The <code>baseRefs</code> list names
+the <code>LLMInferenceServiceConfig</code> presets that this deployment explicitly
+references:</p>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get llmisvc maas-llmd-demo -n abc123-user1 -o yaml | grep -A 6 baseRefs</code></pre>
+</div>
+</div>
 <div class="paragraph">
-<p>Expected output is a table with the columns <strong>Name</strong>, <strong>Topology type</strong>, <strong>Enabled</strong>,
-and <strong>Actions</strong>. Any KV-cache-aware router your administrator created appears here.</p>
+<p>Expected output:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>  baseRefs:
+  - name: v3-6-0-kserve-config-llm-template-cpu
+  model:
+    name: maas-llmd-demo
+    uri: oci://quay.io/redhat-ai-services/modelcar-catalog:qwen2.5-0.5b-instruct
+  router:
+    route:</pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>baseRefs</code> lists the CPU template preset. The KV-cache-aware scheduling preset
+you read in Exercise 1 is a platform well-known default that the controller
+combines in automatically: the <code>PresetsCombined=True</code> condition you will see
+below confirms the combination, and the preset&#8217;s own status lists
+<code>maas-llmd-demo</code> under <code>referencedBy</code>. The flow-control configuration itself is
+embedded in this resource at <code>spec.router.scheduler.config.inline</code> — the same
+text you read from the scheduler pod in Exercise 1.</p>
 </div>
 </li>
 <li>
-<p>If a KV-cache-aware router config exists, open the action menu (⋮) next to it
-and click <strong>Edit</strong> to inspect the YAML. Compare the scorer weights you see with
-the example above.</p>
+<p>Check that the serving pods are running:</p>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get pods -n abc123-user1 -l app.kubernetes.io/name=maas-llmd-demo</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Expected output (pod-name suffixes and <code>AGE</code> values will differ on your
+cluster):</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>NAME                                                      READY   STATUS    RESTARTS   AGE
+maas-llmd-demo-kserve-9cd6b9756-lgmkc                     2/2     Running   0          5h13m
+maas-llmd-demo-kserve-router-scheduler-597d95c79b-sbgdd   1/1     Running   0          5h35m</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Both the model server and the router scheduler must be <code>Running</code> — the
+router scheduler is the pod whose configuration you read in Exercise 1.</p>
+</div>
+</li>
+<li>
+<p>Inspect the <code>LLMInferenceService</code> conditions:</p>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get llmisvc maas-llmd-demo -n abc123-user1 \
+  -o jsonpath='{range .status.conditions[*]}{.type}{"="}{.status}{"\n"}{end}'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Expected output:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>HTTPRoutesReady=True
+InferencePoolReady=True
+MainWorkloadReady=False
+PresetsCombined=True
+Ready=False
+RouterReady=True
+SchedulerWorkloadReady=True
+WorkloadsReady=False</pre>
+</div>
+</div>
 </li>
 </ol>
-</div></td>
-</tr>
-</table>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -695,95 +952,43 @@ the example above.</p>
 </td>
 <td class="content">
 <div class="paragraph">
-<p>Creating router configurations requires the <code>llmdTemplates</code> feature flag to be
-enabled in the <code>OdhDashboardConfig</code> resource. If the page is empty, ask your
-workshop facilitator — do not edit cluster configuration on your own.</p>
+<p>On this workshop cluster the top-level <code>Ready</code>, <code>WorkloadsReady</code>, and
+<code>MainWorkloadReady</code> conditions report <code>False</code> (reason
+<code>ReconcileSingleNodeWorkloadError</code> — a Kueue queue-name label immutability
+conflict during workload reconciliation) even though the model serves
+normally. Every condition that describes the serving data path —
+<code>HTTPRoutesReady</code>, <code>InferencePoolReady</code>, <code>PresetsCombined</code>, <code>RouterReady</code>,
+<code>SchedulerWorkloadReady</code> — is <code>True</code>, and both pods are <code>Running</code>. Do not
+treat the <strong>Ready</strong> column on the dashboard&#8217;s <strong>Models</strong> tab as the go signal in
+this environment; trust the pods, the serving-path conditions, and an actual
+request, which is the final check below.</p>
 </div>
 </td>
 </tr>
 </table>
 </div>
-<div class="sect2">
-<h3 id="_verify"><a class="anchor" href="#_verify"></a>Verify</h3>
-<div class="paragraph">
-<p>You can name the label that marks a router configuration, the annotation that
-filters it by topology, and the scorer that gets the heaviest weight in a
-cache-reuse-focused profile.</p>
-</div>
-<div class="paragraph">
-<p>Now that you can recognize a KV-cache-aware router configuration, you will attach one to a new model deployment.</p>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_exercise_2_apply_kv_cache_aware_routing_to_a_deployment"><a class="anchor" href="#_exercise_2_apply_kv_cache_aware_routing_to_a_deployment"></a>Exercise 2: Apply KV-cache-aware routing to a deployment</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>With a compatible router configuration available, the advanced routing section
-of the model deployment wizard attaches it to new model deployments.</p>
-</div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>In the dashboard, navigate to <strong>Data Science Projects</strong>, select your project,
-and click <strong>Deploy model</strong>.</p>
-</li>
-<li>
-<p>Select a topology that matches one of the router&#8217;s supported topology types,
-then configure model storage.</p>
-</li>
-<li>
-<p>Click <strong>Advanced routing</strong> to expand the routing options. By default,
-<strong>Default optimized routing</strong> is pre-selected, which means the LLM-D controller
-uses built-in defaults.</p>
-</li>
-<li>
-<p>From the <strong>Router configuration</strong> list, select a router config with
-KV cache-aware scheduling. The list shows only configurations compatible with
-your selected topology.</p>
-</li>
-<li>
-<p>Click <strong>Create</strong> and wait for the deployment to reach <strong>Ready</strong> status on the
-<strong>Models</strong> tab of your project.</p>
-</li>
-<li>
-<p>Verify that the router configuration was attached. On the model details page,
-check the YAML representation of the generated <code>LLMInferenceService</code> resource:</p>
-<div class="listingblock execute">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get llmisvc -n abc123-user1 -o yaml | grep -A 6 baseRefs</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Expected output shows the topology preset first, then your selected router
-configuration:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>spec:
-  baseRefs:
-  - name: config-llm-template
-    namespace: kserve-system
-  - name: kv-cache-router-single-node</pre>
-</div>
-</div>
+<p>The definitive check is a real inference request. Exercise 3 walks through
+the authenticated request against this model — a <code>curl</code> with a bearer token
+that returns HTTP <code>200</code> and a chat-completion body. Once you see that <code>200</code>,
+you have verified the full path: preset combination, router scheduler, and
+model server.</p>
 </li>
 </ol>
-</div>
-<div class="paragraph">
-<p>If no router configuration is available in your workshop environment, stay with
-the default <strong>Default optimized routing</strong> — it already includes the
-KV-cache-utilization and prefix-cache scorers you read about in module 01.</p>
 </div>
 <div class="sect2">
 <h3 id="_verify_2"><a class="anchor" href="#_verify_2"></a>Verify</h3>
 <div class="paragraph">
-<p>Your deployed model&#8217;s <code>LLMInferenceService</code> resource lists the selected router
-configuration in <code>spec.baseRefs</code> after the topology preset config.</p>
+<p>Your deployed model references its routing preset in <code>spec.baseRefs</code>, both
+serving pods are <code>Running</code>, and every serving-path condition
+(<code>PresetsCombined</code>, <code>RouterReady</code>, <code>HTTPRoutesReady</code>, <code>InferencePoolReady</code>,
+<code>SchedulerWorkloadReady</code>) is <code>True</code> — and you know why this environment reports
+<code>Ready=False</code> while serving.</p>
 </div>
 <div class="paragraph">
-<p>Now that your deployment carries the router configuration, you will observe the KV cache metrics it produces.</p>
+<p>Now that you have verified the routing stack, you will observe the KV cache metrics it produces.</p>
 </div>
 </div>
 </div>
@@ -792,9 +997,11 @@ configuration in <code>spec.baseRefs</code> after the topology preset config.</p
 <h2 id="_exercise_3_observe_kv_cache_behavior_with_metrics"><a class="anchor" href="#_exercise_3_observe_kv_cache_behavior_with_metrics"></a>Exercise 3: Observe KV cache behavior with metrics</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>The Endpoint Picker (EPP), or inference scheduler, exposes Prometheus metrics at
-the <code>/metrics</code> endpoint on the metrics service port. Metrics use the
-<code>llm_d_epp_</code> prefix. The most useful ones for cache tiering behavior are:</p>
+<p>The Endpoint Picker (EPP), or inference scheduler, exposes Prometheus metrics
+at the <code>/metrics</code> endpoint on its metrics service, port 9090. The endpoint is
+protected: it speaks TLS and requires a bearer token, returning
+<code>401 Unauthorized</code> without one. Metrics use the <code>llm_d_epp_</code> prefix. The most
+useful ones for cache-tiering behavior are:</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
@@ -810,65 +1017,139 @@ the <code>/metrics</code> endpoint on the metrics service port. Metrics use the
 <tbody>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>llm_d_epp_average_kv_cache_utilization</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Average KV cache utilization across all endpoints in the inference pool</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Average KV cache utilization across the inference pool (series label
+<code>name="maas-llmd-demo-inference-pool"</code>); rises while running requests fill the
+cache</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>llm_d_epp_prefix_indexer_hit_ratio</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Prefix cache hit ratio; a higher ratio means requests frequently match cached prefixes</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>llm_d_epp_std_dev_kv_cache_utilization</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Standard deviation of KV cache utilization across endpoints — a growing
+spread means the load sits unevenly on the pool</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>llm_d_epp_prefix_indexer_size</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Current size of the prefix cache index maintained by the scheduler</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>llm_d_epp_flow_control_pool_saturation</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Flow-control saturation signal, labeled by pipeline stage: <code>stage="prefill"</code>
+and <code>stage="decode"</code> are per-stage signals, <code>stage="effective"</code> is the max of
+the two and the value used for gating. <code>1.0</code> is the gating set point; values
+above it mean the pool is oversubscribed</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>llm_d_epp_prefix_indexer_hit_bytes</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Prefix cache hit size in bytes; larger hits mean more effective prefix reuse</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>llm_d_epp_flow_control_queue_size</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Number of requests currently held in the flow-control queue — the
+back-pressure mechanism in action</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>llm_d_epp_request_ttft_seconds</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Time-to-first-token distribution; cache hits typically lower TTFT</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Time-to-first-token histogram (<code>_count</code>, <code>_sum</code>, <code>_bucket</code> series) — the
+latency signal; on non-streaming requests TTFT equals the total request
+duration</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>llm_d_epp_request_total</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Counter of processed requests, labeled by model — a sanity check that traffic
+is flowing through the scheduler (context)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>llm_d_epp_ready_endpoints</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Number of ready endpoints in the inference pool (context)</p></td>
 </tr>
 </tbody>
 </table>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>Send the same conversational request several times so a prompt prefix becomes
-cached. Store the endpoint URL in a shell variable, capturing the inference URL
-directly from the <code>LLMInferenceService</code> status (or copy the <strong>Inference endpoint</strong>
-URL from your model details page) — with an Authorization header if your
-deployment has authentication enabled, as described in the
-<strong>Make authenticated inference requests</strong> chapter of the llm-d documentation:</p>
+<p>Send the same conversational request several times so the pool carries real
+traffic for the metrics steps. Store the endpoint URL in a shell variable,
+reading it directly from the <code>LLMInferenceService</code> status (or copy the
+<strong>Inference endpoint</strong> URL from your model details page). This URL already ends
+in <code>/v1</code>, so the request path appends only <code>/chat/completions</code>:</p>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">export INFER_URL=$(oc get llmisvc -n abc123-user1 -o jsonpath='{.items[0].status.url}')
-curl -k $INFER_URL/v1/chat/completions \
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">export INFER_URL=$(oc get llmisvc -n abc123-user1 \
+  -o jsonpath='{.items[?(@.metadata.name=="maas-llmd-demo")].status.url}')
+export TOKEN=$(oc whoami -t)
+curl -k $INFER_URL/chat/completions \
+  -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{"model": "RedHatAI/Qwen3-8B-FP8-dynamic", "messages": [{"role": "user", "content": "What is Red Hat OpenShift AI?"}]}'</code></pre>
+  -d '{"model": "maas-llmd-demo", "messages": [{"role": "user", "content": "What is Red Hat OpenShift AI?"}]}'</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>The <code>model</code> field is pre-filled with the <code>model_name</code> attribute, which defaults
-to <code>RedHatAI/Qwen3-8B-FP8-dynamic</code>; if you deployed a different model in
-Exercise 2, replace it with that model&#8217;s serving name. A successful response
-returns HTTP <code>200</code> with a chat-completion body — JSON with
-<code>"object": "chat.completion"</code> and the generated answer in
+<p>The Authorization header is required: without the bearer token the same
+request returns HTTP <code>401</code> with
+<code>{"error": {"message": "Authentication required", &#8230;&#8203;}}</code>. The <code>model</code> field is
+the serving name of the workshop&#8217;s deployed model, <code>maas-llmd-demo</code> — a
+qwen2.5-0.5b-instruct CPU modelcar. A successful response returns HTTP <code>200</code>
+with a chat-completion body — JSON with <code>"object": "chat.completion"</code>,
+<code>"model": "maas-llmd-demo"</code>, and the generated answer in
 <code>choices[0].message.content</code>. Repeat the request three or four times without
-changing the message.</p>
+changing the message. If the URL you copied does not end in <code>/v1</code>, append
+<code>/v1/chat/completions</code> instead.</p>
 </div>
 </li>
 <li>
-<p>Observe the cache metrics while the requests are being processed. Query the
-EPP metrics endpoint, or view the metrics through your cluster&#8217;s monitoring
-stack, and look for <code>llm_d_epp_prefix_indexer_hit_ratio</code> and
-<code>llm_d_epp_average_kv_cache_utilization</code>.</p>
+<p>Fetch the metrics. The EPP publishes them on the
+<code>maas-llmd-demo-epp-service</code> service in your project, port 9090 — the same
+TLS + bearer-token protection as the inference route. Try it without a token
+first, then authenticate and store the output:</p>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">curl -sk https://maas-llmd-demo-epp-service.abc123-user1.svc.cluster.local:9090/metrics
+# -> Unauthorized (HTTP 401)
+
+TOKEN=$(oc whoami -t)
+curl -sk -H "Authorization: Bearer $TOKEN" \
+  https://maas-llmd-demo-epp-service.abc123-user1.svc.cluster.local:9090/metrics \
+  > epp-metrics.txt
+# -> HTTP 200</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>With the token the endpoint returns <code>200</code> and the full Prometheus exposition.
+Filter it for the pool metrics from the table above:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">grep -E "^llm_d_epp_(average_kv_cache_utilization|std_dev_kv_cache_utilization|flow_control_pool_saturation|flow_control_queue_size|request_total|ready_endpoints)" epp-metrics.txt</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>On an idle pool you will see utilization and queue-size gauges near <code>0</code>,
+<code>ready_endpoints</code> at the number of live model replicas, and
+<code>llm_d_epp_request_total{model_name="maas-llmd-demo"}</code> incrementing with every
+request you sent in the previous step.</p>
+</div>
 </li>
 <li>
-<p>Interpret what you see: repeated identical prompts should push the prefix
-indexer hit ratio upward, while sustained traffic raises average KV cache
-utilization. If utilization climbs toward saturation, flow control queues new
-requests — the saturation check combines queue depth and KV cache utilization
-against configured thresholds.</p>
+<p>Interpret what you see against the flow-control thresholds you read off the
+scheduler in Exercise 1 (<code>kvCacheUtilThreshold: 0.8</code>,
+<code>queueDepthThreshold: 5</code>):</p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>llm_d_epp_request_total</code> and the <code>llm_d_epp_request_ttft_seconds_count</code> /
+<code>_sum</code> series increment with every processed request — they are proof that
+the scheduler is routing traffic. On this CPU model a non-streaming chat
+completion&#8217;s TTFT equals its total duration, so the histogram is also your
+latency story.</p>
+</li>
+<li>
+<p>While requests are in flight, <code>llm_d_epp_average_kv_cache_utilization</code> rises
+as running requests fill the cache, and
+<code>llm_d_epp_std_dev_kv_cache_utilization</code> shows how unevenly that load sits
+across endpoints. On an idle pool both read <code>0</code>.</p>
+</li>
+<li>
+<p>The flow-control pair is the back-pressure story: when a replica&#8217;s KV cache
+utilization crosses the 80% threshold or five or more requests wait in its
+queue, the <code>utilization-detector</code> plugin considers the pool saturated —
+<code>llm_d_epp_flow_control_pool_saturation{stage="effective"}</code> climbs past the
+<code>1.0</code> gating set point, and flow control holds new requests in the queue
+(<code>llm_d_epp_flow_control_queue_size</code> grows) instead of pushing them onto the
+busy replica.</p>
+</li>
+</ul>
+</div>
 </li>
 </ol>
 </div>
@@ -880,11 +1161,14 @@ against configured thresholds.</p>
 </td>
 <td class="content">
 <div class="paragraph">
-<p>vLLM parameters on the <code>LLMInferenceService</code> shape how quickly the KV cache
-saturates: <code>--gpu-memory-utilization</code> controls GPU memory allocated for KV
-cache (0.6-0.7 for latency-sensitive workloads, 0.85-0.9 for
-throughput-optimized workloads), and <code>--max-model-len</code> controls KV cache memory
-per request. Adjust these only if you need to tune saturation behavior.</p>
+<p>The vLLM parameters that shape how quickly the KV cache saturates depend on
+the deployment&#8217;s hardware. This workshop&#8217;s model is a CPU modelcar, so its
+capacity is set by <code>VLLM_CPU_KVCACHE_SPACE</code> (GiB of memory reserved for the KV
+cache — <code>4</code> here) and <code>OMP_NUM_THREADS</code> (CPU threads per replica — <code>4</code> here).
+On GPU deployments the equivalents are <code>--gpu-memory-utilization</code> (fraction of
+GPU memory for the KV cache: 0.6-0.7 for latency-sensitive workloads,
+0.85-0.9 for throughput-optimized ones) and <code>--max-model-len</code> (KV cache memory
+per request). Adjust these only if you need to tune saturation behavior.</p>
 </div>
 </td>
 </tr>
@@ -898,10 +1182,26 @@ per request. Adjust these only if you need to tune saturation behavior.</p>
 </td>
 <td class="content">
 <div class="paragraph">
-<p>Which metrics are scraped into your cluster&#8217;s monitoring stack depends on your
-workshop configuration. If the metrics are not visible in the console&#8217;s
-<strong>Observe</strong> section, ask your facilitator how to reach the EPP metrics service in
-your environment.</p>
+<p>The metrics fetch above resolves the EPP service&#8217;s in-cluster DNS name, so run
+it from an environment that can reach cluster services — the workshop
+workbench, or any terminal with <code>oc</code> access. From anywhere with <code>oc</code>, you can
+also read the metrics through a running pod, for example the router scheduler
+(the <code>$TOKEN</code> variable from the previous step is expanded by your local shell
+before <code>oc exec</code> runs):</p>
+</div>
+<div class="paragraph">
+<p>+</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc exec -n abc123-user1 \
+  $(oc get pods -n abc123-user1 \
+    -l app.kubernetes.io/component=llminferenceservice-router-scheduler \
+    -o jsonpath='{.items[0].metadata.name}') \
+  -c main -- curl -sk \
+  -H "Authorization: Bearer $TOKEN" \
+  https://maas-llmd-demo-epp-service.abc123-user1.svc.cluster.local:9090/metrics</code></pre>
+</div>
 </div>
 </td>
 </tr>
@@ -910,9 +1210,13 @@ your environment.</p>
 <div class="sect2">
 <h3 id="_verify_3"><a class="anchor" href="#_verify_3"></a>Verify</h3>
 <div class="paragraph">
-<p>You sent repeated requests and observed at least one of the <code>llm_d_epp_</code> cache
-metrics moving in the direction the docs describe: hit ratio up for repeated
-prefixes, utilization up under sustained load.</p>
+<p>You sent authenticated requests — <code>401</code> without the bearer token, <code>200</code> with
+it — fetched the EPP metrics over TLS with the same token, and watched the
+<code>llm_d_epp_</code> signals move the way the flow-control configuration predicts:
+<code>request_total</code> and the TTFT histogram counting every request, KV cache
+utilization rising while requests run, and <code>flow_control_pool_saturation</code> plus
+<code>flow_control_queue_size</code> as the back-pressure mechanism once a replica
+crosses its thresholds.</p>
 </div>
 </div>
 </div>
@@ -926,13 +1230,13 @@ prefixes, utilization up under sustained load.</p>
 <div class="ulist">
 <ul>
 <li>
-<p>Inspected a KV-cache-aware router configuration and its scorer weights</p>
+<p>Inspected the live KV-cache-aware scheduling preset and the scheduler&#8217;s effective flow-control configuration with <code>oc</code></p>
 </li>
 <li>
-<p>Applied a router configuration through the deployment wizard and verified it in <code>baseRefs</code></p>
+<p>Verified the cache-aware routing stack on the deployed model — <code>baseRefs</code>, running pods, serving-path conditions, and an authenticated inference request</p>
 </li>
 <li>
-<p>Observed KV cache utilization and prefix cache hit metrics during inference</p>
+<p>Observed the live <code>llm_d_epp_</code> KV cache utilization and flow-control metrics during inference</p>
 </li>
 </ul>
 </div>
@@ -942,10 +1246,10 @@ prefixes, utilization up under sustained load.</p>
 <div class="ulist">
 <ul>
 <li>
-<p>Router configurations are optional, topology-filtered enhancements over default routing</p>
+<p>Routing presets are <code>LLMInferenceServiceConfig</code> resources referenced through <code>spec.baseRefs</code>; the platform ships well-known defaults rather than router-labeled templates</p>
 </li>
 <li>
-<p>The prefix cache hit ratio is the clearest signal that cache reuse is working</p>
+<p>KV cache utilization, flow-control saturation, and TTFT are the live signals of how the routing stack balances load and applies back-pressure</p>
 </li>
 <li>
 <p>vLLM memory parameters determine how fast the KV cache saturates under load</p>

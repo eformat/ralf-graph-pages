@@ -201,6 +201,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -584,8 +592,9 @@
 <div class="paragraph">
 <p>In this module you will verify the MaaS and observability prerequisites on your
 workshop cluster, then enable the two configuration switches that feed the MaaS
-observability dashboard: Kuadrant observability (rate-limiting metrics from
-Limitador) and MaaS telemetry (usage metrics from the gateway).</p>
+usage dashboards: Kuadrant observability (rate-limiting metrics from
+Limitador) and MaaS usage logging (the usage-logs pipeline and the usage
+metrics dashboard).</p>
 </div>
 <div class="paragraph">
 <p><strong>Learning objectives:</strong></p>
@@ -593,13 +602,13 @@ Limitador) and MaaS telemetry (usage metrics from the gateway).</p>
 <div class="ulist">
 <ul>
 <li>
-<p>Verify MaaS CRDs, User Workload Monitoring, and Tenant readiness from the CLI</p>
+<p>Verify MaaS CRDs, User Workload Monitoring, and AITenant readiness from the CLI</p>
 </li>
 <li>
 <p>Enable Kuadrant observability and confirm the Limitador <code>PodMonitor</code> is created</p>
 </li>
 <li>
-<p>Enable MaaS telemetry on the Tenant custom resource and confirm metrics flow</p>
+<p>Enable MaaS usage logging and the usage metrics dashboard on the <code>maasconfig</code> Config and confirm metrics flow</p>
 </li>
 </ul>
 </div>
@@ -652,12 +661,19 @@ following checks in order.</p>
 <div class="listingblock">
 <div class="content">
 <pre>aitenants.maas.opendatahub.io
+configs.maas.opendatahub.io
+externalmodels.maas.opendatahub.io
 maasauthpolicies.maas.opendatahub.io
 maasmodelrefs.maas.opendatahub.io
 maassubscriptions.maas.opendatahub.io
 maastenantconfigs.maas.opendatahub.io
 tenants.maas.opendatahub.io</pre>
 </div>
+</div>
+<div class="paragraph">
+<p>On RHOAI 3.6 the tenant state lives in <code>AITenant</code> resources in the
+<code>ai-tenants</code> namespace and in a per-tenant <code>MaasTenantConfig</code> resource in each
+tenant namespace; the <code>tenants</code> CRD is installed but has no tenant instances.</p>
 </div>
 </li>
 <li>
@@ -674,25 +690,27 @@ might show as <code>Degraded</code> — enable it before continuing.</p>
 </div>
 </li>
 <li>
-<p>Verify that the Tenant custom resource exists and is reconciled in the
-<code>models-as-a-service</code> namespace:</p>
+<p>Verify that the AITenant custom resource exists and is reconciled in the
+<code>ai-tenants</code> namespace:</p>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get tenants.maas.opendatahub.io -n models-as-a-service</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get aitenants.maas.opendatahub.io -n ai-tenants</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Expected output shows at least one Tenant resource in a ready state:</p>
+<p>Expected output shows at least one AITenant resource in a ready state:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>NAME             READY   REASON       AGE
-default-tenant   True    Reconciled   5m</pre>
+<pre>NAME                  READY   TENANT NAMESPACE      GATEWAY                AGE
+models-as-a-service   True    models-as-a-service   maas-default-gateway   5d18h
+red-team              True    ai-tenant-red-team    red-team               150m</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>The <code>READY</code> column shows <code>True</code> and the <code>REASON</code> column shows <code>Reconciled</code>,
-confirming that the tenant is fully configured.</p>
+<p>Your cluster may show additional tenants created by other users or exercises.
+The <code>READY</code> column shows <code>True</code> for the <code>models-as-a-service</code> tenant that backs
+the MaaS workshop, confirming that the AI tenant is fully configured.</p>
 </div>
 </li>
 <li>
@@ -744,14 +762,14 @@ are not blocked later.
 <div class="ulist">
 <ul>
 <li>
-<p>The MaaS CRD list includes <code>tenants.maas.opendatahub.io</code> and
-<code>maastenantconfigs.maas.opendatahub.io</code>.</p>
+<p>The MaaS CRD list includes <code>aitenants.maas.opendatahub.io</code> and
+<code>configs.maas.opendatahub.io</code>.</p>
 </li>
 <li>
 <p>The <code>openshift-user-workload-monitoring</code> namespace exists.</p>
 </li>
 <li>
-<p>The Tenant resource shows <code>READY: True</code>, <code>REASON: Reconciled</code>.</p>
+<p>The <code>AITenant</code> resource shows <code>READY: True</code>.</p>
 </li>
 <li>
 <p>The <code>observabilityDashboard</code> flag returns <code>true</code>.</p>
@@ -892,100 +910,118 @@ because no MaaS traffic has occurred yet).</p>
 </div>
 <div class="paragraph">
 <p>Kuadrant now publishes rate-limiting metrics to Prometheus — the next exercise
-turns on the gateway-side usage metrics that complete the dashboard&#8217;s data
-source.</p>
+turns on the MaaS usage switches that complete the showback pipeline.</p>
 </div>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_exercise_3_enable_maas_telemetry"><a class="anchor" href="#_exercise_3_enable_maas_telemetry"></a>Exercise 3: Enable MaaS telemetry</h2>
+<h2 id="_exercise_3_enable_maas_usage_logging_and_the_usage_dashboard"><a class="anchor" href="#_exercise_3_enable_maas_usage_logging_and_the_usage_dashboard"></a>Exercise 3: Enable MaaS usage logging and the usage dashboard</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Telemetry configures the MaaS gateway to generate Prometheus metrics about model
-usage — token consumption, request counts, and model-specific usage patterns.
-It is enabled on the Tenant custom resource, the same resource you verified in
-Exercise 1.</p>
+<p>On RHOAI 3.6 the usage switches that feed the MaaS showback dashboards are not
+set on the tenant resource — they live on the cluster-scoped <code>maasconfig</code>
+Config, a single object named <code>default</code> with no namespace. Two switches matter
+here: <code>usageLogging</code> routes the MaaS gateway usage logs into the usage-logs
+pipeline, and <code>usageMetricsDashboard</code> deploys the Perses usage dashboard that
+Module 02 walks through.</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
 <p>(Console) In the OpenShift console, navigate to <strong>Administration</strong> →
-<strong>CustomResourceDefinitions</strong>, search for <code>Tenant</code>, click the resource name, open
-the <strong>Instances</strong> tab, click <code>default-tenant</code>, and open the <strong>YAML</strong> tab.</p>
+<strong>CustomResourceDefinitions</strong>, search for <code>configs.maas</code>, click the resource
+name, open the <strong>Instances</strong> tab, click <code>default</code>, and open the <strong>YAML</strong> tab.</p>
 </li>
 <li>
-<p>In the YAML editor, locate the <code>spec</code> section and add or update the telemetry
-configuration:</p>
+<p>In the YAML editor, locate the <code>spec</code> section and add or update the usage
+switches:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">spec:
-  telemetry:
-    enabled: true                       <i class="conum" data-value="1"></i><b>(1)</b>
-    metrics:
-      captureOrganization: true         <i class="conum" data-value="2"></i><b>(2)</b>
-      captureUser: false                <i class="conum" data-value="3"></i><b>(3)</b>
-      captureGroup: false               <i class="conum" data-value="4"></i><b>(4)</b>
-      captureModelUsage: true           <i class="conum" data-value="5"></i><b>(5)</b></code></pre>
+  usageLogging: true                  <i class="conum" data-value="1"></i><b>(1)</b>
+  usageMetricsDashboard: true         <i class="conum" data-value="2"></i><b>(2)</b></code></pre>
 </div>
 </div>
 <div class="colist arabic">
 <table>
 <tr>
 <td><i class="conum" data-value="1"></i><b>1</b></td>
-<td><strong>Telemetry enabled</strong> — activates TelemetryPolicy and Istio Telemetry to
-collect MaaS usage metrics.</td>
+<td><strong>usageLogging</strong> — switches the gateway usage-log export to the
+usage-logs-collector pipeline, the path that feeds the Loki-based showback
+storage.</td>
 </tr>
 <tr>
 <td><i class="conum" data-value="2"></i><b>2</b></td>
-<td><strong>captureOrganization</strong> — includes organization identifiers in metrics.
-Default is <code>true</code>.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="3"></i><b>3</b></td>
-<td><strong>captureUser</strong> — includes user labels in metrics. Default is <code>false</code> due to
-privacy and cardinality considerations. Module 02 shows how to enable per-user
-metrics and what it costs.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="4"></i><b>4</b></td>
-<td><strong>captureGroup</strong> — includes group labels in metrics. Default is <code>false</code> to
-reduce metric cardinality.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="5"></i><b>5</b></td>
-<td><strong>captureModelUsage</strong> — tracks model-specific usage patterns. Default is
-<code>true</code>.</td>
+<td><strong>usageMetricsDashboard</strong> — deploys the Perses usage dashboard
+(<code>dashboard-3-maas-usage-admin</code>) used for usage reporting.</td>
 </tr>
 </table>
 </div>
 </li>
+</ol>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Leave <code>spec.limitadorScrapeInterval</code> at its <code>30s</code> default — the workshop
+needs no change there.
+</td>
+</tr>
+</table>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
 <li>
-<p>Click <strong>Save</strong>. Alternatively, configure the resource from the command line:</p>
+<p>Click <strong>Save</strong>. Alternatively, configure the resource from the command line
+(the Config is cluster-scoped, so the command carries no <code>-n</code> namespace flag):</p>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc patch tenants.maas.opendatahub.io default-tenant -n models-as-a-service \
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc patch configs.maas.opendatahub.io default \
   --type merge \
   -p '{
     "spec": {
-      "telemetry": {
-        "enabled": true,
-        "metrics": {
-          "captureOrganization": true,
-          "captureUser": false,
-          "captureGroup": false,
-          "captureModelUsage": true
-        }
-      }
+      "usageLogging": true,
+      "usageMetricsDashboard": true
     }
   }'</code></pre>
 </div>
 </div>
+<div class="paragraph">
+<p>Expected output:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>config.maas.opendatahub.io/default patched</pre>
+</div>
+</div>
 </li>
 <li>
-<p>Verify that telemetry metrics are flowing. In the OpenShift console, navigate
-to <strong>Observe</strong> → <strong>Metrics</strong>, enter the following metric name in the query field,
-and click <strong>Run queries</strong>:</p>
+<p>Verify that both usage switches report <code>true</code>:</p>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get configs.maas.opendatahub.io default \
+  -o jsonpath='{.spec.usageLogging}{" "}{.spec.usageMetricsDashboard}'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Expected output:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>true true</pre>
+</div>
+</div>
+</li>
+<li>
+<p>Verify that the usage-metrics pipeline is collecting MaaS usage data — the
+Prometheus side that the usage dashboard queries. In the OpenShift console,
+navigate to <strong>Observe</strong> → <strong>Metrics</strong>, enter the following metric name in the
+query field, and click <strong>Run queries</strong>:</p>
 <div class="listingblock execute">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">curl -sSk -H "Authorization: Bearer $(oc whoami -t)" \
@@ -994,9 +1030,9 @@ and click <strong>Run queries</strong>:</p>
 </div>
 </div>
 <div class="paragraph">
-<p>If telemetry is enabled, the query returns MaaS usage metrics with labels such
-as <code>subscription</code>, <code>limitador_namespace</code>, and optionally <code>model</code> depending on
-your telemetry configuration.</p>
+<p>The query returns MaaS usage metrics labeled with <code>limitador_namespace</code> —
+the subscription namespace that made the requests. If no data appears, this is
+expected if no models have been accessed yet.</p>
 </div>
 </li>
 </ol>
@@ -1006,16 +1042,19 @@ your telemetry configuration.</p>
 <div class="ulist">
 <ul>
 <li>
-<p>The Tenant resource accepts the telemetry patch and remains <code>Ready</code>/<code>Reconciled</code>.</p>
+<p>The <code>maasconfig</code> Config accepts the patch and reports <code>usageLogging: true</code>
+and <code>usageMetricsDashboard: true</code>.</p>
 </li>
 <li>
-<p>The <code>authorized_calls</code> query returns MaaS usage metrics with the expected labels.</p>
+<p>The <code>authorized_calls</code> query returns MaaS usage metrics (empty only because
+no MaaS traffic has occurred yet).</p>
 </li>
 </ul>
 </div>
 <div class="paragraph">
-<p>Both halves of the metrics pipeline are now switched on. Module 02 puts them to
-work: per-user dashboards in the console and a CSV export for your finance team.</p>
+<p>Both halves of the showback pipeline are now switched on. Module 02 puts them
+to work: the usage dashboard in the console and a CSV export for your finance
+team.</p>
 </div>
 </div>
 </div>
@@ -1029,13 +1068,13 @@ work: per-user dashboards in the console and a CSV export for your finance team.
 <div class="ulist">
 <ul>
 <li>
-<p>Verified the MaaS CRDs, User Workload Monitoring, Tenant readiness, and the dashboard console flag</p>
+<p>Verified the MaaS CRDs, User Workload Monitoring, AITenant readiness, and the dashboard console flag</p>
 </li>
 <li>
 <p>Enabled Kuadrant observability and confirmed the <code>kuadrant-limitador-monitor</code> PodMonitor</p>
 </li>
 <li>
-<p>Enabled MaaS telemetry on the Tenant custom resource and confirmed <code>authorized_calls</code> metrics</p>
+<p>Enabled MaaS usage logging and the usage metrics dashboard on the <code>maasconfig</code> Config and confirmed <code>authorized_calls</code> metrics</p>
 </li>
 </ul>
 </div>
@@ -1045,13 +1084,13 @@ work: per-user dashboards in the console and a CSV export for your finance team.
 <div class="ulist">
 <ul>
 <li>
-<p>The dashboard&#8217;s data comes from two switches: Kuadrant observability (Limitador rate-limiting metrics) and Tenant telemetry (gateway usage metrics)</p>
+<p>The dashboards' data comes from two switches: Kuadrant observability (Limitador rate-limiting metrics) and the <code>maasconfig</code> usage switches (<code>usageLogging</code> + <code>usageMetricsDashboard</code>)</p>
 </li>
 <li>
 <p>User Workload Monitoring must be enabled or the MaaS deployment can show as <code>Degraded</code></p>
 </li>
 <li>
-<p><code>captureUser</code> defaults to <code>false</code> for privacy and Prometheus cardinality reasons — enable it deliberately</p>
+<p>The usage switches live on the cluster-scoped <code>maasconfig</code> Config <code>default</code>, not on the tenant resource — one flip turns them on for every tenant</p>
 </li>
 </ul>
 </div>

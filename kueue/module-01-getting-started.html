@@ -201,6 +201,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -644,9 +652,8 @@ workloads.kueue.x-k8s.io            2026-09-22T08:15:00Z</pre>
 </td>
 <td class="content">
 <div class="paragraph">
-<p>The Kueue controller runs in the <code>openshift-operators</code> namespace (the RHBoK
-operator installs AllNamespaces — with the platform-managed component path it
-runs in <code>redhat-ods-applications</code>). If the CRDs or
+<p>The Kueue controller pods run in the <code>openshift-kueue-operator</code> namespace — the same
+namespace that hosts the Red Hat build of Kueue Operator deployment. If the CRDs or
 pods are missing, contact your workshop facilitator — every later step depends on them.</p>
 </div>
 </td>
@@ -658,15 +665,15 @@ pods are missing, contact your workshop facilitator — every later step depends
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get pods -n openshift-operators | grep kueue</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get pods -n openshift-kueue-operator</code></pre>
 </div>
 </div>
 <div class="sect2">
 <h3 id="_verify"><a class="anchor" href="#_verify"></a>Verify</h3>
 <div class="paragraph">
-<p>The Kueue CRDs are listed and the <code>kueue-controller-manager</code> pod reports a <code>Running</code>
-status. If you instead see <code>no resources found</code>, the operator is not activated — stop
-here and contact your facilitator.</p>
+<p>The Kueue CRDs are listed and the <code>kueue-controller-manager</code> pods report a <code>Running</code>
+status in <code>openshift-kueue-operator</code>. If you instead see <code>no resources found</code>, the
+operator is not activated — stop here and contact your facilitator.</p>
 </div>
 <div class="paragraph">
 <p>With the infrastructure confirmed, you can now connect your own project to Kueue.</p>
@@ -846,8 +853,8 @@ the default queue, so workloads that omit a queue name still get queued.</p>
 <i class="fa icon-tip" title="Tip"></i>
 </td>
 <td class="content">
-From a workbench, you can also use the CodeFlare SDK <code>list_local_queues()</code>
-function to view all local queues in your current namespace and the resource flavors
+From a workbench, you can also use the CodeFlare software development kit (SDK)
+<code>list_local_queues()</code> function to view all local queues in your current namespace and the resource flavors
 associated with each one.
 </td>
 </tr>
@@ -899,9 +906,9 @@ job through this queue and watch Kueue make the scheduling decisions.</p>
 <p><strong>Next steps:</strong></p>
 </div>
 <div class="paragraph">
-<p>In Module 02 you submit a PyTorch training job to your LocalQueue, watch Kueue admit
-it and hold a second job that exceeds the quota, and use Workload conditions and
-Kueue alerts to diagnose what is happening.</p>
+<p>In Module 02 you submit a PyTorch training job as a TrainJob to your LocalQueue, watch
+Kueue admit it and hold a second job that exceeds the quota, and use Workload
+conditions and Kueue alerts to diagnose what is happening.</p>
 </div>
 </div>
 </div>

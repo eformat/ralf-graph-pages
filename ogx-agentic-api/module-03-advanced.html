@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Module 03: RAG, citations, and advanced APIs :: RHOAI 3.6 Kitchen Sink Workshop Catalog</title>
+    <title>Module 03: Advanced APIs — what runs on this build :: RHOAI 3.6 Kitchen Sink Workshop Catalog</title>
     <link rel="canonical" href="https://eformat.github.io/ralf-graph-pages/ogx-agentic-api/module-03-advanced.html">
     <link rel="prev" href="module-02-hands-on.html">
     <link rel="next" href="conclusion.html">
@@ -200,6 +200,14 @@
       <ul class="versions">
         <li class="version">
           <a href="../external-metering-per-user/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
         </li>
       </ul>
     </li>
@@ -581,13 +589,16 @@
 </div>
   <div class="content">
 <article class="doc">
-<h1 class="page">Module 03: RAG, citations, and advanced APIs</h1>
+<h1 class="page">Module 03: Advanced APIs — what runs on this build</h1>
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p>In this module you will explore the advanced side of the OGX agentic surface: grounding responses
-in your documents with the <code>file_search</code> tool, tracing answers back to sources with file citation
-annotations, opting into Responses API guardrails, and surveying the native Tool Runtime API.</p>
+<p>In this module you will survey the advanced side of the OGX agentic surface — grounding answers
+with <code>file_search</code>, citation annotations, guardrails, rerank, connectors, and the Tool Runtime —
+and learn which parts of that surface actually run on the workshop build, which are registered
+but degraded, and which are target-state only. Every claim in this module was verified against
+the workshop OGX server, and every exercise below either runs successfully or reproduces a
+documented, exact error signature.</p>
 </div>
 <div class="paragraph">
 <p><strong>Learning objectives:</strong></p>
@@ -595,16 +606,22 @@ annotations, opting into Responses API guardrails, and surveying the native Tool
 <div class="ulist">
 <ul>
 <li>
-<p>Run a complete RAG workflow with the Files, Vector Stores, and Responses APIs</p>
+<p>Inspect what a live OGX build actually exposes: providers, the published OpenAPI path list,
+the internal route table, and the connectors registry</p>
 </li>
 <li>
-<p>Inspect <code>file_citation</code> annotations in Responses API output</p>
+<p>Construct requests against the native rerank API and interpret its error signatures</p>
 </li>
 <li>
-<p>Understand Responses API guardrails opt-in and fail-closed behavior</p>
+<p>Explain the <code>file_search</code> grounding workflow and <code>file_citation</code> annotations as target-state
+design, and reproduce the exact gates that block them on this build</p>
 </li>
 <li>
-<p>Locate the Tool Runtime API and its support level</p>
+<p>Explain the fail-closed guardrails design for the Responses API as concept reading</p>
+</li>
+<li>
+<p>Distinguish the Tool Runtime API (target-state) from the tool-related routes that are
+registered on this build, with their observed statuses</p>
 </li>
 </ul>
 </div>
@@ -615,119 +632,103 @@ annotations, opting into Responses API guardrails, and surveying the native Tool
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-This feature is a <strong>Technology Preview</strong>. Support levels within the API surface differ — the
-Responses API is listed as generally available in the 3.5 docs, while the Conversations API,
-Tool Runtime, and Vector_IO are Technology Preview or Developer Preview. Endpoints and parameters
-shown here may change between releases.
+This feature is a <strong>Technology Preview</strong>. Support levels within the API surface differ — some
+APIs are listed at higher support levels in the 3.6 docs, while Conversations, Tool Runtime, and
+Vector_IO are Technology Preview or Developer Preview. On this Technology Preview build
+(OGX 1.4.2+rhaiv.0), availability differs further still from the documented target state: see the
+build-availability matrix in Module 01. Endpoints and parameters shown here may change between
+releases.
 </td>
 </tr>
 </table>
 </div>
+<div class="paragraph">
+<p>All exercises use the workshop&#8217;s shared OGX server. If you have not already, set the endpoint
+from Module 02:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">export OGX_URL="https://aml-ogx-tls-autorag-ml-demo.apps.ocp5-m6wl4-2plgg.sandbox1832.opentlc.com"</code></pre>
+</div>
+</div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_exercise_1_ground_answers_with_the_file_search_tool"><a class="anchor" href="#_exercise_1_ground_answers_with_the_file_search_tool"></a>Exercise 1: Ground answers with the file_search tool</h2>
+<h2 id="_exercise_1_inspect_what_your_ogx_build_actually_exposes"><a class="anchor" href="#_exercise_1_inspect_what_your_ogx_build_actually_exposes"></a>Exercise 1: Inspect what your OGX build actually exposes</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>The Responses API orchestrates inference and retrieval but relies on separate providers for file
-storage (Files API) and vector indexing (Vector Stores API). The full workflow is: upload a file,
-create a vector store, index the file into the store, then query with the <code>file_search</code> tool.</p>
+<p>Before writing code against an OGX server, find out what it really exposes. There are three
+different views of an OGX build — the published OpenAPI specification, the internal route table,
+and actual runtime behavior — and on this build they disagree. This exercise teaches you to check
+all three.</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>In a new notebook cell, upload a document and index it into a vector store:</p>
+<p>Confirm you are talking to the workshop build:</p>
 </li>
 </ol>
 </div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">curl -s "$OGX_URL/v1/version"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Expected output:</p>
+</div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">import time
-
-# Upload the file to the Files API
-with open("your-document.pdf", "rb") as f:
-    file_info = client.files.create(
-        file=("your-document.pdf", f),
-        purpose="assistants"
-    )
-
-# Create a vector store backed by a remote Milvus provider
-vector_store = client.vector_stores.create(
-    name="test_vector_store",
-    extra_body={
-        "embedding_model": embedding_model_id,
-        "embedding_dimension": embedding_dimension,
-        "provider_id": "milvus-remote",
-    },
-)
-
-# Add the uploaded file to the vector store
-vector_store_file = client.vector_stores.files.create(
-    vector_store_id=vector_store.id,
-    file_id=file_info.id,
-    chunking_strategy={
-        "type": "static",
-        "static": {
-            "max_chunk_size_tokens": 700,
-            "chunk_overlap_tokens": 100,
-        }
-    },
-    attributes={
-        "title": "your-document",
-    },
-)</code></pre>
+<pre>{"version":"1.4.2+rhaiv.0"}</pre>
 </div>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>Indexing is asynchronous. Poll until the file status is <code>completed</code>:</p>
+<p>Fetch the published OpenAPI specification and count the registered paths:</p>
 </li>
 </ol>
 </div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">curl -s "$OGX_URL/openapi.json" | python3 -c 'import json,sys; print(len(json.load(sys.stdin)["paths"]))'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Expected output:</p>
+</div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">max_wait_time = 300 # 5 minutes
-start_time = time.time()
-while time.time() - start_time &lt; max_wait_time:
-    files = client.vector_stores.files.list(vector_store_id=vector_store.id)
-    if files.data:
-        file_status = files.data[0].status
-        print(f"File status: {file_status}")
-        if file_status == "completed":
-            break
-        elif file_status == "failed":
-            break
-    time.sleep(5)</code></pre>
+<pre>43</pre>
 </div>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>Query using the Responses API with the <code>file_search</code> tool:</p>
+<p>List the providers configured on the server:</p>
 </li>
 </ol>
 </div>
-<div class="listingblock">
+<div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">system_instructions = """You are a precise and reliable AI assistant.
-Use retrieved context when it is available.
-If nothing relevant is found, say so clearly."""
-
-query = "Ask a question that is answered by your uploaded document"
-
-response = client.responses.create(
-    model=model_id,
-    input=query,
-    instructions=system_instructions,
-    tools=[
-        {
-            "type": "file_search",
-            "vector_store_ids": [vector_store.id],
-        }
-    ],
-)
-print(response.output_text)</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">curl -s "$OGX_URL/v1alpha/admin/providers" | python3 -m json.tool</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>On the workshop server you should see three providers: <code>vllm-inference</code> and <code>vllm-embedding</code>
+(both <code>remote::vllm</code>, pointing at the Llama 3.2 3B and BGE-M3 vLLM services), and <code>pgvector</code>
+(<code>remote::pgvector</code>) backing vector storage.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Inspect the internal route table:</p>
+</li>
+</ol>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">curl -s "$OGX_URL/v1alpha/admin/inspect/routes" | python3 -m json.tool | head -40</code></pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -737,60 +738,282 @@ print(response.output_text)</code></pre>
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-When you include the <code>file_search</code> tool with <code>vector_store_ids</code>, OGX retrieves relevant
-chunks from the specified vector store and provides them to the model as context for the
-response.
+Compare the internal route table with the published OpenAPI spec. On this build
+<code>/v1/responses*</code> routes <strong>appear</strong> in the internal table yet return <code>404</code> in practice, and the
+<code>/v1alpha/admin/connectors</code> and <code>/v1alpha/admin/tools</code> routes are <strong>missing</strong> from the table yet
+still answer. Neither the OpenAPI spec nor the route table alone is an availability guarantee —
+only a live request tells the truth.
 </td>
 </tr>
 </table>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>List the connector registry:</p>
+</li>
+</ol>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">curl -s "$OGX_URL/v1alpha/admin/connectors"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Expected output:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>{"data":[]}</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The registry is empty on the workshop server. Note what happens when you request a connector
+that does not exist — the read path works and returns a well-formed error:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">curl -s "$OGX_URL/v1alpha/admin/connectors/demo-mcp-01"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Expected output:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>{"error":{"message":"Connector 'demo-mcp-01' not found. Use 'client.connectors.list()' to list available Connectors."}}</pre>
+</div>
 </div>
 <div class="sect2">
 <h3 id="_verify"><a class="anchor" href="#_verify"></a>Verify</h3>
 <div class="ulist">
 <ul>
 <li>
-<p>The polling loop prints <code>File status: completed</code> for the indexed file.</p>
+<p><code>GET /v1/version</code> returns <code>1.4.2+rhaiv.0</code>.</p>
 </li>
 <li>
-<p>The <code>file_search</code> answer is grounded in your uploaded document; a comparison query asked
-without <code>vector_store_ids</code> returns an ungrounded or non-contextual answer.</p>
+<p>The OpenAPI spec publishes exactly 43 paths on this build.</p>
+</li>
+<li>
+<p><code>GET /v1alpha/admin/providers</code> lists three providers, including <code>pgvector</code>.</p>
+</li>
+<li>
+<p><code>GET /v1alpha/admin/inspect/routes</code> returns the internal route table, and you can find at
+least one route that behaves differently in practice (for example <code>/v1/responses</code>).</p>
+</li>
+<li>
+<p><code>GET /v1alpha/admin/connectors</code> returns an empty registry, and the GET-by-id path returns the
+structured <code>Connector &#8230;&#8203; not found</code> error for an unknown id.</p>
 </li>
 </ul>
 </div>
 <div class="paragraph">
-<p>Your answers are now grounded. Next, inspect the citation annotations that trace them back to
-sources.</p>
+<p>With the survey complete, every exercise that follows either runs against a live route or
+reproduces an exact error signature — starting with the native rerank API.</p>
 </div>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_exercise_2_view_file_citation_annotations_in_responses_api_output"><a class="anchor" href="#_exercise_2_view_file_citation_annotations_in_responses_api_output"></a>Exercise 2: View file citation annotations in Responses API output</h2>
+<h2 id="_exercise_2_the_rerank_api_request_shape_and_error_signatures"><a class="anchor" href="#_exercise_2_the_rerank_api_request_shape_and_error_signatures"></a>Exercise 2: The rerank API — request shape and error signatures</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>OGX returns OpenAI-compatible <code>file_citation</code> annotations when you use the <code>file_search</code> tool,
-enabling applications to trace generated responses back to source documents without changes to
-client code. Annotations are enabled by default and returned only through the Responses API with
-the <code>file_search</code> tool.</p>
+<p>The native rerank API (<code>/v1alpha/inference/rerank</code>) re-orders a list of candidate documents by
+relevance to a query. Its request schema requires <code>model</code>, <code>query</code>, and <code>items</code> — an array of
+candidate strings (the field is <code>items</code>, <strong>not</strong> <code>documents</code> as in some other rerank APIs — using
+the wrong field name is itself a useful error to see). An optional <code>max_num_results</code> caps the
+number of returned pairs. A successful call returns <code>{"data":[{"index":&#8230;&#8203;,"relevance_score":&#8230;&#8203;}]}</code>,
+sorted by score descending.</p>
+</div>
+<div class="paragraph">
+<p>On the workshop build the route and its validation stack are fully alive, but <strong>no rerank-typed
+model exists</strong>, so every well-formed request is rejected. This exercise teaches you the request
+shape and the exact error signatures, so you can distinguish a client bug from a build
+limitation — and be ready when a build ships a rerank-typed model.</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>Inspect the full response object rather than only <code>output_text</code>:</p>
+<p>Send a request with the wrong field name (<code>documents</code> instead of <code>items</code>) and observe the
+validation error:</p>
 </li>
 </ol>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">curl -s -X POST "$OGX_URL/v1alpha/inference/rerank" \
+  -H "Content-Type: application/json" \
+  -d '{"model":"vllm-inference/aml-llama32-3b","query":"refund window","documents":["a","b"]}'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Expected output — the validator names the missing field:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">response.output</code></pre>
+<pre>{"error":{"message":"{'errors': [{'loc': ['body', 'items'], 'msg': 'Field required', 'type': 'missing'}]}"}}</pre>
 </div>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>Access the annotations array:</p>
+<p>Now send a schema-correct request with <code>items</code>:</p>
 </li>
 </ol>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">curl -s -X POST "$OGX_URL/v1alpha/inference/rerank" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "vllm-inference/aml-llama32-3b",
+    "query": "What is the refund window?",
+    "items": [
+      "Returns are accepted within 30 days of purchase.",
+      "The meeting starts at 10am in the main conference room.",
+      "Support tickets are answered within 24 hours."
+    ],
+    "max_num_results": 2
+  }'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Expected output — the model-typing gate:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>{"error":{"message":"Model 'vllm-inference/aml-llama32-3b' is of type 'llm' rather than the expected type 'rerank'"}}</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The same <code>400</code> occurs with the second workshop model (<code>vllm-embedding/aml-bge-m3</code>, itself
+mis-typed as <code>llm</code> — see Module 01). The root cause is model typing: the server has no model
+typed <code>rerank</code>, and neither configured model can serve the route.</p>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+On this build the rerank API cannot return relevance scores. What you <strong>can</strong> verify —
+and what the exercises above prove — is that the route is registered, the request schema is
+enforced (<code>items</code>, not <code>documents</code>), and the failure mode is a precise, machine-readable error
+rather than a silent success. On a build with a rerank-typed model, the identical request returns
+the <code>{"data":[{"index":&#8230;&#8203;,"relevance_score":&#8230;&#8203;}]}</code> body described above.
+</td>
+</tr>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_verify_2"><a class="anchor" href="#_verify_2"></a>Verify</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>The <code>documents</code>-field request returns a <code>400</code> whose message names <code>body.items</code> as missing —
+proof that the route and its validation are live.</p>
+</li>
+<li>
+<p>The schema-correct request returns <code>400</code> with the exact message <code>Model '&#8230;&#8203;' is of type 'llm'
+rather than the expected type 'rerank'</code>.</p>
+</li>
+<li>
+<p>You can state the required request fields (<code>model</code>, <code>query</code>, <code>items</code>) and the response shape
+(<code>data</code> sorted by <code>relevance_score</code> descending) for a future build.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>From rerank&#8217;s registered-but-degraded route, the next exercise turns to the <code>file_search</code>
+grounding workflow — fully gated on this build and taught as reference design for a future one.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_exercise_3_ground_answers_with_file_search_and_citations_reference_for_a_future_build"><a class="anchor" href="#_exercise_3_ground_answers_with_file_search_and_citations_reference_for_a_future_build"></a>Exercise 3: Ground answers with file_search and citations (reference for a future build)</h2>
+<div class="sectionbody">
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+<strong>Not runnable on OGX 1.4.2+rhaiv.0.</strong> Two independent gates block this workflow on the
+workshop build:
+</td>
+</tr>
+</table>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>POST /v1/vector_stores</code> returns <code>400</code> with
+<code>{"error":{"message":"Model 'None' not found. Use 'client.models.list()' to list available Models."}}</code> —
+vector-store creation cannot resolve an embedding model (the request schema has no
+embedding-model override, and both configured models are typed <code>llm</code>).</p>
+</li>
+<li>
+<p><code>GET /v1/models</code> reports the workshop&#8217;s embedding service <code>vllm-embedding/aml-bge-m3</code> with
+<code>custom_metadata.model_type: "llm"</code>, so <code>/v1/embeddings</code> rejects it and no embeddings can be
+computed.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The workflow additionally requires the Responses and Files APIs, which are absent on
+this build (<code>POST /v1/responses</code> returns <code>404</code>; enabling <code>apis.responses</code> or <code>apis.files</code> in the
+base config crash-loops the server — see Module 01). Treat the remainder of this exercise as
+reference material for a future build with an embedding-typed model; do not expect it to run
+here.</p>
+</div>
+<div class="paragraph">
+<p>The workflow has four stages: upload a file to the Files API, create a vector store, index the
+file into the store, then query through the Responses API with the <code>file_search</code> tool. In a
+notebook cell against a <strong>future</strong> build that ships these APIs, the flow looks like this:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python"># 1. Upload the file to the Files API
+with open("your-document.pdf", "rb") as f:
+    file_info = client.files.create(file=("your-document.pdf", f), purpose="assistants")
+
+# 2. Create a vector store backed by an embedding-typed model
+vector_store = client.vector_stores.create(
+    name="test_vector_store",
+    extra_body={
+        "embedding_model": embedding_model_id,
+        "embedding_dimension": embedding_dimension,
+        "provider_id": "pgvector",
+    },
+)
+
+# 3. Add the uploaded file to the store; indexing is asynchronous
+client.vector_stores.files.create(
+    vector_store_id=vector_store.id,
+    file_id=file_info.id,
+    chunking_strategy={
+        "type": "static",
+        "static": {"max_chunk_size_tokens": 700, "chunk_overlap_tokens": 100},
+    },
+)
+
+# 4. Query through the Responses API with the file_search tool
+response = client.responses.create(
+    model=model_id,
+    input="Ask a question that is answered by your uploaded document",
+    tools=[{"type": "file_search", "vector_store_ids": [vector_store.id]}],
+)
+print(response.output_text)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>When you include the <code>file_search</code> tool with <code>vector_store_ids</code>, OGX retrieves relevant chunks
+from the specified vector store and provides them to the model as context. The response carries
+OpenAI-compatible <code>file_citation</code> annotations so applications can trace any statement back to
+its source document:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -799,7 +1022,7 @@ print(annotations)</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Expected output:</p>
+<p>Expected shape on a future build:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -814,77 +1037,94 @@ print(annotations)</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Each <code>file_citation</code> annotation identifies the source file by <code>file_id</code> and <code>filename</code>, and the
-<code>index</code> of the cited file position.</p>
-</div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-The accuracy and consistency of citation annotations depend on the capabilities of the
-underlying language model. Smaller or less capable models might produce less precise attributions,
-even when retrieval is functioning correctly. If citation results are incomplete or inconsistent,
-consider using a larger or more capable model.
-</td>
-</tr>
-</table>
+<p>Each <code>file_citation</code> identifies the source file by <code>file_id</code> and <code>filename</code>, plus the <code>index</code> of
+the cited position. Annotations are enabled by default and returned only through the Responses
+API with the <code>file_search</code> tool. Their accuracy depends on the underlying model — smaller models
+can produce less precise attributions even when retrieval works correctly.</p>
 </div>
 <div class="sect2">
-<h3 id="_verify_2"><a class="anchor" href="#_verify_2"></a>Verify</h3>
+<h3 id="_verify_3"><a class="anchor" href="#_verify_3"></a>Verify</h3>
+<div class="paragraph">
+<p>On this build you verify the <strong>gate</strong>, not the workflow:</p>
+</div>
 <div class="ulist">
 <ul>
 <li>
-<p>The response includes an <code>annotations</code> array under <code>output[].content[]</code>.</p>
+<p><code>GET /v1/vector_stores</code> returns <code>200</code> with an empty list — no vector store exists on the
+server.</p>
 </li>
 <li>
-<p>Each annotation has <code>"type": "file_citation"</code>.</p>
+<p>A minimal create attempt reproduces the documented signature:</p>
 </li>
+</ul>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">curl -s -X POST "$OGX_URL/v1/vector_stores" -H "Content-Type: application/json" -d '{"name":"probe"}'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Expected output:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>{"error":{"message":"Model 'None' not found. Use 'client.models.list()' to list available Models."}}</pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
 <li>
-<p><code>file_id</code> and <code>filename</code> correspond to files stored in the specified vector store.</p>
+<p>You can name the four stages of the grounding workflow (upload, create store, index, query
+with <code>file_search</code>) and state where <code>file_citation</code> annotations appear in the response.</p>
 </li>
 </ul>
 </div>
 <div class="paragraph">
-<p>With citations confirmed, you can layer on guardrails to moderate content before it passes
-through.</p>
+<p>With the grounding gates mapped, the next exercise shifts to design reading: the fail-closed
+guardrails enforced inside the Responses API.</p>
 </div>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_exercise_3_opt_into_responses_api_guardrails"><a class="anchor" href="#_exercise_3_opt_into_responses_api_guardrails"></a>Exercise 3: Opt into Responses API guardrails</h2>
+<h2 id="_exercise_4_responses_api_guardrails_concept_reading"><a class="anchor" href="#_exercise_4_responses_api_guardrails_concept_reading"></a>Exercise 4: Responses API guardrails (concept reading)</h2>
 <div class="sectionbody">
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+<strong>Not demonstrable on OGX 1.4.2+rhaiv.0.</strong> Guardrails are enforced inside the Responses
+API, and <code>POST /v1/responses</code> returns <code>404</code> on this build — the route is absent from the
+published OpenAPI spec, and enabling <code>apis.responses</code> in the base config crash-loops the server.
+The design below is worth reading because it shapes how OGX handles content moderation, but you
+cannot exercise it on the workshop server.
+</td>
+</tr>
+</table>
+</div>
 <div class="paragraph">
 <p>OGX&#8217;s built-in guardrails use a <code>moderation_endpoint</code> configuration pointing at any
-OpenAI-compatible <code>/v1/moderations</code> endpoint. The configuration lives on the <strong>responses provider</strong>,
-not at the CRD level, and is set by the platform administrator.</p>
+OpenAI-compatible <code>/v1/moderations</code> endpoint. The configuration lives on the <strong>responses
+provider</strong>, not at the CRD level, and is set by the platform administrator. Clients opt in
+per-request by setting <code>guardrails: true</code> on the Responses API request:</p>
 </div>
-<div class="paragraph">
-<p>Clients opt in per-request by setting <code>guardrails: true</code> on the Responses API request. Replace
-<code>&lt;model-id&gt;</code> with a model ID from your OGX server, such as the <code>model_id</code> you selected in
-Module 02:</p>
-</div>
-<div class="listingblock execute">
+<div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">export OGX_URL="http://ogx-distribution-service.abc123-user1.svc.cluster.local:8321"
-curl -s -X POST "$OGX_URL/v1/responses" \
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">curl -s -X POST "$OGX_URL/v1/responses" \
   -H "Content-Type: application/json" \
-  -d '{
-    "model": "<model-id>",
-    "input": "Ask a question to test moderation",
-    "guardrails": true
-  }'</code></pre>
+  -d '{"model": "&lt;model-id&gt;", "input": "test moderation", "guardrails": true}'</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>The guardrails check is designed to <strong>fail closed</strong>: any error blocks content rather than allowing
 it through. HTTP errors or timeouts block content with a "moderation service unavailable" error;
 an invalid JSON response blocks with an "invalid response" error; a missing or malformed results
-array blocks with an "unexpected format" error; and any result flagged <code>true</code> blocks content with
-the flagged category names. Only when no errors occur and no result is flagged does content pass.</p>
+array blocks with an "unexpected format" error; and any result flagged <code>true</code> blocks content
+with the flagged category names. Only when no errors occur and no result is flagged does content
+pass.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -907,80 +1147,147 @@ platform administrator.
 <i class="fa icon-important" title="Important"></i>
 </td>
 <td class="content">
-The moderation endpoint connection uses the system CA trust store or the CA bundle
-configured via <code>spec.tls.trust.caCertificates</code>. Authentication is handled via
-<code>moderation_headers</code>, which are server-side only and never exposed to clients.
+The moderation endpoint connection uses the system certificate authority (CA) trust
+store or the CA bundle configured via <code>spec.tls.trust.caCertificates</code>. Authentication is handled
+via <code>moderation_headers</code>, which are server-side only and never exposed to clients.
 </td>
 </tr>
 </table>
 </div>
 <div class="paragraph">
 <p>For production deployments, the recommended guardrails path is the RHOAI NeMo Guardrails
-integration, managed through the <code>NemoGuardrails</code> CRD
-(<code>trustyai.opendatahub.io/v1alpha1</code>) and the <code>MCPGuardrailsMode</code> toggle on the TrustyAI component
-spec.</p>
+integration, managed through the <code>NemoGuardrails</code> CRD (<code>trustyai.opendatahub.io/v1alpha1</code>) and
+the <code>MCPGuardrailsMode</code> toggle on the TrustyAI component spec.</p>
 </div>
 <div class="sect2">
-<h3 id="_verify_3"><a class="anchor" href="#_verify_3"></a>Verify</h3>
+<h3 id="_verify_4"><a class="anchor" href="#_verify_4"></a>Verify</h3>
+<div class="paragraph">
+<p>On this build you verify the <strong>absence</strong> and the <strong>design</strong>:</p>
+</div>
 <div class="ulist">
 <ul>
 <li>
-<p>The request with <code>guardrails: true</code> either completes normally or returns an explanatory <code>400</code>
-error when no moderation endpoint is configured — it never silently skips moderation.</p>
+<p><code>POST /v1/responses</code> with any JSON body returns <code>404</code> on this build.</p>
 </li>
 <li>
-<p>The fail-closed behavior means any moderation service error blocks the response.</p>
+<p>You can explain the fail-closed principle: every moderation error path (unavailable service,
+invalid JSON, malformed results, flagged category) blocks content instead of passing it.</p>
 </li>
 </ul>
 </div>
 <div class="paragraph">
-<p>Next, survey the native OGX API that lets models call tools dynamically at runtime.</p>
+<p>The final exercise completes the survey with the Tool Runtime API and the tool-related routes
+that are actually registered on this build.</p>
 </div>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_exercise_4_survey_the_tool_runtime_api"><a class="anchor" href="#_exercise_4_survey_the_tool_runtime_api"></a>Exercise 4: Survey the Tool Runtime API</h2>
+<h2 id="_exercise_5_tool_runtime_target_state_versus_registered_routes"><a class="anchor" href="#_exercise_5_tool_runtime_target_state_versus_registered_routes"></a>Exercise 5: Tool Runtime — target-state versus registered routes</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>The Tool Runtime API is a native OGX API, distinct from the OpenAI-compatible surface:</p>
+<p>The Tool Runtime API is the native OGX API that lets a model dynamically call a tool at runtime,
+with tool groups managed by the server. On OGX 1.4.2+rhaiv.0 it is <strong>target-state</strong>: there is no
+<code>/v1/tool-runtime</code> endpoint to call. The route is absent from the published OpenAPI spec (43
+paths), and a live request confirms it:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">curl -s "$OGX_URL/v1/tool-runtime"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Expected output:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>{"detail":"Not Found"}</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>What <strong>is</strong> registered on this build is a set of tool-adjacent administrative routes. The table
+below lists every tool-related route in the OpenAPI spec and its observed status on the workshop
+server:</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
-<col style="width: 20%;">
-<col style="width: 40%;">
-<col style="width: 40%;">
+<col style="width: 28.5714%;">
+<col style="width: 14.2857%;">
+<col style="width: 28.5714%;">
+<col style="width: 28.5715%;">
 </colgroup>
 <thead>
 <tr>
-<th class="tableblock halign-left valign-top">Field</th>
-<th class="tableblock halign-left valign-top">Value</th>
+<th class="tableblock halign-left valign-top">Route</th>
+<th class="tableblock halign-left valign-top">Method</th>
+<th class="tableblock halign-left valign-top">Observed status on this build</th>
 <th class="tableblock halign-left valign-top">Notes</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Endpoint</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/v1alpha/admin/connectors</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">GET</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>200 {"data":[]}</code> — works (read-only)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Empty connector registry; the read path is functional</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/v1alpha/admin/connectors/{id}</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">GET</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>404</code> with a structured error for unknown ids — works</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">There is no way to create a connector over HTTP (see below)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/v1alpha/admin/connectors/{id}/tools</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">GET</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Registered but untestable</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">No connector can be created on this build, so the sub-resource cannot be populated</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/v1/admin/tools</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">GET</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>500</code> — internal server error</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Documented in the OpenAPI spec (<code>ListToolDefsResponse</code>) but broken on this build; even
+read-only tool listing fails</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/v1/tools</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">GET</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>404</code> — not registered</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Not in the OpenAPI spec</p></td>
+</tr>
+<tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>/v1/tool-runtime</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Native OGX API, not OpenAI-compatible</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Providers</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">All tool runtime backends deployed through OpenShift AI</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Enabled through the run.yaml provider configuration</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Support level</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Developer Preview</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Not recommended for production use</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Absent</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Not in the OpenAPI spec; <code>GET</code> returns <code>404</code>. The API the docs describe is target-state on
+this build</p></td>
 </tr>
 </tbody>
 </table>
 <div class="paragraph">
-<p>The Tool Runtime API allows a model to dynamically call a tool at runtime. As with other native
-OGX APIs, which APIs are enabled is defined by the <code>run.yaml</code> file shipped with the distribution;
-platform administrators can supply a custom <code>run.yaml</code> to enable advanced workflows or integrate
-additional providers.</p>
+<p>Connectors cannot be registered through the API on this build — connector creation is
+config-side only, declared in the OGXServer configuration by the platform administrator:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">curl -s -X POST "$OGX_URL/v1alpha/admin/connectors" \
+  -H "Content-Type: application/json" \
+  -d '{"connector_id":"demo-mcp-01","url":"https://example.com/mcp","connector_type":"mcp","server_label":"demo-mcp"}'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Expected output:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>{"detail":"Method Not Allowed"}</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>As with other native OGX APIs, which APIs are enabled is defined by the <code>run.yaml</code> file shipped
+with the distribution; platform administrators can supply a custom <code>run.yaml</code> to enable advanced
+workflows or integrate additional providers.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -989,27 +1296,115 @@ additional providers.</p>
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-The RHOAI 3.5 docs do not include a worked client example for the Tool Runtime API. Treat
-this exercise as a survey of the endpoint and its support level rather than a hands-on lab.
+The 3.6 docs do not include a worked client example for the Tool Runtime API. Treat this
+exercise as an honest survey: the Tool Runtime itself is target-state on this build, and the
+registered tool routes are limited to read-only (or broken) administrative surfaces.
 </td>
 </tr>
 </table>
 </div>
 <div class="sect2">
-<h3 id="_verify_4"><a class="anchor" href="#_verify_4"></a>Verify</h3>
+<h3 id="_verify_5"><a class="anchor" href="#_verify_5"></a>Verify</h3>
 <div class="ulist">
 <ul>
 <li>
-<p>You can state which layer hosts the Tool Runtime API (native OGX, not OpenAI-compatible) and
-its support level (Developer Preview).</p>
+<p><code>GET /v1/tool-runtime</code> returns <code>404</code> and <code>/v1/tool-runtime</code> is absent from
+<code>curl -s "$OGX_URL/openapi.json" | python3 -c 'import json,sys; print("\n".join(json.load(sys.stdin)["paths"]))'</code>.</p>
 </li>
 <li>
-<p>The tool_runtime provider appears in the provider support table of the Working with OGX
-documentation for your release.</p>
+<p><code>GET /v1alpha/admin/connectors</code> returns <code>200 {"data":[]}</code> and the POST create attempt returns
+<code>405 Method Not Allowed</code>.</p>
+</li>
+<li>
+<p><code>GET /v1/admin/tools</code> returns <code>500</code> on this build.</p>
+</li>
+<li>
+<p>You can name the two tool-related routes that are registered and read-only
+(<code>/v1alpha/admin/connectors</code> list and get-by-id).</p>
 </li>
 </ul>
 </div>
 </div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_registered_on_this_build_but_degraded_or_absent"><a class="anchor" href="#_registered_on_this_build_but_degraded_or_absent"></a>Registered on this build but degraded or absent</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The table below collects every advanced surface that failed verification on OGX
+1.4.2+rhaiv.0, with the exact error observed against the workshop server. Use it to recognize
+build limitations quickly instead of debugging your own client.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 28.5714%;">
+<col style="width: 28.5714%;">
+<col style="width: 42.8572%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Surface</th>
+<th class="tableblock halign-left valign-top">Status</th>
+<th class="tableblock halign-left valign-top">Exact observed error on this build</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>POST /v1/responses</code> (Responses API)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Absent</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>404 {"detail":"Not Found"}</code>; absent from the 43-path OpenAPI spec; enabling
+<code>apis.responses</code> in the base config crash-loops the server (<code>KeyError Api.responses</code>)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>POST /v1/vector_stores</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Blocked</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>400 {"error":{"message":"Model 'None' not found. Use 'client.models.list()' to list
+available Models."}}</code> — no embedding-typed model to resolve; <code>GET /v1/vector_stores</code> returns an
+empty list</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>POST /v1/embeddings</code> (<code>aml-bge-m3</code>)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Blocked</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Model rejected: <code>GET /v1/models</code> reports it with <code>custom_metadata.model_type: "llm"</code>, so no
+embeddings can be computed</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>POST /v1/vector-io/insert</code>, <code>POST /v1/vector-io/query</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Blocked</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>400 {"error":{"message":"Vector_store '&#8230;&#8203;' not found"}}</code> — routes are registered, but no
+vector store can exist on this build, even with pre-computed (synthetic) embeddings</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>POST /v1alpha/inference/rerank</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Degraded</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>400 {"error":{"message":"Model '&#8230;&#8203;' is of type 'llm' rather than the expected type
+'rerank'"}}</code> for both configured models — route and validation work, no rerank-typed model
+exists</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>POST /v1alpha/admin/connectors</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Absent</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>405 {"detail":"Method Not Allowed"}</code> — connector creation is not exposed over HTTP;
+registration is config-side only</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>GET /v1/admin/tools</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Degraded</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>500 {"error":{"message":"Internal server error: An unexpected error occurred."}}</code> —
+documented in the OpenAPI spec but broken on this build</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>GET /v1/tools</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Absent</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>404 {"detail":"Not Found"}</code> — not in the OpenAPI spec</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>GET /v1/tool-runtime</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Absent</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>404 {"detail":"Not Found"}</code>; <code>/v1/tool-runtime</code> is not among the 43 OpenAPI paths</p></td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 <div class="sect1">
@@ -1021,16 +1416,22 @@ documentation for your release.</p>
 <div class="ulist">
 <ul>
 <li>
-<p>Ran a complete RAG workflow with the Files, Vector Stores, and Responses APIs</p>
+<p>Inspected the live OGX build three ways — OpenAPI spec (43 paths), internal route table, and
+runtime behavior — and saw why only live requests are an availability guarantee</p>
 </li>
 <li>
-<p>Inspected <code>file_citation</code> annotations that trace answers back to source files</p>
+<p>Exercised the native rerank API&#8217;s request schema and reproduced its documented error
+signatures (validation <code>400</code>, model-typing <code>400</code>)</p>
 </li>
 <li>
-<p>Exercised Responses API guardrails opt-in and reviewed the fail-closed behavior</p>
+<p>Reproduced the exact gates that block the <code>file_search</code> grounding workflow on this build and
+studied the full upload → store → <code>file_search</code> → citations flow as reference design</p>
 </li>
 <li>
-<p>Surveyed the native Tool Runtime API and its support level</p>
+<p>Read the fail-closed guardrails design for the Responses API as concept reading</p>
+</li>
+<li>
+<p>Mapped the Tool Runtime API as target-state and audited every registered tool-related route</p>
 </li>
 </ul>
 </div>
@@ -1040,13 +1441,21 @@ documentation for your release.</p>
 <div class="ulist">
 <ul>
 <li>
-<p>The <code>file_search</code> tool in the Responses API turns vector stores into grounded answers with no client-side retrieval code</p>
+<p>Registration is not availability: <code>/v1/responses</code> routes appear in the internal route table
+yet return <code>404</code>, while <code>/v1alpha/admin/*</code> routes answer without appearing in it</p>
 </li>
 <li>
-<p><code>file_citation</code> annotations are enabled by default and identify source files by ID and filename</p>
+<p>Error signatures are documentation — a <code>400</code> that names the expected model type or request
+field tells you precisely which layer rejected you (validation, model typing, or upstream
+resource)</p>
 </li>
 <li>
-<p>Guardrails fail closed: any moderation error blocks content rather than letting it through</p>
+<p>Model typing gates several surfaces on this build: no rerank-typed model, and the embedding
+service is typed <code>llm</code>, which cascades into vector stores, vector-io, and rerank</p>
+</li>
+<li>
+<p>The grounding (<code>file_search</code> + <code>file_citation</code>) and guardrails designs are target-state worth
+knowing — see the build-availability matrix in Module 01 for what a future build must ship</p>
 </li>
 </ul>
 </div>
@@ -1054,8 +1463,10 @@ documentation for your release.</p>
 <p><strong>Next steps:</strong></p>
 </div>
 <div class="paragraph">
-<p>You have explored the full OGX agentic surface. Head to the conclusion for pointers back to the
-source documentation and cleanup notes.</p>
+<p>You have an honest map of the advanced OGX agentic surface on this build. Head to the conclusion
+for pointers back to the source documentation and cleanup notes — and revisit this module on a
+build that ships an embedding-typed model, the Responses/Files APIs, and a rerank-typed model,
+where the gated exercises in this module become runnable.</p>
 </div>
 </div>
 </div>

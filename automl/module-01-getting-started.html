@@ -201,6 +201,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -591,10 +599,10 @@ prerequisite before creating your first optimization run.</p>
 <div class="ulist">
 <ul>
 <li>
-<p>Explain the AutoML workflow, task types, and Technology Preview limitations</p>
+<p>Explain the AutoML workflow, task types, and current limitations</p>
 </li>
 <li>
-<p>Enable AutoML in the DataScienceCluster dashboard configuration</p>
+<p>Enable AutoML in the OdhDashboardConfig dashboard configuration</p>
 </li>
 <li>
 <p>Enable AutoML pipelines on your project&#8217;s pipeline server</p>
@@ -603,20 +611,6 @@ prerequisite before creating your first optimization run.</p>
 <p>Validate the prerequisites for an optimization run</p>
 </li>
 </ul>
-</div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-This feature is a <strong>Technology Preview</strong>. The APIs and fields shown here
-(<code>spec.dashboardConfig.automl</code>, <code>spec.apiServer.managedPipelines</code>) may change
-between releases. Re-check the RHOAI documentation for your version.
-</td>
-</tr>
-</table>
 </div>
 <div class="paragraph">
 <p>AutoML is powered by AutoGluon. When you create an optimization run, AutoML
@@ -647,7 +641,7 @@ must include a timestamp column, a numeric target column, and an ID column</p>
 </ul>
 </div>
 <div class="paragraph">
-<p>Technology Preview limitations:</p>
+<p>Current limitations:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -673,15 +667,12 @@ to select and tune candidate models automatically</p>
 <h2 id="_exercise_1_enable_automl_in_the_dashboard_configuration"><a class="anchor" href="#_exercise_1_enable_automl_in_the_dashboard_configuration"></a>Exercise 1: Enable AutoML in the dashboard configuration</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>An administrator must set the <code>spec.dashboardConfig.automl</code> option to <code>true</code> on
-the DataScienceCluster. On a workshop cluster where you have cluster-admin
-rights, apply it yourself.</p>
-</div>
-<div class="listingblock execute">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc patch dsc default-dsc --type merge \
-  -p '{"spec":{"dashboardConfig":{"automl":true}}}'</code></pre>
-</div>
+<p>The AutoML flag lives in the <code>OdhDashboardConfig</code> resource named
+<code>odh-dashboard-config</code> in the <code>redhat-ods-applications</code> namespace — not in the
+<code>DataScienceCluster</code> (the v3 <code>DataScienceCluster</code> schema has no
+<code>dashboardConfig</code> field, so older instructions that patch the
+<code>DataScienceCluster</code> no longer apply). On this workshop cluster the flag ships
+enabled, so the patch below is normally a confirmation rather than a change.</p>
 </div>
 <div class="admonitionblock warning">
 <table>
@@ -690,23 +681,32 @@ rights, apply it yourself.</p>
 <i class="fa icon-warning" title="Warning"></i>
 </td>
 <td class="content">
-This modifies the cluster-wide DataScienceCluster resource. In a shared
-workshop environment, confirm with your facilitator that AutoML is already
-enabled instead of patching the DSC yourself.
+The <code>OdhDashboardConfig</code> is a cluster-wide resource: patching it
+affects every dashboard user. In a shared workshop environment, confirm with
+your facilitator that AutoML is already enabled instead of patching it
+yourself.
 </td>
 </tr>
 </table>
+</div>
+<div class="paragraph">
+<p>An administrator enables the flag by patching that resource:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc patch odhdashboardconfig odh-dashboard-config -n redhat-ods-applications --type=merge -p '{"spec":{"dashboardConfig":{"automl":true}}}'</code></pre>
+</div>
 </div>
 <div class="sect2">
 <h3 id="_verify"><a class="anchor" href="#_verify"></a>Verify</h3>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get dsc default-dsc -o jsonpath='{.spec.dashboardConfig.automl}'</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get odhdashboardconfig odh-dashboard-config -n redhat-ods-applications -o jsonpath='{.spec.dashboardConfig.automl}'</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>The output is <code>true</code>. If it prints nothing, the patch did not apply — re-run the
-command above before continuing.</p>
+<p>The output is <code>true</code>. If it prints nothing, the flag is not enabled — re-run
+the patch command above before continuing.</p>
 </div>
 <div class="paragraph">
 <p>With AutoML enabled and every step verified, the next prerequisite is a pipeline
@@ -803,7 +803,8 @@ stored as secrets:</p>
 <li>
 <p>In the RHOAI dashboard, click <strong>Develop and train &gt; AutoML</strong>. The AutoML page
 loads and lists any existing optimization runs. If the page is missing, the
-<code>spec.dashboardConfig.automl</code> flag from Exercise 1 is not enabled yet.</p>
+<code>spec.dashboardConfig.automl</code> flag on the <code>OdhDashboardConfig</code> from
+Exercise 1 is not enabled yet.</p>
 </li>
 </ol>
 </div>
@@ -825,7 +826,7 @@ project, and the AutoML page visible in the dashboard under <strong>Develop and 
 <div class="ulist">
 <ul>
 <li>
-<p>Enabled the AutoML dashboard option on the DataScienceCluster</p>
+<p>Enabled the AutoML dashboard option on the OdhDashboardConfig</p>
 </li>
 <li>
 <p>Enabled AutoML and AutoRAG pipelines on your project&#8217;s pipeline server</p>
@@ -844,10 +845,11 @@ project, and the AutoML page visible in the dashboard under <strong>Develop and 
 <p>AutoML trains candidate models with AutoGluon and ranks them on a leaderboard</p>
 </li>
 <li>
-<p>AutoML depends on two settings: the DSC dashboard flag and the pipeline server</p>
+<p>AutoML depends on two settings: the dashboard flag in the OdhDashboardConfig
+and the pipeline server</p>
 </li>
 <li>
-<p>Technology Preview limits you to CSV data with no custom algorithms or tuning</p>
+<p>AutoML currently limits you to CSV data with no custom algorithms or tuning</p>
 </li>
 </ul>
 </div>

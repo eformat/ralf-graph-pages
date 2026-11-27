@@ -204,6 +204,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -772,11 +780,15 @@ pods and validate the distributed output.</p>
 <h2 id="_exercise_2_monitor_the_training_pods"><a class="anchor" href="#_exercise_2_monitor_the_training_pods"></a>Exercise 2: Monitor the training pods</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>List the pods created by the job using the <code>job-name</code> label:</p>
+<p>List the pods created by the job. TrainJob training pods are JobSet-managed:
+each child Job is named <code>&lt;trainjob&gt;-node-&lt;index&gt;</code> and its pods carry the
+<code>jobset.sigs.k8s.io/jobset-name</code> label, whose value is the TrainJob name.
+Select on that label — selecting on <code>job-name</code> alone matches nothing, because
+the pods' <code>job-name</code> value is the child Job name, not the TrainJob name:</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get pods -n abc123-user1 -l job-name=pytorch-minimal-example</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get pods -n abc123-user1 -l jobset.sigs.k8s.io/jobset-name=pytorch-minimal-example</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -793,7 +805,7 @@ the logs of a training pod to see the distributed process group come up:</p>
 <div class="title">Example output</div>
 <div class="content">
 <pre>Rank 0/2
-PyTorch: 2.8, CUDA: True
+PyTorch: 2.11, CUDA: True
 GPU: NVIDIA A100-SXM4-80GB
 Rank 0: all_reduce result = 1.0
 Done.</pre>
@@ -918,7 +930,7 @@ so release the resources:
 <div class="paragraph">
 <p><code>oc get trainjob -n abc123-user1</code> prints <code>No resources found in abc123-user1
 namespace.</code>, and <code>oc get pods -n abc123-user1 -l
-job-name=pytorch-minimal-example</code> lists no training pods.</p>
+jobset.sigs.k8s.io/jobset-name=pytorch-minimal-example</code> lists no training pods.</p>
 </div>
 </div>
 </div>

@@ -204,6 +204,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -586,7 +594,8 @@
 <div class="sectionbody">
 <div class="paragraph">
 <p>In this module you will create an <code>LLMInferenceService</code> CR with the CLI, watch it reach
-<code>Ready</code>, and send an authenticated chat-completion request to the deployed model.</p>
+<code>Ready</code> on CPU — no GPU required — and send an authenticated chat-completion request to the
+deployed model.</p>
 </div>
 <div class="paragraph">
 <p><strong>Learning objectives:</strong></p>
@@ -594,241 +603,34 @@
 <div class="ulist">
 <ul>
 <li>
-<p>Create an <code>LLMInferenceService</code> with automatic routing and scheduler defaults</p>
+<p>Create an <code>LLMInferenceService</code> that references a platform accelerator configuration through <code>baseRefs</code></p>
 </li>
 <li>
-<p>Watch the deployment reconcile and read its status conditions and addresses</p>
+<p>Understand how the controller merges <code>baseRefs</code> templates and your user-level <code>template</code> overrides</p>
 </li>
 <li>
-<p>Complete the authenticated chat-completion request flow from the llmd-core workshop</p>
+<p>Complete the authenticated chat-completion request flow from the llmd-core workshop against the in-cluster endpoint</p>
 </li>
 </ul>
 </div>
 <div class="paragraph">
-<p>Prerequisites (from the RHOAI 3.5 llm-d deployment guide):</p>
+<p>Prerequisites (from the RHOAI 3.6 llm-d deployment guide):</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p>The model serving platform is enabled in your <code>DataScienceCluster</code>.</p>
+<p>The model serving platform is enabled in your <code>DataScienceCluster</code> (the
+<code>KserveLLMInferenceServiceDependencies</code> condition is <code>True</code>).</p>
 </li>
 <li>
 <p>OpenShift 4.19.9 or later, and OpenShift Service Mesh v2 is <strong>not</strong> installed.</p>
 </li>
 <li>
-<p>A <code>GatewayClass</code> and <code>Gateway</code> named <code>openshift-ai-inference</code> exist in <code>openshift-ingress</code> (verified in Module 01).</p>
-</li>
-<li>
 <p>Network access to pull the model from Hugging Face, or the model available in S3/PVC/OCI storage.</p>
 </li>
-</ul>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_exercise_1_create_the_llminferenceservice"><a class="anchor" href="#_exercise_1_create_the_llminferenceservice"></a>Exercise 1: Create the LLMInferenceService</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>This lab deploys the same reference manifest used across the llm-d workshops: a single
-<code>serving.kserve.io/v1alpha1</code> <code>LLMInferenceService</code> with two replicas, the
-<code>RedHatAI/Qwen3-8B-FP8-dynamic</code> model, empty <code>router</code> and <code>scheduler</code> maps (the controller
-creates the HTTPRoute, gateway wiring, and Endpoint Picker with built-in defaults), and a
-one-GPU pod template.</p>
-</div>
-<div class="olist arabic">
-<ol class="arabic">
 <li>
-<p>Create the file <code>sample-llm-inference-service.yaml</code> in your working project
-(the same reference manifest the llmd-core workshop walks through field by
-field, with <code>namespace: abc123-user1</code> added so the service lands in your
-working project):</p>
-</li>
-</ol>
-</div>
-<div class="listingblock execute">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">cat > sample-llm-inference-service.yaml <<'EOF'
-apiVersion: serving.kserve.io/v1alpha1
-kind: LLMInferenceService
-metadata:
-  name: sample-llm-inference-service
-  namespace: abc123-user1
-spec:
-  replicas: 2
-  model:
-    uri: hf://RedHatAI/Qwen3-8B-FP8-dynamic
-    name: RedHatAI/Qwen3-8B-FP8-dynamic
-  router:
-    route: {}
-    gateway: {}
-    scheduler: {}
-  template:
-    containers:
-      - name: main
-        resources:
-          limits:
-            cpu: '4'
-            memory: 32Gi
-            nvidia.com/gpu: "1"
-          requests:
-            cpu: '2'
-            memory: 16Gi
-            nvidia.com/gpu: "1"
-EOF</code></pre>
-</div>
-</div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>Apply the manifest:</p>
-</li>
-</ol>
-</div>
-<div class="listingblock execute">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc apply -f sample-llm-inference-service.yaml</code></pre>
-</div>
-</div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>Confirm the resource was created:</p>
-</li>
-</ol>
-</div>
-<div class="listingblock execute">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get llminferenceservices sample-llm-inference-service -n abc123-user1</code></pre>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_verify"><a class="anchor" href="#_verify"></a>Verify</h3>
-<div class="paragraph">
-<p>Expected output (status advances as the model downloads and pods start):</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>NAME                          URL   READY   AGE
-sample-llm-inference-service        True    5m</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>The <code>READY</code> column shows <code>True</code> when all replicas are serving. This can take several
-minutes while the model weights download. You can wait for the condition instead of
-polling:</p>
-</div>
-<div class="listingblock execute">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc wait --for=condition=Ready llminferenceservice/sample-llm-inference-service \
-  -n abc123-user1 --timeout=600s</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Expected output: <code>condition met</code>.</p>
-</div>
-<div class="paragraph">
-<p>The <strong>Deployed models</strong> page in the RHOAI dashboard shows the deployment with a
-<strong>Ready</strong> status badge alongside its endpoint URL:</p>
-</div>
-<div class="imageblock">
-<div class="content">
-<a class="image" href="_images/02-deployed-models-llminferenceservice.png" target="blank"><img src="_images/02-deployed-models-llminferenceservice.png" alt="Deployed models page listing the LLMInferenceService among the project&#8217;s model deployments" width="700"></a>
-</div>
-</div>
-<div class="paragraph">
-<p>Now that the service is running, validate its status details and test the endpoint.</p>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_exercise_2_validate_and_test_the_endpoint"><a class="anchor" href="#_exercise_2_validate_and_test_the_endpoint"></a>Exercise 2: Validate and test the endpoint</h2>
-<div class="sectionbody">
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>Watch the workload pods reach <code>Running</code>:</p>
-</li>
-</ol>
-</div>
-<div class="listingblock execute">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get pods -n abc123-user1 | grep sample-llm-inference-service</code></pre>
-</div>
-</div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>Check the <code>Ready</code> condition directly:</p>
-</li>
-</ol>
-</div>
-<div class="listingblock execute">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get llminferenceservices sample-llm-inference-service -n abc123-user1 \
-  -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}'</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Expected output: <code>True</code>.</p>
-</div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>Inspect the externally reachable addresses the controller discovered:</p>
-</li>
-</ol>
-</div>
-<div class="listingblock execute">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get llmisvc -n abc123-user1 -o jsonpath='{.items[*].status.addresses}'</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Look for entries with <code>origin.kind: Route</code> — the controller discovered OpenShift Routes
-and uses them to provide external URLs. Copy the URL of your service.</p>
-</div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>Store the endpoint URL in a shell variable, capturing the controller-discovered
-route URL directly from the service status:</p>
-</li>
-</ol>
-</div>
-<div class="listingblock execute">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">export ENDPOINT=$(oc get llmisvc sample-llm-inference-service -n abc123-user1 \
-  -o jsonpath='{.status.url}')</code></pre>
-</div>
-</div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>Next, complete the authenticated request flow from
-<a href="../llmd-core/module-02-hands-on.html" class="xref page">Make authenticated inference requests</a> in the
-llmd-core workshop: create a ServiceAccount, a Role granting <code>get</code> on the
-<code>sample-llm-inference-service</code> resource, and a rolebinding, mint a JWT with
-<code>oc create token llm-user --duration=1h</code>, and send the chat-completion request with
-<code>Authorization: Bearer $TOKEN</code> to the <code>$ENDPOINT</code> URL you stored above.</p>
-</li>
-</ol>
-</div>
-<div class="sect2">
-<h3 id="_verify_2"><a class="anchor" href="#_verify_2"></a>Verify</h3>
-<div class="ulist">
-<ul>
-<li>
-<p>The authenticated request returns HTTP <code>200</code> with a chat-completion response body —
-JSON with <code>"object": "chat.completion"</code> and the generated answer in
-<code>choices[0].message.content</code>.</p>
-</li>
-<li>
-<p>A request without the <code>Authorization</code> header returns <code>401 Unauthorized</code> with a message
-that authentication is required (when platform authentication is enabled on the service).</p>
-</li>
-<li>
-<p>A request with an invalid or expired token also returns <code>401 Unauthorized</code>.</p>
+<p>CPU capacity for the workload — this lab is sized to schedule on clusters with very little
+CPU-request headroom, so no GPU nodes are needed.</p>
 </li>
 </ul>
 </div>
@@ -840,11 +642,309 @@ that authentication is required (when platform authentication is enabled on the 
 </td>
 <td class="content">
 <div class="paragraph">
-<p>Authentication and authorization are automatically enabled for <code>LLMInferenceService</code>
-resources when Red Hat Connectivity Link is configured. To explicitly enable it (for
-example, after it was disabled), annotate the service with
-<code>security.opendatahub.io/enable-auth: "true"</code>. To run without platform authentication,
-set the annotation to <code>"false"</code>.</p>
+<p>This lab runs the <strong>CPU path</strong>: it references the platform&#8217;s <code>v3-6-0-kserve-config-llm-template-cpu</code>
+accelerator configuration and serves a small chat model with a CPU vLLM image. It is the
+runnable path on a cluster with zero GPU nodes. The GPU topologies (single-node CUDA,
+multi-node, prefill/decode) need accelerator hardware — they are covered conceptually in
+Module 03.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_exercise_1_create_the_llminferenceservice"><a class="anchor" href="#_exercise_1_create_the_llminferenceservice"></a>Exercise 1: Create the LLMInferenceService</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This lab deploys a single <code>serving.kserve.io/v1alpha2</code> <code>LLMInferenceService</code> named
+<code>cpu-demo-llm</code>: one replica of the small <code>HuggingFaceTB/SmolLM2-135M-Instruct</code> chat model,
+a CPU vLLM image, and a <code>baseRefs</code> entry that pulls in the platform&#8217;s CPU accelerator
+configuration. Two overrides matter on a constrained cluster — they are explained below
+the manifest.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Create the file <code>cpu-demo-llm.yaml</code> in your working project:</p>
+</li>
+</ol>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">cat > cpu-demo-llm.yaml <<'EOF'
+apiVersion: serving.kserve.io/v1alpha2
+kind: LLMInferenceService
+metadata:
+  name: cpu-demo-llm
+  namespace: abc123-user1
+spec:
+  replicas: 1
+  model:
+    # A small model WITH a chat template — required for /v1/chat/completions.
+    name: HuggingFaceTB/SmolLM2-135M-Instruct
+    uri: hf://HuggingFaceTB/SmolLM2-135M-Instruct
+  template:
+    containers:
+    - name: main
+      # Image override: the CPU configuration pins a digest that is not
+      # pullable from registry.redhat.io ("manifest unknown"). This digest is
+      # the one used by the platform's vllm-cpu-x86-runtime ServingRuntime.
+      image: registry.redhat.io/rhaii/vllm-cpu-rhel9@sha256:599229f81c2b56aa23c6cff4f5e1e0fbf865f5343fa608ab6ba4ea672041e979
+      resources:
+        # Tiny requests + bounded limits (burstable): the cluster's nodes sit
+        # at 97-99% cpu.requested, so a 2-CPU request fails scheduling with
+        # "Insufficient cpu". Actual usage at this model size is ~1-2 cores.
+        requests:
+          cpu: "100m"
+          memory: "2Gi"
+        limits:
+          cpu: "6"
+          memory: "8Gi"
+  baseRefs:
+  - name: v3-6-0-kserve-config-llm-template-cpu
+EOF</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Three details in this manifest do the heavy lifting:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong><code>baseRefs</code> resolves cross-namespace.</strong> The name
+<code>v3-6-0-kserve-config-llm-template-cpu</code> is an <code>LLMInferenceServiceConfig</code> that lives in the
+<code>redhat-ods-applications</code> namespace, but you reference it by name only — the controller
+resolves it across namespaces and records it in <code>status.appliedConfigs</code> with
+<code>source=UserRef</code>. It also auto-applies the base template
+<code>v3-6-0-kserve-config-llm-template</code> (<code>source=Preset</code>), which supplies the container command
+and serving defaults.</p>
+</li>
+<li>
+<p><strong>The user-level image override is required.</strong> The CPU configuration&#8217;s own pinned image
+digest is currently not pullable from <code>registry.redhat.io</code>, so leaving the image to the
+configuration fails with <code>ErrImagePull</code>. Your <code>spec.template.containers[name=main].image</code>
+merges <strong>over</strong> the configuration (its env vars and command are preserved), substituting the
+digest proven by the platform&#8217;s <code>vllm-cpu-x86-runtime</code> ServingRuntime.</p>
+</li>
+<li>
+<p><strong>Tiny requests are required on shared clusters.</strong> If your nodes are near their CPU-request
+capacity, scheduling fails with <code>0/3 nodes available: Insufficient cpu/memory</code>. The
+<code>100m</code>/<code>2Gi</code> request with <code>6</code>/<code>8Gi</code> limits keeps the pod schedulable while bounding its burst.</p>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Apply the manifest:</p>
+</li>
+</ol>
+</div>
+</li>
+</ul>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc apply -f cpu-demo-llm.yaml</code></pre>
+</div>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Confirm the resource was created:</p>
+</li>
+</ol>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get llminferenceservices cpu-demo-llm -n abc123-user1</code></pre>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_verify"><a class="anchor" href="#_verify"></a>Verify</h3>
+<div class="paragraph">
+<p>Expected output (status advances as the model downloads and pods start):</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>NAME           URL   READY   AGE
+cpu-demo-llm         True    5m</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>READY</code> column shows <code>True</code> when the workload is serving. This can take several
+minutes while the model weights download. You can wait for the condition instead of
+polling:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc wait --for=condition=Ready llminferenceservice/cpu-demo-llm \
+  -n abc123-user1 --timeout=600s</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Expected output: <code>condition met</code>.</p>
+</div>
+<div class="paragraph">
+<p>Check which configurations the controller actually applied:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get llminferenceservice cpu-demo-llm -n abc123-user1 \
+  -o jsonpath='{range .status.appliedConfigs[*]}{.name} source={.source}{"\n"}{end}'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Expected output — the base preset the controller chose, plus the configuration you referenced:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>v3-6-0-kserve-config-llm-template source=Preset
+v3-6-0-kserve-config-llm-template-cpu source=UserRef</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <strong>Deployed models</strong> page in the RHOAI dashboard shows the deployment with a status badge
+alongside its endpoint:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<a class="image" href="_images/02-deployed-models-llminferenceservice.png" target="blank"><img src="_images/02-deployed-models-llminferenceservice.png" alt="Deployed models page listing an LLMInferenceService among the project&#8217;s model deployments. 3.5-era screenshot; the 3.6 dashboard renders the same page with the CPU-path service shown in the demo." width="700"></a>
+</div>
+</div>
+<div class="paragraph">
+<p>Now that the service is running, validate its workload details and test the endpoint.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_exercise_2_validate_and_test_the_endpoint"><a class="anchor" href="#_exercise_2_validate_and_test_the_endpoint"></a>Exercise 2: Validate and test the endpoint</h2>
+<div class="sectionbody">
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Watch the workload pod reach <code>Running</code>:</p>
+</li>
+</ol>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get pods -n abc123-user1 | grep cpu-demo-llm</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Expected output: one <code>cpu-demo-llm-kserve-&lt;suffix&gt;</code> pod, <code>1/1</code> <code>Running</code>.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Look inside the pod to see the CPU path working. The <code>storage-initializer</code> init
+container downloaded the <code>hf://</code> model into the volume mounted at <code>/mnt/models</code>, and the
+main container runs vLLM in CPU mode:</p>
+</li>
+</ol>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">POD=$(oc get pods -n abc123-user1 -o name | grep cpu-demo-llm-kserve | grep -v scheduler)
+oc logs $POD -n abc123-user1 -c main | grep -m2 "V1 LLM engine\|Application startup"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Expected output includes the CPU engine line and startup completion:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>INFO: Initializing a V1 LLM engine (v0.31.0+rhaiv.8) ... device_config=cpu
+INFO: Application startup complete.</pre>
+</div>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Confirm your reference flipped the configuration&#8217;s <code>ConfigInUse</code> condition:</p>
+</li>
+</ol>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get llminferenceserviceconfig v3-6-0-kserve-config-llm-template-cpu \
+  -n redhat-ods-applications \
+  -o jsonpath='{.status.conditions[?(@.type=="ConfigInUse")].message}'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Expected output: <code>referenced by N LLMInferenceService(s)</code> — the platform configuration
+tracks that your service uses it.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Next, complete the authenticated request flow from
+<a href="../llmd-core/module-02-hands-on.html" class="xref page">Make authenticated inference requests</a> in the
+llmd-core workshop: run a small curl pod in your project (it mounts the default
+ServiceAccount token), mint a token if you use a dedicated ServiceAccount with
+<code>oc create token llm-user --duration=1h</code>, and send the chat-completion request with
+<code>Authorization: Bearer $TOKEN</code>:</p>
+</li>
+</ol>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc run curl-demo --rm -it --restart=Never --image=curlimages/curl -- /bin/sh</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Inside the curl pod:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
+ENDPOINT=https://cpu-demo-llm-kserve-workload-svc.abc123-user1.svc.cluster.local:8000
+curl -sk -H "Authorization: Bearer $TOKEN" "$ENDPOINT/v1/models"
+curl -sk -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{"model":"HuggingFaceTB/SmolLM2-135M-Instruct","messages":[{"role":"user","content":"What is the capital of France?"}]}' \
+  "$ENDPOINT/v1/chat/completions"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The service URL follows the <code>&lt;name&gt;-kserve-workload-svc.&lt;namespace&gt;.svc.cluster.local:8000</code>
+pattern, and the self-signed KServe certificates are why <code>curl</code> runs with <code>-k</code>.</p>
+</div>
+<div class="sect2">
+<h3 id="_verify_2"><a class="anchor" href="#_verify_2"></a>Verify</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><code>GET /v1/models</code> returns HTTP <code>200</code> and lists the served model name.</p>
+</li>
+<li>
+<p>The authenticated <code>POST /v1/chat/completions</code> returns HTTP <code>200</code> with a chat-completion
+response body — JSON with <code>"object": "chat.completion"</code> and the generated answer in
+<code>choices[0].message.content</code> (for this model, "The capital of France is Paris."), with
+<code>system_fingerprint</code> identifying the vLLM CPU build.</p>
+</li>
+<li>
+<p>The pod logs show <code>device_config=cpu</code> — the workload never requested a GPU.</p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Scope of this lab: verification is via the <strong>in-cluster</strong> service URL. Without a <code>spec.router</code>
+gateway reference, the controller skips external Gateway evaluation and creates no external
+HTTPRoute for the service — its <code>RouterReady</code> condition refers to the internal router stack.
+Exposing the service outside the cluster (Gateway + HTTPRoute, and token validation at the
+gateway) is covered conceptually in the llmd-core workshop. Authentication and authorization
+are automatically enabled for <code>LLMInferenceService</code> resources when Red Hat Connectivity Link
+is configured; to explicitly enable or disable it, annotate the service with
+<code>security.opendatahub.io/enable-auth: "true"</code> (or <code>"false"</code>).</p>
 </div>
 </td>
 </tr>
@@ -865,13 +965,13 @@ set the annotation to <code>"false"</code>.</p>
 <div class="ulist">
 <ul>
 <li>
-<p>Applied an <code>LLMInferenceService</code> CR with default routing and scheduler composition</p>
+<p>Applied an <code>LLMInferenceService</code> CR that references a platform accelerator configuration via <code>baseRefs</code></p>
 </li>
 <li>
-<p>Verified the <code>Ready</code> condition and the controller-discovered external addresses</p>
+<p>Verified the <code>Ready</code> condition, the applied-configuration merge, and the CPU vLLM workload</p>
 </li>
 <li>
-<p>Generated a ServiceAccount JWT and completed an authenticated chat-completion request against your deployment, following the llmd-core request flow</p>
+<p>Completed an authenticated chat-completion request against your deployment&#8217;s in-cluster endpoint, following the llmd-core request flow</p>
 </li>
 </ul>
 </div>
@@ -881,13 +981,19 @@ set the annotation to <code>"false"</code>.</p>
 <div class="ulist">
 <ul>
 <li>
-<p>Empty <code>router</code> and <code>scheduler</code> maps are the fast path — the controller builds HTTPRoutes, gateway wiring, and the Endpoint Picker for you</p>
+<p><code>baseRefs</code> resolve cross-namespace from <code>redhat-ods-applications</code> (<code>source=UserRef</code>), and the controller auto-applies the base preset (<code>source=Preset</code>) on top of your references</p>
 </li>
 <li>
-<p><code>status.addresses</code> with <code>origin.kind: Route</code> entries show the externally reachable URLs on bare-metal and disconnected clusters</p>
+<p>User-level <code>spec.template</code> settings merge <strong>over</strong> the referenced configurations — which is how you override a configuration&#8217;s image or resources while keeping its env and command</p>
 </li>
 <li>
-<p>Inference auth is per-service via the <code>security.opendatahub.io/enable-auth</code> annotation, with JWTs minted from ServiceAccounts</p>
+<p>The CPU path (CPU vLLM image + small chat model + tiny resource requests) is the runnable LLMInferenceService demo on clusters without GPU nodes</p>
+</li>
+<li>
+<p>The <code>ConfigInUse</code> condition on a platform configuration tracks how many services reference it</p>
+</li>
+<li>
+<p>Without a <code>spec.router</code> gateway reference, no external HTTPRoute is created — external exposure is a gateway concern covered in the llmd-core workshop</p>
 </li>
 </ul>
 </div>
@@ -895,8 +1001,8 @@ set the annotation to <code>"false"</code>.</p>
 <p><strong>Next steps:</strong></p>
 </div>
 <div class="paragraph">
-<p>In the final module you will work with the admin side: topology and router
-configuration templates, and the disaggregated prefill/decode topology.</p>
+<p>In the final module you will work with the admin side: accelerator configuration templates
+in the dashboard, router configurations, and the disaggregated prefill/decode topology.</p>
 </div>
 </div>
 </div>

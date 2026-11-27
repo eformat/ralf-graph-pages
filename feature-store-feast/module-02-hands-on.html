@@ -203,6 +203,14 @@
         </li>
       </ul>
     </li>
+    <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
     <li class="component is-current">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
@@ -623,13 +631,13 @@ Parquet offline store, SQLite online store).</p>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>Save the following manifest to <code>feature-store-cr.yaml</code>:</p>
+<p>Save the following manifest to <code>feature-store-cr.yaml</code> and apply it in your working project:</p>
 </li>
 </ol>
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">cat &gt; feature-store-cr.yaml &lt;&lt;'EOF'
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">cat > feature-store-cr.yaml <<'EOF'
 apiVersion: feast.dev/v1
 kind: FeatureStore
 metadata:
@@ -648,30 +656,18 @@ spec:
         server:
           restAPI: true
 EOF
-oc apply -f feature-store-cr.yaml -n {guid}-{user}</code></pre>
+oc apply -f feature-store-cr.yaml -n abc123-user1</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p><strong>apiVersion: feast.dev/v1</strong> — the CRD provided by the Feast operator you enabled in Module 01.
-<strong>feature-store-ui: enabled</strong> — label that turns on the Feature Store UI in the dashboard.
+<p><strong>apiVersion: feast.dev/v1</strong> — the custom resource definition (CRD) provided by the Feast operator you enabled in Module 01.
+<strong>feature-store-ui: enabled</strong> — label that turns on the Feature Store user interface (UI) in the dashboard.
   Only one Feature Store instance may carry this label.
 <strong>feastProject</strong> — the namespace for organizing your Feature Store instance. This is <strong>not</strong>
   the OpenShift project.
 <strong>feastProjectDir</strong> — points to a feature repository in Git, cloned at deploy time so the
   instance starts with feature definitions.
 <strong>restAPI: true</strong> — exposes the registry server REST API in the OpenShift cluster.</p>
-</div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>Apply it in your working project:</p>
-</li>
-</ol>
-</div>
-<div class="listingblock execute">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc apply -f feature-store-cr.yaml</code></pre>
-</div>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -681,7 +677,7 @@ oc apply -f feature-store-cr.yaml -n {guid}-{user}</code></pre>
 </td>
 <td class="content">
 <div class="paragraph">
-<p>The Git URL in this example is the repository referenced by the RHOAI 3.5 documentation for the
+<p>The Git URL in this example is the repository referenced by the RHOAI documentation for the
 Feature Store credit scoring tutorial. If your facilitator provides a different feature
 repository, substitute it in <code>feastProjectDir.git.url</code>.</p>
 </div>
@@ -714,10 +710,11 @@ sample-git   Ready    3h1m</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Find the pod with the <code>feast-</code> prefix followed by the CR name (for example, <code>feast-sample-git</code>)
-and confirm its status is <code>Running</code>. In the console you can click the pod, open <strong>Terminal</strong>, and
-run <code>feast --help</code> to confirm the Feast CLI is installed inside the online container. The pod&#8217;s
-feature repository contains <code>feature_store.yaml</code>, <code>example_repo.py</code>, and a <code>data</code> directory.</p>
+<p>Find the pod whose name starts with <code>feast-sample-git-</code> followed by a hash suffix (for example,
+<code>feast-sample-git-7c9d6f8b5-xk2qj</code>) and confirm its status is <code>Running</code>. In the console you can
+click the pod, open <strong>Terminal</strong>, and run <code>feast --help</code> to confirm the Feast CLI is installed
+inside the online container. The pod&#8217;s feature repository contains <code>feature_store.yaml</code>,
+<code>features.py</code>, and a <code>data</code> directory.</p>
 </div>
 <div class="paragraph">
 <p>With the instance ready, you now initialize the feature registry so the instance can serve
@@ -738,13 +735,17 @@ metadata to the feature registry, and creates or updates the required infrastruc
 <ol class="arabic">
 <li>
 <p>Open a terminal on the feast pod (console: <strong>Workloads</strong> → <strong>Pods</strong> → pod name → <strong>Terminal</strong>), or
-exec into the online container:</p>
+exec into the online container. The operator creates one deployment per FeatureStore instance,
+named <code>feast-&lt;CR-name&gt;</code> after the CR, with one container per enabled service — for the
+<code>sample-git</code> instance the deployment is <code>feast-sample-git</code> and the online feature server
+container is named <code>online</code> (the Kubernetes services in front of the deployment carry the
+<code>-&lt;service-type&gt;</code> suffix):</p>
 </li>
 </ol>
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc exec -it deployments/sample-git -c online -- /bin/bash</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc exec -it deploy/feast-sample-git -c online -- /bin/bash</code></pre>
 </div>
 </div>
 <div class="olist arabic">
@@ -909,7 +910,7 @@ instance name, namespace, and your permission level. Follow the example code in 
 then click <strong>Create workbench</strong>.</p>
 </li>
 <li>
-<p>Open the workbench IDE and confirm the mounted configuration:</p>
+<p>Open the workbench integrated development environment (IDE) and confirm the mounted configuration:</p>
 </li>
 </ol>
 </div>
@@ -957,12 +958,26 @@ configured in the <code>FeatureStore</code> CR — run <code>ls feast-configs/</
 </div>
 <div class="paragraph">
 <p>Non-Python clients can call the online feature server REST API directly — the lowest-overhead
-access pattern for inference services written in Java, Go, or C++:</p>
+access pattern for inference services written in Java, Go, or C++. The operator secures the
+endpoint with Kubernetes authentication: an unauthenticated call is rejected with <code>401</code>, and
+every request must carry a bearer token. In-cluster clients reach the server through the
+<code>feast-sample-git-online</code> service. From inside the online container, the pod&#8217;s service-account
+token authenticates the call:</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">curl -X POST "https://feature-store-server:6566/get-online-features" \
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc exec -it deploy/feast-sample-git -c online -- /bin/bash</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Inside the container, call the REST API with the pod&#8217;s token:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
+curl -s -X POST "http://localhost:6566/get-online-features" \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN" \
   -d '{
     "features": ["credit_history:credit_card_due"],
     "entities": {"dob_ssn": ["19501020_1234"]}
@@ -1017,9 +1032,18 @@ materialized in Exercise 3. The REST call returns a JSON response containing the
 <div class="paragraph">
 <p><strong>Next steps:</strong></p>
 </div>
-<div class="paragraph">
-<p>In the next module you will tune the online store and feature server, scale the instance for
-high availability, and explore compute engines for large feature pipelines.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Tune the online store and feature server workers for latency and throughput</p>
+</li>
+<li>
+<p>Scale the instance for high availability with static replicas or autoscaling</p>
+</li>
+<li>
+<p>Explore the Ray compute engine for large feature pipelines</p>
+</li>
+</ul>
 </div>
 </div>
 </div>

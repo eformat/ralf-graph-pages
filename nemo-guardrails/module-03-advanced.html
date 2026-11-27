@@ -204,6 +204,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -635,8 +643,8 @@ data:
     - type: main
       engine: openai
       parameters:
-        base_url: "http://granite-vllm-predictor:8080/v1"
-        model_name: "granite-vllm"
+        base_url: "http://granite-asset-demo-predictor:8080/v1"
+        model_name: "granite-asset-demo"
     rails:
       config:
         sensitive_data_detection:
@@ -669,8 +677,8 @@ data:
     - type: main
       engine: openai
       parameters:
-        base_url: "http://granite-vllm-predictor:8080/v1"
-        model_name: "granite-vllm"
+        base_url: "http://granite-asset-demo-predictor:8080/v1"
+        model_name: "granite-asset-demo"
     rails:
       config:
         regex_detection:
@@ -848,8 +856,8 @@ data:
     - type: main
       engine: openai
       parameters:
-        base_url: "http://granite-vllm-predictor:8080/v1"
-        model_name: "granite-vllm"
+        base_url: "http://granite-asset-demo-predictor:8080/v1"
+        model_name: "granite-asset-demo"
     rails:
       config:
         sensitive_data_detection:
@@ -912,7 +920,7 @@ changes.</p>
 curl -k -X POST $NEMO_SIMPLE_ROUTE/v1/chat/completions \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $(oc whoami -t)" \
-  -d '{"model": "granite-vllm", "messages":[{"role":"user","content":"My email is user@example.com"}]}'</code></pre>
+  -d '{"model": "granite-asset-demo", "messages":[{"role":"user","content":"My email is user@example.com"}]}'</code></pre>
 </div>
 </div>
 </li>
@@ -971,8 +979,8 @@ data:
     - type: main
       engine: openai
       parameters:
-        base_url: "http://granite-vllm-predictor:8080/v1"
-        model_name: "granite-vllm"
+        base_url: "http://granite-asset-demo-predictor:8080/v1"
+        model_name: "granite-asset-demo"
     rails:
       input:
         flows:
@@ -1051,7 +1059,7 @@ spec:
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">curl -k -X POST $NEMO_SIMPLE_ROUTE/v1/chat/completions \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $(oc whoami -t)" \
-  -d '{"model": "granite-vllm", "messages":[{"role":"user","content":"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."}]}'</code></pre>
+  -d '{"model": "granite-asset-demo", "messages":[{"role":"user","content":"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."}]}'</code></pre>
 </div>
 </div>
 </li>
@@ -1173,7 +1181,7 @@ the data to identify slow rails and optimize your configuration.</p>
 <p><strong>Next steps:</strong></p>
 </div>
 <div class="paragraph">
-<p>Head to the conclusion for the RHOAI 3.5 Guardrails documentation, including
+<p>Head to the conclusion for the RHOAI 3.6 Guardrails documentation, including
 the full <code>NemoGuardrails</code> CR configuration reference.</p>
 </div>
 </div>

@@ -204,6 +204,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -642,6 +650,18 @@ observe inference gateway traffic for your model-serving APIs.</p>
 <a class="image" href="_images/01-installed-operators-kuadrant.png" target="blank"><img src="_images/01-installed-operators-kuadrant.png" alt="The Installed Operators view for the kuadrant-system namespace showing the Connectivity Link operators" width="700"></a>
 </div>
 </div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+This screenshot was captured on the reference cluster (RHCL 1.4.3, RHOAI operator 3.5.1); this workshop&#8217;s cluster runs RHCL 1.5.0 with RHOAI 3.6, so the operator versions and release dates you see may differ.
+</td>
+</tr>
+</table>
+</div>
 <div class="paragraph">
 <p>The Connectivity Link Operator declares the other three as dependencies through
 Operator Lifecycle Manager (OLM), so updates are automatic. Each policy CR maps to a
@@ -803,7 +823,7 @@ spec:
 </div>
 <div class="paragraph">
 <p><strong>name: rhcl-operator</strong> — the Connectivity Link Operator package from the Red Hat Operator catalog.
-<strong>channel: stable</strong> — the supported update channel for Connectivity Link 1.4.</p>
+<strong>channel: stable</strong> — the supported update channel for Connectivity Link 1.5.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -844,6 +864,22 @@ Connectivity Link dynamic plugin in the console.</p>
 <p>The Connectivity Link dynamic plugin lets you view and manage gateways and policies in the
 OpenShift Container Platform web console. This step requires <code>cluster-admin</code> — your
 facilitator may have already completed it.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>If the Connectivity Link console plugin is not enabled on your cluster
+(<code>console.operator.openshift.io/cluster</code> <code>spec.plugins</code>), the Connectivity Link nav is
+absent — use <code>oc</code>/CLI for everything in module-02.</p>
+</div>
+</td>
+</tr>
+</table>
 </div>
 <div class="olist arabic">
 <ol class="arabic">

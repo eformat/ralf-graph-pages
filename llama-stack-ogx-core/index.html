@@ -203,6 +203,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -584,7 +592,7 @@
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p>This workshop introduces <strong>OGX (Open GenAI Stack)</strong>, the unified AI runtime in RHOAI 3.5 that
+<p>This workshop introduces <strong>OGX (Open GenAI Stack)</strong>, the unified AI runtime in RHOAI 3.6 that
 replaces Llama Stack. OGX integrates model inference, embedding generation, vector storage, and
 retrieval services into a single stack optimized for retrieval-augmented generation (RAG) and
 agent-based AI workflows.</p>
@@ -595,16 +603,16 @@ agent-based AI workflows.</p>
 <div class="ulist">
 <ul>
 <li>
-<p>What OGX is, how it replaces Llama Stack in RHOAI 3.5, and how the OGXServer custom resource ties inference, embeddings, vector storage, and metadata persistence together</p>
+<p>What OGX is, how it replaces Llama Stack in RHOAI 3.6 (GA), and how the OGXServer custom resource ties inference, embeddings, vector storage, and metadata persistence together</p>
 </li>
 <li>
 <p>Enable the OGX Operator in the DataScienceCluster and deploy an OGX server connected to a vLLM inference service and a pgvector vector store</p>
 </li>
 <li>
-<p>Ingest documents into a vector store and run grounded RAG queries with the OpenAI-compatible <code>file_search</code> tool</p>
+<p>Build a grounded RAG loop by hand: facade embeddings, pgvector cosine retrieval, and a context-constrained chat completion</p>
 </li>
 <li>
-<p>Tune retrieval search modes and scale the server with high availability, autoscaling, and external S3 file storage</p>
+<p>Compare keyword, vector, and hybrid retrieval modes, tune high availability and autoscaling, reproduce the stack across projects, and inspect the pgvector storage layer</p>
 </li>
 </ul>
 </div>
@@ -616,7 +624,7 @@ agent-based AI workflows.</p>
 <div class="ulist">
 <ul>
 <li>
-<p>An OpenShift cluster with RHOAI 3.5 installed and the RHOAI operator installed</p>
+<p>An OpenShift cluster with RHOAI 3.6 (GA) installed and the RHOAI operator installed</p>
 </li>
 <li>
 <p>OGX enabled in the DSC (Module 02 covers this if it is not already enabled)</p>

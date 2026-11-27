@@ -204,6 +204,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -585,7 +593,7 @@
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p>In this module you will understand what OGX (Open GenAI Stack) is, how it replaces Llama Stack in Red Hat OpenShift AI 3.5, and how its operator, custom resource, and provider model fit together.</p>
+<p>In this module you will understand what OGX (Open GenAI Stack) is, how it replaces Llama Stack in Red Hat OpenShift AI 3.6, and how its operator, custom resource, and provider model fit together.</p>
 </div>
 <div class="paragraph">
 <p><strong>Learning objectives:</strong></p>
@@ -593,7 +601,7 @@
 <div class="ulist">
 <ul>
 <li>
-<p>Explain what OGX does and how it evolved from Llama Stack in RHOAI 3.5</p>
+<p>Explain what OGX does and how it evolved from Llama Stack in RHOAI 3.6</p>
 </li>
 <li>
 <p>Describe the OGX components: the OGX Operator, the OGXServer custom resource, the run.yaml configuration, and the provider model</p>
@@ -616,7 +624,7 @@ and retrieval services into a single stack that is optimized for retrieval-augme
 and agent-based AI workflows.</p>
 </div>
 <div class="paragraph">
-<p>Starting in OpenShift AI 3.5EA1, Llama Stack is fully renamed to OGX. Applications built with the
+<p>Starting with OpenShift AI 3.5 EA1 and generally available as of OpenShift AI 3.6, Llama Stack is fully renamed to OGX. Applications built with the
 Llama Stack Operator must be migrated: the API group changes from <code>llamastack.io</code> to <code>ogx.io</code>, and the
 <code>LlamaStackDistribution</code> kind becomes <code>OGXServer</code>.</p>
 </div>
@@ -708,7 +716,7 @@ Llama Stack Operator must be migrated: the API group changes from <code>llamasta
 </ul>
 </div>
 <div class="paragraph">
-<p>Support levels vary across the OGX API surface in RHOAI 3.5: the OpenAI-compatible <strong>Responses API</strong>
+<p>Support levels vary across the OGX API surface in RHOAI 3.6: the OpenAI-compatible <strong>Responses API</strong>
 (<code>/v1/responses</code>) is generally available, while several other APIs and providers are Technology
 Preview or Developer Preview. Check the API provider support table in the <strong>Working with OGX</strong>
 documentation before you build on a specific API.</p>

@@ -201,6 +201,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -599,7 +607,7 @@ and tracing views that observe it.</p>
 <p>Access a workbench IDE terminal from the OpenShift AI dashboard</p>
 </li>
 <li>
-<p>Tour the dashboard model surfaces and MLflow tracing that observe an agent stack, and explain how the External models view is enabled</p>
+<p>Tour the dashboard model surfaces and MLflow tracing that observe an agent stack, and explain why the External models view does not appear on RHOAI 3.6</p>
 </li>
 </ul>
 </div>
@@ -640,7 +648,7 @@ your workshop LLM endpoint, then export them in your terminal:</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">export LLM_ENDPOINT=$(oc get inferenceservice granite-asset-demo -n {guid}-{user} -o jsonpath='{.status.url}')/v1
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">export LLM_ENDPOINT=$(oc get inferenceservice granite-asset-demo -n abc123-user1 -o jsonpath='{.status.url}')/v1
 export LLM_API_KEY="NO_API_KEY"</code></pre>
 </div>
 </div>
@@ -728,6 +736,22 @@ in the OpenShift AI interface. Once the IDE opens, open its terminal and run:</p
 <a class="image" href="_images/01-workbench-terminal.png" target="blank"><img src="_images/01-workbench-terminal.png" alt="The workbench IDE terminal running git and python version checks" width="700"></a>
 </div>
 </div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+This illustration predates the staged RHOAI 3.6 workbench, so the tool
+versions it shows may differ from the live environment. The authoritative live
+verification of the workbench tooling is the pod-level <code>oc exec</code> check
+(git 2.52.0, Python 3.12.15) documented in <code>deploy/README.md</code>; a fresh
+IDE-terminal capture is pending a platform notebook-proxy fix.
+</td>
+</tr>
+</table>
+</div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
@@ -764,35 +788,33 @@ spans from the onboarding pattern would land.</p>
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-Registered external model endpoints appear under <strong>AI hub</strong> → <strong>Models</strong> →
-<strong>External models</strong>. That tab is gated behind a platform configuration flag:
-<code>spec.dashboardConfig.externalModels</code> set to <code>true</code> in the
-<code>OdhDashboardConfig</code> custom resource. Enabling it is a platform administrator
-task:
+Registered external model endpoints would appear under <strong>AI hub</strong> →
+<strong>Models</strong> → <strong>External models</strong>. That tab is gated behind the
+<code>spec.dashboardConfig.externalModels</code> key of the <code>OdhDashboardConfig</code> custom
+resource. On RHOAI 3.6 this key is deprecated and frozen in the
+<code>odhdashboardconfigs.opendatahub.io</code> CRD: it may remain only where it already
+existed, and adding it to an object that lacks it is rejected by API
+validation with this message:
 </td>
 </tr>
 </table>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">kind: OdhDashboardConfig
-spec:
-  dashboardConfig: <i class="conum" data-value="1"></i><b>(1)</b>
-    externalModels: true <i class="conum" data-value="2"></i><b>(2)</b></code></pre>
+<pre>no such key: externalModels evaluating rule: DEPRECATED: spec.dashboardConfig.externalModels must be removed or left unchanged</pre>
 </div>
 </div>
-<div class="colist arabic">
-<table>
-<tr>
-<td><i class="conum" data-value="1"></i><b>1</b></td>
-<td><strong>dashboardConfig</strong>: platform-level dashboard feature switches live here.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="2"></i><b>2</b></td>
-<td><strong>externalModels</strong>: enables the External models tab for viewing registered
-external model endpoints and their provider details.</td>
-</tr>
-</table>
+<div class="paragraph">
+<p>The CRD enforces the freeze with the CEL rule
+<code>!has(self.externalModels) || self.externalModels == oldSelf.externalModels</code>.
+Because adding the key is invalid, no patch path — an <code>oc</code> merge patch or a
+GitOps-rendered manifest — can surface the External models tab on RHOAI 3.6.</p>
+</div>
+<div class="paragraph">
+<p>On RHOAI 3.6 the successor surface for browsing registered external model and
+MCP-server endpoints is <strong>Gen AI studio</strong> → <strong>AI asset endpoints</strong>
+(<code>/gen-ai-studio/assets</code>), which lists the workshop&#8217;s <code>granite-asset-demo</code>
+endpoint as an AI asset with its status and access details.</p>
 </div>
 <div class="paragraph">
 <p>When the flag is not enabled — as in this workshop environment — the tab does
@@ -803,11 +825,10 @@ remain available.</p>
 <h3 id="_verify_2"><a class="anchor" href="#_verify_2"></a>Verify</h3>
 <div class="paragraph">
 <p>The workbench terminal prints git and Python versions, the <strong>Models</strong> page under
-<strong>AI hub</strong> shows the Catalog, Registry, and Deployments views (with the
-<strong>External models</strong> tab present only when the platform administrator has enabled
-<code>externalModels</code>), and MLflow shows a project with tracing experiments when the
-agent stack is deployed. You have now seen every surface an OpenCode deployment
-touches: endpoint, terminal, console view, and traces.</p>
+<strong>AI hub</strong> shows the Catalog, Registry, and Deployments views, and MLflow shows a
+project with tracing experiments when the agent stack is deployed. You have now
+seen every surface an OpenCode deployment touches: endpoint, terminal, console
+view, and traces.</p>
 </div>
 </div>
 </div>
@@ -827,7 +848,7 @@ touches: endpoint, terminal, console view, and traces.</p>
 <p>Opened a workbench IDE terminal and exercised the shell where a terminal-based agent operates</p>
 </li>
 <li>
-<p>Toured the AI hub model surfaces, the External models enablement flag, and the MLflow tracing surface</p>
+<p>Toured the AI hub model surfaces (Catalog, Registry, Deployments) and the MLflow tracing surface</p>
 </li>
 </ul>
 </div>
@@ -843,7 +864,7 @@ touches: endpoint, terminal, console view, and traces.</p>
 <p>Terminal-based agents depend on the same workbench IDE shells as notebooks</p>
 </li>
 <li>
-<p>Observability for the agent stack spans console model views and MLflow traces; the External models view is a platform-administrator flag</p>
+<p>Observability for the agent stack spans console model views and MLflow traces; the External models view stays unavailable on RHOAI 3.6 because its flag is deprecated and frozen</p>
 </li>
 </ul>
 </div>

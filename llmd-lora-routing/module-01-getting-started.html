@@ -201,6 +201,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -584,7 +592,7 @@
 <div class="paragraph">
 <p>In this module you will get a guided tour of LoRA-aware routing for llm-d in
 your workshop cluster: what the feature does, why adapter cold-load latency
-matters, and how the llm-d serving stack in RHOAI 3.5 makes adapter-aware
+matters, and how the llm-d serving stack in RHOAI 3.6 makes adapter-aware
 routing decisions.</p>
 </div>
 <div class="paragraph">
@@ -634,7 +642,7 @@ fall back to standard routing — adapter awareness improves placement, it never
 blocks a request.</p>
 </div>
 <div class="paragraph">
-<p>In Red Hat OpenShift AI 3.5 this capability is a <strong>Developer Preview</strong> feature,
+<p>In Red Hat OpenShift AI 3.6 this capability is a <strong>Developer Preview</strong> feature,
 announced in the Developer Preview features chapter of the release notes. It
 rides on <strong>Distributed Inference with llm-d</strong>, the serving stack that owns
 request placement decisions for every <code>LLMInferenceService</code> deployment.</p>
@@ -720,7 +728,7 @@ part of routing identity in the llm-d stack, not an afterthought.</p>
 optional <code>LLMInferenceServiceConfig</code> resources, labeled
 <code>opendatahub.io/config-type: router</code>, that add capabilities such as KV
 cache-aware scheduling, intelligent gateway routing, and circuit breaking on
-top of the default optimized routing. The dashboard only offers router
+top of the built-in default routing profile. The dashboard only offers router
 configurations whose <code>opendatahub.io/supported-topologies</code> annotation includes
 the deployment topology you selected.</p>
 </div>
@@ -732,7 +740,7 @@ the deployment topology you selected.</p>
 </td>
 <td class="content">
 <div class="paragraph">
-<p>The 3.5 documentation covers LoRA-aware routing as a release notes entry —
+<p>The 3.6 documentation covers LoRA-aware routing as a release notes entry —
 there is no dedicated configuration procedure chapter for it yet. This
 workshop is a guided tour of the documented routing surfaces it builds on, not
 a configuration guide.</p>
@@ -747,7 +755,7 @@ a configuration guide.</p>
 <p>In the RHOAI dashboard, under <strong>Settings</strong>, an administrator sees <strong>llm-d routing
 configurations</strong> and <strong>llm-d topology configurations</strong> pages. If you have
 administrator access, open both pages now and note the columns shown — you
-will walk the advanced routing workflow in the next module. The llm-d routing
+will walk the routing-layer exercises in the next module. The llm-d routing
 configurations page shows an empty state when no router
 <code>LLMInferenceServiceConfig</code> resources have been created yet:
 image::01-llmd-routing-configurations.png[The Settings &gt; llm-d routing configurations page in its empty state, with no router configurations created yet in the workshop cluster,link=self,window=blank,width=700]</p>
@@ -783,24 +791,33 @@ Both are fine for this guided tour.</p>
 </div>
 </li>
 <li>
-<p>List the <code>LLMInferenceServiceConfig</code> templates that back the llm-d topology
-and router options in the deployment wizard:</p>
+<p>List the <code>LLMInferenceServiceConfig</code> presets that back the llm-d deployment
+method in the wizard:</p>
 <div class="listingblock execute">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get llminferenceserviceconfig -A</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Expected output lists configurations such as topology presets and, if your
-administrator created them, router configs whose names often contain <code>router</code>.
-Note the namespaces they live in.</p>
+<p>Expected output lists the preset templates the llm-d method expands into:
+topology templates (single-node, multi-node, prefill/decode, CPU and
+accelerator variants), scheduler presets with their EPP configurations, and
+the router route. On this cluster the names begin with <code>v3-6-0-</code> and they live
+in the <code>redhat-ods-applications</code> namespace.</p>
 </div>
 </li>
 <li>
 <p>Open the RHOAI dashboard, navigate to <strong>Data Science Projects</strong>, select your
-project, and click <strong>Deploy model</strong>. In the wizard, expand <strong>Advanced routing</strong> and
-observe that a <strong>Default optimized routing</strong> option is pre-selected — that
-default is the built-in routing profile that LoRA-aware placement extends.</p>
+project, and click <strong>Deploy model</strong>. Advance through the wizard to the <strong>Model
+deployment</strong> step (whatever you enter on <strong>Model details</strong> does not affect this
+observation — you will cancel before deploying) and look at the <strong>Deployment
+method</strong> options: <strong>LLM inference service</strong>, <strong>LLM inference service with llm-d</strong>,
+and <strong>Inference service</strong>. The <strong>LLM inference service with llm-d</strong> method is
+where routing enters the wizard in this release — its description is the only
+place on the step that mentions routing, and it names the built-in routing
+profile that LoRA-aware placement extends: distributed serving with routing
+techniques such as cache-aware routing and disaggregated prefill and decode.
+Click <strong>Cancel</strong> to leave the wizard without creating a deployment.</p>
 </li>
 </ol>
 </div>
@@ -822,9 +839,44 @@ your workshop facilitator before continuing.</p>
 </div>
 <div class="sect2">
 <h3 id="_verify_3"><a class="anchor" href="#_verify_3"></a>Verify</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>The <strong>LLM inference service with llm-d</strong> method radio exists on the <strong>Model
+deployment</strong> step of the wizard, with a description that calls out distributed
+serving, cache-aware routing, and disaggregated prefill and decode — and you
+clicked <strong>Cancel</strong>, so no deployment was created.</p>
+</li>
+<li>
+<p>The read-only <code>oc</code> commands in this exercise ran without errors.</p>
+</li>
+</ul>
+</div>
 <div class="paragraph">
-<p>You ran read-only <code>oc</code> commands without errors and located the Advanced routing
-section of the model deployment wizard.</p>
+<p>Now check the routing stack behind that wizard method. The workload-level
+conditions of the workshop&#8217;s llm-d model tell you the llm-d serving stack is
+assembled — these are the conditions to check, independent of the top-level
+<code>READY</code> state, which can read <code>Unknown</code> while platform validation settles:</p>
+</div>
+<div class="paragraph">
+<p>+</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get llminferenceservice maas-llmd-demo -n abc123-user1 -o jsonpath='{range .status.conditions[*]}{.type}={.status}{"\n"}{end}'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>+
+Expected output includes <code>MainWorkloadReady=True</code>, <code>RouterReady=True</code>, and
+<code>SchedulerWorkloadReady=True</code>. If the top-level <code>Ready</code> condition reads
+<code>Unknown</code>, that is platform-level validation noise — the workload conditions
+above are the signal.</p>
+</div>
+<div class="paragraph">
+<p>Finally, review the <code>oc get llminferenceserviceconfig -A</code> listing from step 2
+once more: that router/preset <code>LLMInferenceServiceConfig</code> surface is what the
+wizard&#8217;s llm-d method expands into when a model is deployed.</p>
 </div>
 </div>
 </div>
@@ -860,7 +912,7 @@ section of the model deployment wizard.</p>
 <p><code>target_model_name</code> alongside <code>model_name</code> is the observable trace of adapter-aware placement</p>
 </li>
 <li>
-<p>Router configurations are optional enhancements layered on top of default optimized routing</p>
+<p>Router configurations are optional enhancements layered on top of the built-in default routing profile</p>
 </li>
 </ul>
 </div>
@@ -868,7 +920,7 @@ section of the model deployment wizard.</p>
 <p><strong>Next steps:</strong></p>
 </div>
 <div class="paragraph">
-<p>Continue to the next module, where you walk the advanced routing workflow and
+<p>Continue to the next module, where you inspect the routing layer hands-on and
 observe the request metrics that reveal adapter-targeted routing.</p>
 </div>
 </div>

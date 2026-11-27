@@ -204,6 +204,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -624,7 +632,8 @@ evaluation data as it works.</p>
 <ul>
 <li>
 <p><strong>EvalHub Server</strong> — a REST API service that handles evaluation workflows, job
-orchestration, and provider management, with PostgreSQL storage.</p>
+orchestration, and provider management, with SQLite storage (the proven-Ready
+lightweight path; PostgreSQL is the documented option for external databases).</p>
 </li>
 <li>
 <p><strong>EvalHub SDK and CLI</strong> — a Python client library and the <code>evalhub</code> command-line
@@ -770,15 +779,14 @@ metadata:
 spec:
   replicas: 1
   database:
-    type: postgresql
-    secret: evalhub-db-credentials
+    type: sqlite
   providers:
     - lm-evaluation-harness
     - garak
   mcp:
     enabled: true
     transport: http
-    port: 3001
+    authSecret: evalhub-mcp-auth
 EOF
 oc get evalhub -n $EVALHUB_NS</code></pre>
 </div>
@@ -795,32 +803,72 @@ oc get evalhub -n $EVALHUB_NS</code></pre>
 evalhub   3m</pre>
 </div>
 </div>
+<div class="paragraph">
+<p>+</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>This CR matches the live, operator-managed deployment:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>database.type</code> is <code>sqlite</code> — the proven-Ready lightweight path. PostgreSQL
+remains a documented option, but the operator does not deploy a database: a
+PostgreSQL configuration requires a pre-composed <code>db-url</code> key in the referenced
+secret, and without it the server pod fails with <code>FailedMount</code>.</p>
+</li>
+<li>
+<p><code>spec.mcp.authSecret</code> names the <code>evalhub-mcp-auth</code> Secret (created in the
+hands-on module, Exercise 1) whose <code>token</code> key holds a credential the EvalHub
+API accepts. Without it the evalhub-mcp server falls back to its own
+service-account token, which the API rejects with <code>401 Unauthorized</code>.</p>
+</li>
+<li>
+<p>There is no <code>spec.mcp.port</code> — the operator drops the applied port when it
+defaults the resource. Setting a port is not meaningful configuration.</p>
+</li>
+</ul>
+</div>
+</td>
+</tr>
+</table>
+</div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
 <p>List the EvalHub pods and show each container&#8217;s readiness. The MCP server runs
-as a container alongside the EvalHub server when <code>spec.mcp.enabled</code> is <code>true</code>:</p>
+as its own deployment alongside the EvalHub API server when <code>spec.mcp.enabled</code>
+is <code>true</code> (both carry the <code>app=eval-hub</code> label):</p>
 <div class="listingblock execute">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get pods -n $EVALHUB_NS -l app=eval-hub -o jsonpath='{range .items[*]}{.metadata.name}{"\t"}{range .status.containerStatuses[*]}{.name}={.ready}{" "}{end}{"\n"}{end}'</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Expected output shows a <code>Running</code> pod with its containers set to <code>true</code>, including
-an <code>mcp</code> container:</p>
+<p>Expected output shows two <code>Running</code> deployments at <code>2/2</code>, the EvalHub API server
+and the evalhub-mcp deployment, each with its containers ready:</p>
 </div>
 </li>
 </ol>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>evalhub-7b9f4c6d88-x2k4p  server=true mcp=true</pre>
+<pre>evalhub-5b848bc459-2mbxz      evalhub=true kube-rbac-proxy=true
+evalhub-mcp-d6b9f644d-snfkd   evalhub-mcp=true kube-rbac-proxy=true</pre>
 </div>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>Check the routes that expose the EvalHub REST API and the MCP server:</p>
+<p>Check the routes that expose the EvalHub REST API and the MCP server. The
+TrustyAI Operator creates both routes — you do not expose the services yourself:</p>
 <div class="listingblock execute">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get routes -n $EVALHUB_NS</code></pre>
@@ -828,25 +876,68 @@ an <code>mcp</code> container:</p>
 </div>
 <div class="paragraph">
 <p>Expected output shows <code>evalhub</code> and <code>evalhub-mcp</code> routes, each with a
-<code>HOST/PORT</code> ending in <code>apps.cluster.example.com</code> and a <code>TERMINATION</code> value:</p>
+<code>HOST/PORT</code> ending in <code>apps.cluster.example.com</code> and TLS
+<code>reencrypt/Redirect</code> termination:</p>
 </div>
 </li>
 </ol>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>NAME          HOST/PORT                                           SERVICES   PORT   TERMINATION
-evalhub       evalhub-evalhub.apps.cluster.example.com            evalhub    8080   edge
-evalhub-mcp   evalhub-mcp-evalhub.apps.cluster.example.com        evalhub    3001   edge</pre>
+<pre>NAME          HOST/PORT                                            SERVICES      PORT    TERMINATION
+evalhub       evalhub-evalhub.apps.cluster.example.com             evalhub       https   reencrypt/Redirect
+evalhub-mcp   evalhub-mcp-evalhub.apps.cluster.example.com         evalhub-mcp   https   reencrypt/Redirect</pre>
+</div>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Inspect the live, operator-defaulted resource to see what the applied CR
+becomes after reconcile:</p>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get evalhub evalhub -n $EVALHUB_NS -o yaml</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Expected output (excerpt) shows the operator defaults the applied manifest —
+13 default collections and <code>tenancy: multi</code> appear without being specified, and
+<code>spec.mcp</code> is reduced to <code>authSecret</code>, <code>enabled</code>, <code>resources</code>, and <code>transport</code>:</p>
+</div>
+</li>
+</ol>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>metadata:
+  generation: 2
+spec:
+  collections:
+    - leaderboard-v2
+    # … 11 more default collections …
+    - coding-v1
+  database:
+    type: sqlite
+  mcp:
+    authSecret: evalhub-mcp-auth
+    enabled: true
+    resources: {}
+    transport: http
+  tenancy: multi
+status:
+  phase: Ready</pre>
 </div>
 </div>
 <div class="sect2">
 <h3 id="_verify_2"><a class="anchor" href="#_verify_2"></a>Verify</h3>
 <div class="paragraph">
-<p>The <code>oc get evalhub</code> command lists a resource, the EvalHub pod reports its
-containers ready, and both the <code>evalhub</code> and <code>evalhub-mcp</code> routes exist. If the
-<code>EvalHub</code> resource is missing, the TrustyAI Operator has not deployed the feature
-yet and you cannot continue to the hands-on module — ask your facilitator.</p>
+<p>The <code>oc get evalhub</code> command lists a resource, both EvalHub deployments report
+their containers ready, the operator-created <code>evalhub</code> and <code>evalhub-mcp</code> routes
+exist with <code>reencrypt/Redirect</code> termination, and the live resource shows the
+operator-defaulted spec (13 collections, <code>tenancy: multi</code>, <code>spec.mcp</code> without a
+port). If the <code>EvalHub</code> resource is missing, the TrustyAI Operator has not
+deployed the feature yet and you cannot continue to the hands-on module — ask
+your facilitator.</p>
 </div>
 </div>
 </div>
@@ -879,7 +970,7 @@ yet and you cannot continue to the hands-on module — ask your facilitator.</p>
 <p>Agent metadata on providers, benchmarks, and collections lets an agent discover, execute, and interpret evaluations without hard-coded provider lists</p>
 </li>
 <li>
-<p>The MCP server runs as a container beside the EvalHub server and is exposed through its own route</p>
+<p>The MCP server runs as its own deployment beside the EvalHub API server; the TrustyAI Operator creates both routes with <code>reencrypt/Redirect</code> termination and defaults the <code>EvalHub</code> CR (13 default collections, <code>tenancy: multi</code>, no <code>spec.mcp.port</code>)</p>
 </li>
 <li>
 <p>Job state transitions (<code>pending</code> to <code>running</code> to <code>completed</code>) are the backbone of every tool-calling evaluation</p>

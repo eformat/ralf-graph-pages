@@ -204,6 +204,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -605,7 +613,7 @@ working correctly with real API calls.</p>
 <p>Verify the tenant namespace, <code>MaasTenantConfig</code>, and per-tenant <code>maas-api</code> deployment</p>
 </li>
 <li>
-<p>Prove tenant isolation: unauthenticated requests are rejected and cross-tenant API keys return <code>404</code></p>
+<p>Prove tenant isolation: unauthenticated requests are rejected and cross-tenant API keys are denied with <code>403</code></p>
 </li>
 </ul>
 </div>
@@ -1076,10 +1084,15 @@ curl -sSk -o /dev/null -w "%{http_code}\n" \
 </div>
 <div class="paragraph">
 <p>Replace <code>&lt;tenant_api_key&gt;</code> with an API key created in the additional tenant.
-The expected response code is <code>404</code>, confirming that cross-tenant access is
-blocked. The <code>404</code> response — rather than <code>403</code> — prevents information
-disclosure about models in other tenants: each tenant&#8217;s <code>maas-api</code> instance
-queries only its own tenant&#8217;s API keys, so the key is simply not found.</p>
+The expected response code is <code>403</code>: the gateway&#8217;s AuthPolicy denies the
+request, confirming that cross-tenant access is blocked. The tenant-scoped
+lookup is real and is the isolation mechanism: each gateway&#8217;s AuthPolicy
+validates <code>sk-oai</code> API keys only against its own tenant&#8217;s <code>maas-api</code>
+instance, at an internal key-validation endpoint that reports <code>key not
+found</code> for a key minted in another tenant. The gateway masks that internal
+result and returns the same client-facing <code>403</code> as for any other invalid
+key, so the response discloses nothing about models or API keys in other
+tenants.</p>
 </div>
 </li>
 </ol>
@@ -1122,7 +1135,7 @@ returns HTTP 200 and the tenant&#8217;s models.</p>
 <p>The unauthenticated request returns <code>401</code> or <code>403</code>.</p>
 </li>
 <li>
-<p>The cross-tenant API key test against the default gateway returns <code>404</code>,
+<p>The cross-tenant API key test against the default gateway returns <code>403</code>,
 confirming isolation.</p>
 </li>
 </ul>
@@ -1149,7 +1162,7 @@ learn how to delete it safely.</p>
 <p>Applied an <code>AITenant</code> custom resource in <code>ai-tenants</code> and watched the controller bootstrap the tenant namespace, <code>MaasTenantConfig</code>, per-tenant <code>maas-api</code>, AuthPolicy, and RBAC Roles</p>
 </li>
 <li>
-<p>Proved tenant isolation with real API calls: tenant gateway access returned 200, unauthenticated requests were rejected, and a cross-tenant API key returned <code>404</code></p>
+<p>Proved tenant isolation with real API calls: tenant gateway access returned 200, unauthenticated requests were rejected, and a cross-tenant API key returned <code>403</code></p>
 </li>
 </ul>
 </div>
@@ -1165,7 +1178,7 @@ learn how to delete it safely.</p>
 <p>The admission webhook enforces placement (<code>ai-tenants</code> only) and Gateway uniqueness, so common mistakes fail fast with a clear rejection</p>
 </li>
 <li>
-<p>Cross-tenant key use returns <code>404</code> instead of <code>403</code>, deliberately preventing information disclosure about other tenants' models</p>
+<p>Cross-tenant key use is denied with <code>403</code>: the key is validated only against the tenant&#8217;s own <code>maas-api</code> ("key not found" at the internal validation endpoint), and the gateway returns one uniform deny that discloses nothing about other tenants' models</p>
 </li>
 </ul>
 </div>

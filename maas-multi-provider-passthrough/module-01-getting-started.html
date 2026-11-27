@@ -201,6 +201,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -1199,10 +1207,18 @@ format.</p>
 <div class="paragraph">
 <p><strong>Next steps:</strong></p>
 </div>
-<div class="paragraph">
-<p>Continue to the next module, where you create the <code>ExternalModel</code> with
-<code>apiFormat: messages</code>, publish it to a MaaS subscription, and send a native
-Anthropic Messages request through the gateway.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Continue to <a href="module-02-hands-on.html" class="xref page">Hands-on Exercise</a>, where you create the <code>ExternalModel</code> with <code>apiFormat: messages</code>, publish it to a MaaS subscription, and send a native Anthropic Messages request through the gateway</p>
+</li>
+<li>
+<p>Inspect the <code>Service</code>, <code>ServiceEntry</code>, and <code>DestinationRule</code> resources the <code>ExternalProvider</code> controller created in your model namespace — you will rely on them when troubleshooting routing in the next module</p>
+</li>
+<li>
+<p>Check which API formats your external provider supports — the passthrough decision matrix in the <a href="conclusion.html" class="xref page">conclusion</a> shows which <code>apiFormat</code> values activate passthrough instead of translation</p>
+</li>
+</ul>
 </div>
 </div>
 </div>

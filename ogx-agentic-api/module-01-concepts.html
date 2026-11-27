@@ -204,6 +204,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -586,7 +594,7 @@
 <div class="sectionbody">
 <div class="paragraph">
 <p>In this module you will learn what the OGX-native agentic API surface is, which endpoints make it
-up, and how it fits into Red Hat OpenShift AI 3.5.</p>
+up, and how it fits into Red Hat OpenShift AI 3.6.</p>
 </div>
 <div class="paragraph">
 <p><strong>Learning objectives:</strong></p>
@@ -613,7 +621,9 @@ up, and how it fits into Red Hat OpenShift AI 3.5.</p>
 <td class="content">
 This feature is a <strong>Technology Preview</strong>. Technology Preview features are not supported with
 Red Hat production service-level agreements (SLAs) and might not be functionally complete. The
-endpoints, parameters, and support levels shown in this module may change between releases.
+endpoints, parameters, and support levels shown in this module may change between releases. On the
+workshop build (OGX 1.4.2+rhaiv.0), availability differs further still from the documented target
+state — the build-availability matrix in this module maps exactly what runs today.
 </td>
 </tr>
 </table>
@@ -658,7 +668,8 @@ deprecated in favor of the OpenAI-compatible Chat Completions and Completions AP
 <td class="tableblock halign-left valign-top"><p class="tableblock">OpenAI-compatible APIs</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>/v1/responses</code>, <code>/v1/conversations</code>, <code>/v1/chat/completions</code>, <code>/v1/models</code>, <code>/v1/files</code>,
 <code>/v1/vector_stores</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Reuses existing OpenAI SDKs and tools without changing client code. The <strong>Responses API</strong>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Reuses existing OpenAI software development kits (SDKs) and tools without changing client code.
+The <strong>Responses API</strong>
 generates model outputs by combining inference, file search, and tool calling in one endpoint.
 The <strong>Conversations API</strong> manages server-side conversation state for multi-turn, context-aware
 chats.</p></td>
@@ -669,7 +680,8 @@ chats.</p></td>
 <p>The agentic surface is built around the Responses and Conversations APIs: the Responses API
 orchestrates inference and retrieval, while the Conversations API stores message history so each
 turn can reference context from all previous turns without manually passing
-<code>previous_response_id</code>.</p>
+<code>previous_response_id</code>. Keep this target state in mind as the feature&#8217;s identity — the matrix at
+the end of this exercise shows which parts of it actually run on the workshop build today.</p>
 </div>
 <div class="admonitionblock important">
 <table>
@@ -717,6 +729,138 @@ OGX Operator is installed on the cluster.</p>
 <p>With the two API layers mapped out, you are ready to inspect the OGX resources inside your own
 project.</p>
 </div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_availability_on_this_build_ogx_1_4_2rhaiv_0"><a class="anchor" href="#_availability_on_this_build_ogx_1_4_2rhaiv_0"></a>Availability on this build (OGX 1.4.2+rhaiv.0)</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The tables above describe the documented target state. This workshop runs against a specific
+Technology Preview build: the shared workshop OGX server <code>aml-ogx</code> (project <code>autorag-ml-demo</code>,
+phase <code>Ready</code>, version <code>1.4.2+rhaiv.0</code>), exposing models <code>vllm-inference/aml-llama32-3b</code> (chat)
+and <code>vllm-embedding/aml-bge-m3</code> (embedding) behind a vLLM (virtual Large Language Model) backend.
+Every row in the matrix below
+was verified live against that server. The hands-on modules teach the <strong>Available</strong> rows and turn
+the gated rows into inspection and error-reading exercises rather than promising runnable flows.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<caption class="title">Table 1. Build-availability matrix: OGX 1.4.2+rhaiv.0</caption>
+<colgroup>
+<col style="width: 22.2222%;">
+<col style="width: 22.2222%;">
+<col style="width: 11.1111%;">
+<col style="width: 44.4445%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Surface</th>
+<th class="tableblock halign-left valign-top">Endpoints</th>
+<th class="tableblock halign-left valign-top">Status</th>
+<th class="tableblock halign-left valign-top">What to expect on this build</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Chat Completions</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/v1/chat/completions</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Available</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Works end to end through the vLLM backend (<code>vllm-0.31.0+rhaiv.8</code>) with model
+<code>vllm-inference/aml-llama32-3b</code>. History is passed explicitly in the <code>messages</code> array.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Conversations CRUD (create, read, update, delete) and items</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/v1/conversations</code>, <code>/v1/conversations/{id}/items</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Available (gotcha)</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Create, list, get, and delete work. Items persist ONLY when the body uses the OpenAI
+array-wrapped shape <code>{"items":[{"type":"message","role":"&#8230;&#8203;","content":[{"type":"input_text","text":"&#8230;&#8203;"}]}]}</code>.
+Flat single-item bodies return <code>200 OK</code> and silently store nothing — a silent no-op. Always
+confirm writes with a subsequent <code>items.list()</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Responses API</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/v1/responses</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Absent</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>404 Not Found</code>; the route is also absent from the published <code>/openapi.json</code> (43 paths).
+Enabling <code>apis.responses</code> in the base server config crash-loops the server
+(<code>KeyError: Api.responses</code>) — do not enable it on this build.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Files API</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/v1/files</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Absent</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Same gate as Responses: enabling <code>apis.files</code> in the base config crash-loops the server
+(<code>KeyError: Api.files</code>).</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Embeddings</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/v1/embeddings</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Not runnable</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Both configured models report <code>model_type: llm</code> — the embedding model (<code>aml-bge-m3</code>) is
+mis-typed on this build, so no embedding-typed model exists to serve the route.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Vector stores, <code>file_search</code>, citations</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/v1/vector_stores</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Not runnable</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>POST /v1/vector_stores</code> fails with <code>400 "Model 'None' not found"</code>; with no embedding-typed
+model the store-creation step can never succeed, so the <code>file_search</code> and <code>file_citation</code> flow
+cannot start.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Vector IO</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/v1/vector-io/insert</code>, <code>/v1/vector-io/query</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Registered, not runnable</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The routes are live and validate the request schema, but every call fails with
+<code>400 "Vector_store '&#8230;&#8203;' not found"</code>: no vector store can exist on this build (see Vector stores
+above), so even pre-computed vectors cannot be used end to end.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Rerank</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/v1alpha/inference/rerank</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Degraded</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The route and request validation work (the required fields are <code>model</code>, <code>query</code>, <code>items</code> — not
+<code>documents</code>), but scoring fails with <code>400 "Model '&#8230;&#8203;' is of type 'llm' rather than the expected
+type 'rerank'"</code> for both models: no rerank-typed model exists on this build.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Tool Runtime</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/v1/tool-runtime</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Absent (target state)</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>404</code> live, and the route is absent from the published OpenAPI spec. Treat Tool Runtime as
+target state on this build.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Tool listing and registration</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/v1/admin/tools</code>, <code>/v1/tools</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Degraded / absent</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>GET /v1/admin/tools</code> returns <code>500</code> (internal error); <code>GET /v1/tools</code> returns <code>404</code>. No tool
+registration route is exposed over HTTP.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Connectors</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/v1alpha/admin/connectors</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Read-only</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Listing returns <code>200</code> (an empty registry) and get-by-id returns a structured <code>404</code>; <code>POST</code>
+returns <code>405 Method Not Allowed</code>, so connectors are configuration-side only on this build.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Discovery aids</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/v1alpha/admin/providers</code>, <code>/v1alpha/admin/inspect/routes</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Available</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>providers</code> lists the configured providers (including <code>pgvector</code>); <code>inspect/routes</code> prints the
+internal route table. Note: <code>inspect/routes</code> is neither the OpenAPI spec nor an availability
+guarantee — <code>/v1/responses*</code> appears in it yet still returns <code>404</code>.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>How to read the matrix: <a href="module-02-hands-on.html" class="xref page">Module 02</a> teaches the <strong>Available</strong> rows —
+chat completions and the Conversations API. <a href="module-03-advanced.html" class="xref page">Module 03</a> converts the
+gated rows into live inspection (<code>GET /v1alpha/admin/providers</code>, <code>/v1alpha/admin/inspect/routes</code>,
+<code>/v1alpha/admin/connectors</code>) and error-signature literacy, and documents the gated surfaces as
+target state. If you evaluate OGX on a different build, re-run the matrix there: availability is a
+property of the build, not of the API.</p>
 </div>
 </div>
 </div>
@@ -778,8 +922,10 @@ oc get datasciencecluster default-dsc -o jsonpath='{.spec.components.ogx.managem
 </div>
 </div>
 <div class="paragraph">
-<p>At this stage the list is empty — no OGX server exists in your project yet. In the next module you
-deploy one.</p>
+<p>At this stage the list is empty — no OGX server exists in your project. The workshop&#8217;s hands-on
+modules connect to the shared OGX server <code>aml-ogx</code> (project <code>autorag-ml-demo</code>, phase <code>Ready</code>)
+instead of deploying one; to stage your own server for a self-hosted run, see the optional
+appendix in the feature tree at <code>deploy/README.md</code> ("Running your own OGXServer").</p>
 </div>
 <div class="sect2">
 <h3 id="_verify_2"><a class="anchor" href="#_verify_2"></a>Verify</h3>
@@ -792,7 +938,7 @@ deploy one.</p>
 <p>The <code>ogx</code> component reports <code>managementState: Managed</code> on the DataScienceCluster.</p>
 </li>
 <li>
-<p>The OGXServer list is empty, ready for deployment in Module 02.</p>
+<p>The OGXServer list is empty in your project — Module 02 connects to the shared <code>aml-ogx</code> server.</p>
 </li>
 </ul>
 </div>
@@ -814,6 +960,9 @@ deploy one.</p>
 <p>Distinguished the native OGX APIs (Tool Runtime, Vector_IO) from the OpenAI-compatible surface (Responses, Conversations)</p>
 </li>
 <li>
+<p>Compared that target surface with the build-availability matrix for OGX 1.4.2+rhaiv.0</p>
+</li>
+<li>
 <p>Verified the OGX component and OGXServer CRD in your cluster</p>
 </li>
 </ul>
@@ -830,7 +979,10 @@ deploy one.</p>
 <p>The OpenAI-compatible surface lets you reuse OpenAI SDKs by pointing <code>base_url</code> at the OGX route with a <code>/v1</code> suffix</p>
 </li>
 <li>
-<p>The Responses and Conversations APIs are the backbone of agentic workflows in OGX</p>
+<p>The Responses and Conversations APIs are the backbone of the agentic workflows OGX targets — on this build Conversations is available today, while Responses and Files are gated; the availability matrix is the source of truth</p>
+</li>
+<li>
+<p>Availability is a property of the build, not of the API: re-check the matrix when you evaluate OGX on a different version</p>
 </li>
 </ul>
 </div>
@@ -838,8 +990,8 @@ deploy one.</p>
 <p><strong>Next steps:</strong></p>
 </div>
 <div class="paragraph">
-<p>Continue to Module 02, where you deploy your own OGXServer and drive it with the OpenAI-compatible
-Responses and Conversations APIs.</p>
+<p>Continue to Module 02, where you connect to the shared workshop OGX server <code>aml-ogx</code>, verify it
+reports the <code>Ready</code> phase, and drive it with chat completions and the Conversations API.</p>
 </div>
 </div>
 </div>

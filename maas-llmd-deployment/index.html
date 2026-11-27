@@ -200,6 +200,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -597,7 +605,7 @@ this workshop may change between releases.
 </div>
 <div class="paragraph">
 <p>This workshop covers the <strong>MaaS deployment/routing path for Distributed Inference
-with llm-d</strong> in Red Hat OpenShift AI 3.5. Models deployed for MaaS use the
+with llm-d</strong> in Red Hat OpenShift AI 3.6. Models deployed for MaaS use the
 <code>LLMInferenceService</code> architecture and integrate with the MaaS gateway for
 subscription-based quota enforcement. Publishing a model creates a
 <code>MaaSModelRef</code> that registers it with MaaS, and access is granted through
@@ -609,7 +617,7 @@ subscription-based quota enforcement. Publishing a model creates a
 <div class="ulist">
 <ul>
 <li>
-<p>How MaaS and the llm-d distributed inference path fit together in RHOAI 3.5</p>
+<p>How MaaS and the llm-d distributed inference path fit together in RHOAI 3.6</p>
 </li>
 <li>
 <p>Verify the MaaS custom resources and the llm-d inference gateway on your cluster</p>
@@ -621,7 +629,7 @@ subscription-based quota enforcement. Publishing a model creates a
 <p>Govern access with <code>MaaSSubscription</code> and <code>MaaSAuthPolicy</code> custom resources</p>
 </li>
 <li>
-<p>Call the model through the MaaS gateway with OpenAI-compatible body-based routing and test token rate limits</p>
+<p>Call the model through the MaaS gateway with OpenAI-compatible requests to the model URL path and test token rate limits</p>
 </li>
 </ul>
 </div>
@@ -633,14 +641,15 @@ subscription-based quota enforcement. Publishing a model creates a
 <div class="ulist">
 <ul>
 <li>
-<p>An OpenShift cluster running version 4.19.9 or later with RHOAI 3.5 installed</p>
+<p>An OpenShift cluster running version 4.19.9 or later with RHOAI 3.6 installed</p>
 </li>
 <li>
 <p>Distributed inference with llm-d enabled by your cluster administrator, including the
 Gateway API with the <code>openshift-ai-inference</code> Gateway and authentication for LLM Inference Service</p>
 </li>
 <li>
-<p>Models-as-a-Service enabled: <code>kserve.modelsAsService</code> set to <code>Managed</code> in the DataScienceCluster
+<p>Models-as-a-Service enabled: the <code>aigateway</code> component set to <code>Managed</code> in the
+DataScienceCluster (the <code>ModelsAsAServiceReady</code> status condition shows <code>True</code>)
 and the MaaS dashboard flags enabled in the OdhDashboardConfig</p>
 </li>
 <li>

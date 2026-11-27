@@ -204,6 +204,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -622,10 +630,10 @@ AI pipelines</strong> documentation.</p>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>Create a file named <code>compile_example.py</code>:</p>
-</li>
-</ol>
-</div>
+<p>Create a file named <code>compile_example.py</code>. The <code>TokenAuthentication</code> values are
+the same credentials you gathered in Module 02 (from the <strong>Copy login command</strong>
+page); they are embedded in the compiled pipeline file, so recompile with fresh
+values if a run fails with an authentication error:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">from kfp import dsl
@@ -636,10 +644,12 @@ AI pipelines</strong> documentation.</p>
 )
 def ray_fn():
     import ray
-    from codeflare_sdk import Cluster, ClusterConfiguration, generate_cert
+    from codeflare_sdk import Cluster, ClusterConfiguration, TokenAuthentication, generate_cert
+    auth = TokenAuthentication(token="%token%", server="%server%", skip_tls=False)
+    auth.login()
     cluster = Cluster(
         ClusterConfiguration(
-            namespace="my_project",
+            namespace="kuberay-workshop",
             name="raytest",
             num_workers=1,
             head_cpu_requests="500m",
@@ -648,7 +658,7 @@ def ray_fn():
             worker_memory_limits=1,
             worker_extended_resource_requests={"nvidia.com/gpu": 1},         <2>
             image="quay.io/modh/ray:2.47.1-py311-cu121",
-            local_queue="local_queue_name",
+            local_queue="workshop-lq",
         )
     )
     print(cluster.status())
@@ -712,24 +722,19 @@ if __name__ == '__main__':
 </tr>
 <tr>
 <td><i class="conum" data-value="5"></i><b>5</b></td>
-<td>Compiles the pipeline into a YAML file that you import in the OpenShift AI dashboard.
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>Compile the Python file; this creates a YAML file you can import:</p>
-</li>
-</ol>
-</div></td>
+<td>Compiles the pipeline into a YAML file that you import in the OpenShift AI dashboard.</td>
 </tr>
 </table>
 </div>
+</li>
+<li>
+<p>Compile the Python file; this creates a YAML file you can import:</p>
 <div class="listingblock execute">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">python compile_example.py</code></pre>
 </div>
 </div>
-<div class="olist arabic">
-<ol class="arabic">
+</li>
 <li>
 <p>In the OpenShift AI dashboard, import <code>compiled-example.yaml</code> as a pipeline and
 schedule a pipeline run.</p>
@@ -759,8 +764,13 @@ stray cluster before rerunning.
 <div class="paragraph">
 <p>The YAML file is created, the pipeline import succeeds, and the pipeline run
 completes with a <strong>Succeeded</strong> status in the <strong>Runs</strong> list. The run logs show
-<code>Ray cluster is up and running: True</code>, and <code>oc get rayclusters -n abc123-user1</code>
-returns no clusters — the Ray cluster was torn down at the end of the run.</p>
+<code>Ray cluster is up and running: True</code>, and
+<code>oc get rayclusters -n kuberay-workshop</code> returns no clusters — the Ray cluster
+was torn down at the end of the run.</p>
+</div>
+<div class="paragraph">
+<p>With the pipeline run complete, next you watch the distributed workload
+metrics that the run generated.</p>
 </div>
 </div>
 </div>
@@ -820,6 +830,10 @@ are not included in the distributed workloads metrics.
 project; on the <strong>Distributed workload status</strong> tab, your workload appears with a
 status and a latest message.</p>
 </div>
+<div class="paragraph">
+<p>The metrics tell you when a workload is stuck; the next exercise shows how to
+diagnose why.</p>
+</div>
 </div>
 </div>
 </div>
@@ -833,26 +847,24 @@ or a missing resource flavor.</p>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>In the <a href="https://console-openshift-console.apps.cluster.example.com" class="bare">https://console-openshift-console.apps.cluster.example.com</a>, select your project from the <strong>Project</strong> list.</p>
+<p>In the <a href="https://console-openshift-console.apps.cluster.example.com" class="bare">https://console-openshift-console.apps.cluster.example.com</a>, select the <code>kuberay-workshop</code> project from the
+<strong>Project</strong> list — the project where this module&#8217;s pipeline creates its Ray
+cluster.</p>
 </li>
 <li>
 <p>Check the workload resource: click <strong>Search</strong>, and from the <strong>Resources</strong> list select
 <strong>Workload</strong>. Select the workload created with the Ray cluster resource and click the
 <strong>YAML</strong> tab. Check <code>status.conditions.message</code>, which explains the suspended state:</p>
-</li>
-</ol>
-</div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">status:
   conditions:
   - lastTransitionTime: '2024-05-29T13:05:09Z'
-    message: 'couldn''t assign flavors to pod set small-group-jobtest12: insufficient
+    message: 'couldn''t assign flavors to pod set small-group-raytest: insufficient
       quota for nvidia.com/gpu in flavor default-flavor in ClusterQueue'</code></pre>
 </div>
 </div>
-<div class="olist arabic">
-<ol class="arabic">
+</li>
 <li>
 <p>Check the Ray cluster resource: click <strong>Search</strong>, from the <strong>Resources</strong> list select
 <strong>RayCluster</strong>, select the cluster, and click the <strong>YAML</strong> tab. Check
@@ -873,7 +885,7 @@ defined for the project.</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get rayclusters,workloads,clusterqueues -n user1</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get rayclusters,workloads,clusterqueues -n kuberay-workshop</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -973,9 +985,18 @@ Suspended toward <code>Active</code> and the pods are created.</p>
 <div class="paragraph">
 <p><strong>Next steps:</strong></p>
 </div>
-<div class="paragraph">
-<p>You have covered the full Ray workflow — continue to the conclusion for the
-documentation links and next topics.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Recap what you covered and where KubeRay fits in the distributed workloads stack (Conclusion)</p>
+</li>
+<li>
+<p>Follow the RHOAI 3.6 distributed workloads documentation links (Conclusion)</p>
+</li>
+<li>
+<p>Continue with a related workshop such as Kueue or Kubeflow Trainer v2 (Conclusion)</p>
+</li>
+</ul>
 </div>
 </div>
 </div>

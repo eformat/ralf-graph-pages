@@ -203,6 +203,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -600,9 +608,53 @@
 <p><a href="module-02-hands-on.html" class="xref page">Module 02: Responses and Conversations hands-on</a></p>
 </li>
 <li>
-<p><a href="module-03-advanced.html" class="xref page">Module 03: RAG, citations, and advanced APIs</a></p>
+<p><a href="module-03-advanced.html" class="xref page">Module 03: Advanced APIs — what runs on this build</a></p>
 </li>
 </ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_what_you_could_not_run_on_this_build_and_why"><a class="anchor" href="#_what_you_could_not_run_on_this_build_and_why"></a>What you could not run on this build — and why</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This workshop is honest about Technology Preview limits. On the workshop build (OGX
+1.4.2+rhaiv.0), several surfaces described in the documentation are not runnable, and the modules
+gate them accordingly instead of teaching flows that fail. The full, evidence-backed table is the
+build-availability matrix in <a href="module-01-concepts.html" class="xref page">Module 01</a>; the short version:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Responses API and Files</strong> — <code>POST /v1/responses</code> returns <code>404</code> and the routes are absent from the
+published OpenAPI spec. Enabling <code>apis.responses</code> or <code>apis.files</code> in the base server config
+crash-loops the server (<code>KeyError: Api.responses</code> / <code>Api.files</code>), so the stateful-Responses flow
+from the documentation cannot run on this build.</p>
+</li>
+<li>
+<p><strong><code>file_search</code> and citations</strong> — the flow starts from embeddings, but both configured models
+report <code>model_type: llm</code> (the embedding model is mis-typed), and <code>POST /v1/vector_stores</code> fails
+with <code>400 "Model 'None' not found"</code>. Because no vector store can exist, <code>file_search</code> cannot run,
+and Vector IO calls fail with <code>400 "Vector_store '&#8230;&#8203;' not found"</code> even with pre-computed vectors.</p>
+</li>
+<li>
+<p><strong>Tool Runtime and tool management</strong> — <code>/v1/tool-runtime</code> is absent (<code>404</code>), <code>GET /v1/admin/tools</code>
+returns <code>500</code>, and connector or tool registration over HTTP returns <code>405 Method Not Allowed</code>
+(configuration-side only). Tool Runtime is target state on this build.</p>
+</li>
+<li>
+<p><strong>Rerank scoring</strong> — the route and request validation work, but scoring fails with
+<code>400 "Model '&#8230;&#8203;' is of type 'llm' rather than the expected type 'rerank'"</code> for both models.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Why: this is a Technology Preview build in which the agentic API surface is landing incrementally,
+and the workshop server&#8217;s two vLLM (virtual Large Language Model) backed models are both typed
+<code>llm</code>, so every surface that needs
+an embedding- or rerank-typed model is gated. What you practiced instead is the transferable part:
+verify what a build actually exposes (health, version, models, providers, routes), drive what
+works (chat completions, the Conversations API), and read error signatures precisely.</p>
 </div>
 </div>
 </div>
@@ -612,13 +664,13 @@
 <div class="ulist">
 <ul>
 <li>
-<p><a href="https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/3.5/html/working_with_ogx/index">Working with OGX (RHOAI 3.5)</a> — OGX overview, OGX APIs, and file citation annotations</p>
+<p><a href="https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/3.6/html/working_with_ogx/index">Working with OGX (RHOAI 3.6)</a> — OGX overview, OGX APIs, and file citation annotations</p>
 </li>
 <li>
-<p><a href="https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/3.5/html/building_rag_applications_with_ogx/index">Building RAG applications with OGX (RHOAI 3.5)</a> — deploying an OGXServer and querying ingested content</p>
+<p><a href="https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/3.6/html/building_rag_applications_with_ogx/index">Building RAG (retrieval-augmented generation) applications with OGX (RHOAI 3.6)</a> — deploying an OGXServer and querying ingested content</p>
 </li>
 <li>
-<p><a href="https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/3.5">RHOAI 3.5 documentation</a></p>
+<p><a href="https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/3.6">RHOAI 3.6 documentation</a></p>
 </li>
 <li>
 <p><a href="index.html" class="xref page">Back to the workshop overview</a></p>

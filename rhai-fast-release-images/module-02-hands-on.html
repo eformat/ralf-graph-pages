@@ -201,6 +201,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -661,7 +669,7 @@ spec:
   # keep the runtime specification carried over from the duplicated vLLM runtime <4>
   containers:
     - name: kserve-container
-      image: registry.redhat.io/rhaii-early-access/vllm-cuda-rhel9:3.5.0-ea.1-1780065492 <5></code></pre>
+      image: registry.redhat.io/rhaii-early-access/vllm-cuda-rhel9:3.6.0-ea.1-1789430400 <5></code></pre>
 </div>
 </div>
 <div class="colist arabic">
@@ -737,7 +745,7 @@ spec:
     prometheus.io/port: "8080"
   containers:
     - name: kserve-container
-      image: registry.redhat.io/rhaii-early-access/vllm-cuda-rhel9:3.5.0-ea.1-1780065492
+      image: registry.redhat.io/rhaii-early-access/vllm-cuda-rhel9:3.6.0-ea.1-1789430400
       command:
         - python
         - '-m'
@@ -860,7 +868,7 @@ metadata:
 spec:
   containers:
     - name: kserve-container
-      image: registry.redhat.io/rhaii-early-access/vllm-cuda-rhel9:3.5.0-ea.1-1780065492
+      image: registry.redhat.io/rhaii-early-access/vllm-cuda-rhel9:3.6.0-ea.1-1789430400
       command:
         - python
         - '-m'

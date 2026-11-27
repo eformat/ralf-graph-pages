@@ -200,6 +200,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -606,16 +614,16 @@ and long-context workloads.</p>
 <div class="ulist">
 <ul>
 <li>
-<p>What hierarchical KV cache tiering does and where it fits in RHOAI 3.5</p>
+<p>What hierarchical KV cache tiering does and where it fits in RHOAI 3.6</p>
 </li>
 <li>
-<p>How the llm-d Endpoint Picker routes requests for KV cache reuse with its default 2:2:3:2 scorer profile</p>
+<p>How the llm-d Endpoint Picker routes requests for KV cache reuse with its default producer/filter/scorer scheduling profile (<code>approx-prefix-cache-producer</code>, <code>inflight-load-producer</code>, <code>prefix-cache-affinity-filter</code>, <code>token-load-scorer</code>)</p>
 </li>
 <li>
-<p>How to recognize, select, and verify a KV-cache-aware router configuration</p>
+<p>How to inspect the live scheduling configuration and verify cache-aware routing on the deployed model</p>
 </li>
 <li>
-<p>Which <code>llm_d_epp_</code> metrics reveal KV cache utilization and prefix cache hit behavior</p>
+<p>Which <code>llm_d_epp_</code> metrics reveal KV cache utilization and flow-control behavior</p>
 </li>
 </ul>
 </div>
@@ -630,14 +638,13 @@ and long-context workloads.</p>
 <p>RHOAI operator installed</p>
 </li>
 <li>
-<p>Distributed Inference with llm-d enabled (see the prerequisites in the RHOAI</p>
+<p>Distributed Inference with llm-d enabled (see the prerequisites in the RHOAI documentation for Distributed Inference with llm-d)</p>
 </li>
 <li>
-<p>Recommended prerequisite: complete the <a href="../llmd-core/index.html" class="xref page">Distributed Inference with llm-d (core)</a> workshop first
-documentation for Distributed Inference with llm-d)</p>
+<p>Recommended prerequisite: complete the <a href="../llmd-core/index.html" class="xref page">Distributed Inference with llm-d (core)</a> workshop first</p>
 </li>
 <li>
-<p>An OpenShift cluster with RHOAI 3.5 installed</p>
+<p>An OpenShift cluster with RHOAI 3.6 installed</p>
 </li>
 </ul>
 </div>

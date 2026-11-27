@@ -203,6 +203,14 @@
         </li>
       </ul>
     </li>
+    <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
     <li class="component is-current">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
@@ -613,7 +621,7 @@ controller pod is running.</p>
 <div class="sectionbody">
 <div class="paragraph">
 <p>Feature Store is an OpenShift AI component, based on the open source Feast project, that provides
-a centralized repository for storing, managing, and serving machine learning features for both
+a centralized repository for storing, managing, and serving machine learning (ML) features for both
 training and inference. In an ML workflow, features are inputs to models. The workflow starts with
 raw data from many sources; ML engineers use the Feature Store to curate that data into features,
 and models consume those features to make predictions.</p>
@@ -679,6 +687,10 @@ projects can bootstrap from a library of curated, production-ready features.</p>
 </td>
 </tr>
 </table>
+</div>
+<div class="paragraph">
+<p>With the components and vocabulary in place, you are ready to enable the operator that deploys
+them.</p>
 </div>
 </div>
 </div>
@@ -824,9 +836,18 @@ data scientists define features, materialize them, and retrieve them for trainin
 <div class="paragraph">
 <p><strong>Next steps:</strong></p>
 </div>
-<div class="paragraph">
-<p>In the next module you will deploy a Feature Store instance, initialize it with feature
-definitions, and retrieve features for training and inference.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Deploy a Feature Store instance in your working project</p>
+</li>
+<li>
+<p>Initialize it with feature definitions using <code>feast apply</code></p>
+</li>
+<li>
+<p>Retrieve features for training and inference from a connected workbench</p>
+</li>
+</ul>
 </div>
 </div>
 </div>

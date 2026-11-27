@@ -204,6 +204,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -759,9 +767,9 @@ it. Ask your cluster administrator or continue to
 <h3 id="_verify"><a class="anchor" href="#_verify"></a>Verify</h3>
 <div class="paragraph">
 <p>The <code>oc get dsc</code> command lists a DataScienceCluster whose mlflowoperator
-component reports <code>Managed</code>. You can also confirm the feature in the RHOAI
-dashboard: the <strong>Applications</strong> menu lists <strong>MLflow UI</strong> once the operator is
-enabled and an <code>MLflow</code> instance is created.</p>
+component reports <code>Managed</code>. You can also confirm the feature in a browser:
+once the operator is enabled and the <code>MLflow</code> instance is <code>Available</code>, the
+MLflow UI is reachable at the <code>/mlflow</code> path of the RHOAI dashboard URL.</p>
 </div>
 <div class="paragraph">
 <p>With the platform confirmed, inspect the operator and CRs that back it in the

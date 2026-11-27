@@ -204,6 +204,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -587,7 +595,7 @@
 <div class="paragraph">
 <p>In this module you will understand what Kubeflow Trainer v2 is, the problems it
 solves, and how its <code>TrainJob</code> and <code>ClusterTrainingRuntime</code> resources fit into
-Red Hat OpenShift AI 3.5.</p>
+Red Hat OpenShift AI 3.6.</p>
 </div>
 <div class="paragraph">
 <p><strong>Learning objectives:</strong></p>
@@ -647,7 +655,7 @@ so you can focus on your training code and resource requirements.</p>
 </tbody>
 </table>
 <div class="paragraph">
-<p>RHOAI 3.5 ships these pre-built <code>ClusterTrainingRuntime</code> resources:</p>
+<p>RHOAI 3.6 ships these pre-built <code>ClusterTrainingRuntime</code> resources:</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
@@ -666,20 +674,24 @@ so you can focus on your training code and resource requirements.</p>
 <td class="tableblock halign-left valign-top"><p class="tableblock">General-purpose PyTorch distributed training with CUDA support</p></td>
 </tr>
 <tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>torch-distributed-cpu</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">CPU-only PyTorch distributed training</p></td>
+</tr>
+<tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>torch-distributed-rocm</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">PyTorch distributed training for AMD ROCm GPUs</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>torch-distributed-cuda128-torch29-py312</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">PyTorch 2.9 with CUDA 12.8, Python 3.12</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>torch-distributed-cuda130-torch211-py312</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">PyTorch 2.11 with CUDA 13.0, Python 3.12</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>training-hub</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Training Hub runtime with built-in fine-tuning algorithms (OSFT, SFT)</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>training-hub-th05-cuda128-torch29-py312</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Training Hub runtime with CUDA 12.8, PyTorch 2.9, Python 3.12</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>training-hub-th09-cuda130-torch211-py312</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Training Hub runtime with CUDA 13.0, PyTorch 2.11, Python 3.12</p></td>
 </tr>
 </tbody>
 </table>
@@ -706,10 +718,13 @@ so you can focus on your training code and resource requirements.</p>
 <i class="fa icon-warning" title="Warning"></i>
 </td>
 <td class="content">
-In RHOAI 3.5, Kubeflow Trainer v2 is not compatible with Red Hat Build
-of Kueue (RHBoK) 1.4 or later. Kubeflow Trainer v2 continues to function, but
-the integration between Kubeflow Trainer v2 and Kueue does not. If your cluster
-uses Kueue, keep RHBoK at version 1.3 or earlier and do not upgrade.
+In RHOAI 3.5, Kubeflow Trainer v2 was not compatible with Red Hat Build
+of Kueue (RHBoK) 1.4 or later: Trainer v2 continued to function, but the
+integration between Trainer v2 and Kueue did not, so clusters on that release
+kept RHBoK at version 1.3 or earlier. On RHOAI 3.6 this restriction no longer
+applies — Kubeflow Trainer v2 integrates with Kueue through the
+<code>kueue.x-k8s.io/queue-name</code> label on the <code>TrainJob</code>, and the resulting Workload
+admits and reserves quota from the ClusterQueue.
 </td>
 </tr>
 </table>
@@ -743,12 +758,19 @@ inspect the pre-built runtime resources in your cluster.</p>
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>NAME                                          AGE
-torch-distributed                             5m
-torch-distributed-rocm                        5m
-torch-distributed-th03-cuda128-torch28-py312  5m
-training-hub                                  5m
-training-hub03-cuda128-torch28-py312          5m</pre>
+<pre>NAME                                      AGE
+torch-distributed                         5m
+torch-distributed-cpu                     5m
+torch-distributed-cpu-torch211-py312      5m
+torch-distributed-cuda130-torch211-py312  5m
+torch-distributed-rocm                    5m
+torch-distributed-rocm714-torch211-py312  5m
+training-hub                              5m
+training-hub-cpu                          5m
+training-hub-rocm                         5m
+training-hub-th09-cpu-torch211-py312      5m
+training-hub-th09-cuda130-torch211-py312  5m
+training-hub-th09-rocm714-torch211-py312  5m</pre>
 </div>
 </div>
 <div class="admonitionblock note">

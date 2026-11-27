@@ -204,6 +204,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -648,7 +656,7 @@ export KUADRANT_CLUSTER_ISSUER_NAME=self-signed</code></pre>
 <div class="listingblock execute">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc new-project ${KUADRANT_GATEWAY_NS}
-oc apply -f https://raw.githubusercontent.com/Kuadrant/Kuadrantoperator/main/examples/toystore/toystore.yaml -n ${KUADRANT_DEVELOPER_NS}</code></pre>
+oc apply -f https://raw.githubusercontent.com/Kuadrant/kuadrant-operator/main/examples/toystore/toystore.yaml -n ${KUADRANT_DEVELOPER_NS}</code></pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -914,7 +922,7 @@ EOF</code></pre>
 </div>
 <div class="paragraph">
 <p><strong>deployment/service labels</strong> — required for some Connectivity Link example dashboard panels to work; they let low-level Istio and Envoy metrics join Gateway API state metrics.
-<strong>parentRefs</strong> — must match the Gateway name and namespace from Module 02 Exercise 2.
+<strong>parentRefs</strong> — must match the Gateway name and namespace from Exercise 2.
 <strong>hostnames</strong> — must match the hostname specified in the Gateway listener.
 <strong>backendRefs</strong> — the Toystore Service in your project.</p>
 </div>
@@ -928,8 +936,10 @@ EOF</code></pre>
 <div class="listingblock execute">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash"># --resolve needs an IP: on clusters where the gateway status address is a
-# hostname (no LoadBalancer provider), use the gateway Service ClusterIP
-export GATEWAY_ADDRESS=$(oc get svc ${KUADRANT_GATEWAY_NAME}-openshift-default -n ${KUADRANT_GATEWAY_NS} -o jsonpath='{.spec.clusterIP}')
+# hostname (no LoadBalancer provider), use the gateway Service ClusterIP.
+# The Service name follows &lt;gateway-name&gt;-&lt;gatewayClassName&gt;; with the
+# data-science-gateway-class recommended in the note above that is:
+export GATEWAY_ADDRESS=$(oc get svc ${KUADRANT_GATEWAY_NAME}-data-science-gateway-class -n ${KUADRANT_GATEWAY_NS} -o jsonpath='{.spec.clusterIP}')
 echo $GATEWAY_ADDRESS</code></pre>
 </div>
 </div>

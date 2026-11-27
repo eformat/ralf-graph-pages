@@ -200,6 +200,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -595,8 +603,8 @@ provided as-is with no support and no guarantee of future availability.
 </div>
 <div class="paragraph">
 <p>This workshop introduces <strong>OpenShell (secure agent sandboxing and policy enforcement)</strong> —
-a Developer Preview feature of Red Hat OpenShift AI 3.5 for secure agent onboarding on
-OpenShift. OpenShell is an agent-aware sandboxing platform that provides
+a secure agent onboarding feature for OpenShift, introduced as a Developer Preview in
+Red Hat OpenShift AI 3.5. OpenShell is an agent-aware sandboxing platform that provides
 policy-controlled, isolated execution environments for AI agents, enforcing
 fine-grained restrictions on system calls, network access, and tool availability.</p>
 </div>
@@ -615,7 +623,7 @@ fine-grained restrictions on system calls, network access, and tool availability
 <p>How OpenShell&#8217;s sandbox-level enforcement complements other RHOAI security layers such as guardrails on MCP gateway tool calls</p>
 </li>
 <li>
-<p>How agents deployed manually surface as OpenShell-managed Sandbox custom resources (CRs) and appear in the dashboard</p>
+<p>How agents deployed manually surface as OpenShell-managed Sandbox custom resources (CRs), and which dashboard view lists them once the Agent Sandbox operator is installed</p>
 </li>
 </ul>
 </div>
@@ -630,10 +638,10 @@ fine-grained restrictions on system calls, network access, and tool availability
 <p>RHOAI operator installed</p>
 </li>
 <li>
-<p>An agent deployment (agents deployed manually appear as OpenShell-managed Sandbox CRs)</p>
+<p>An agent deployment (agents deployed manually appear as OpenShell-managed Sandbox CRs; listing them requires the Agent Sandbox operator — Module 02 shows how to check whether it is installed)</p>
 </li>
 <li>
-<p>An OpenShift cluster with RHOAI 3.5 installed</p>
+<p>An OpenShift cluster with RHOAI 3.6 installed</p>
 </li>
 </ul>
 </div>

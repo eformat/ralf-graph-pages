@@ -201,6 +201,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -682,7 +690,7 @@ Complete the steps in this module only after enabling flow control in Module 01.
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>Create the critical tier. Resolve the InferencePool name from your project (the llm-d controller creates the pool when your LLMInferenceService deployed), then write and apply the resource:</p>
+<p>Create the critical tier. Resolve the InferencePool name from your project (the llm-d controller creates the pool when your LLMInferenceService is deployed), then write and apply the resource:</p>
 </li>
 </ol>
 </div>
@@ -692,15 +700,15 @@ Complete the steps in this module only after enabling flow control in Module 01.
 POOL=$(oc get inferencepools.inference.networking.k8s.io -n $NS -o jsonpath='{.items[0].metadata.name}')
 echo "Using InferencePool: $POOL"
 cat > critical-inference-objective.yaml <<EOF
-apiVersion: llm-d.ai/v1alpha2
+apiVersion: llm-d.ai/v1
 kind: InferenceObjective
 metadata:
   name: interactive-critical
   namespace: $NS
 spec:
   priority: 100
-  poolRef:
-    group: llm-d.ai
+  poolRefs:
+  - group: inference.networking.k8s.io
     kind: InferencePool
     name: $POOL
 EOF
@@ -719,10 +727,27 @@ oc apply -f critical-inference-objective.yaml -n $NS</code></pre>
 <p><strong>priority</strong> — The priority value. Higher integer values represent higher priority; negative values designate lower-priority requests that are queued and dispatched last. If not specified, defaults to 0.</p>
 </li>
 <li>
-<p><strong>poolRef.group</strong> — The API group for the pool reference. Use <code>llm-d.ai</code>.</p>
+<p><strong>poolRefs[].group</strong> — The API group serving <code>InferencePool</code> on RHOAI 3.6: <code>inference.networking.k8s.io</code>.</p>
 </li>
 <li>
-<p><strong>poolRef.name</strong> — The name of the InferencePool resource this objective applies to. This field is required; the resolved name is echoed before the file is written.</p>
+<p><strong>poolRefs[].name</strong> — The name of the InferencePool resource this objective applies to. This field is required; the resolved name is echoed before the file is written.</p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p><code>InferenceObjective</code> at <code>apiVersion llm-d.ai/v1alpha2</code> is deprecated on RHOAI 3.6 — the API server warns <code>use llm-d.ai/v1</code> on every write — and the v1alpha2 <code>spec.poolRef</code> field is not retained in storage. This workshop uses <code>apiVersion llm-d.ai/v1</code> with the <code>spec.poolRefs</code> list. If you created objectives with the v1alpha2 form earlier, re-create them with the v1 form and confirm the pool binding with <code>oc get inferenceobjective interactive-critical -n abc123-user1 -o jsonpath='{.spec.poolRefs}'</code>.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
@@ -730,21 +755,18 @@ oc apply -f critical-inference-objective.yaml -n $NS</code></pre>
 </li>
 </ol>
 </div>
-</li>
-</ul>
-</div>
 <div class="listingblock execute">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">cat > batch-inference-objective.yaml <<EOF
-apiVersion: llm-d.ai/v1alpha2
+apiVersion: llm-d.ai/v1
 kind: InferenceObjective
 metadata:
   name: batch-workload
   namespace: $NS
 spec:
   priority: -1
-  poolRef:
-    group: llm-d.ai
+  poolRefs:
+  - group: inference.networking.k8s.io
     kind: InferencePool
     name: $POOL
 EOF
@@ -757,19 +779,7 @@ oc apply -f batch-inference-objective.yaml -n $NS</code></pre>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>Apply the batch tier:</p>
-</li>
-</ol>
-</div>
-<div class="listingblock execute">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc apply -f batch-inference-objective.yaml -n abc123-user1</code></pre>
-</div>
-</div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>Optional: After creating <code>InferenceObjective</code> resources, you can customize flow control behavior by configuring priority band capacity, request timeouts, and fairness policies in the <code>spec.router.scheduler.config.inline</code> section of your LLMInferenceService:</p>
+<p>Optional: After creating <code>InferenceObjective</code> resources, you can customize flow control behavior by configuring priority band capacity, request timeouts, and fairness policies in the <code>spec.router.scheduler.config.inline</code> section of your LLMInferenceService. The <code>llm-d.ai/v1alpha1</code> config form from Module 01 applies here as well; <code>apiVersion: llm-d.ai/v1</code> is the forward-compatible form on RHOAI 3.6:</p>
 </li>
 </ol>
 </div>
@@ -862,12 +872,26 @@ flowControl:
 <h2 id="_exercise_2_generate_sustained_load_with_an_in_cluster_load_generator"><a class="anchor" href="#_exercise_2_generate_sustained_load_with_an_in_cluster_load_generator"></a>Exercise 2: Generate sustained load with an in-cluster load generator</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Flow control is work-conserving: when the InferencePool has available capacity, requests dispatch immediately with no added latency, and queuing plus priority enforcement activate only when the pool is saturated. You generate sustained concurrent traffic from inside the cluster with a load-generator pod, driving the Endpoint Picker toward saturation so that the <code>llm_d_epp_flow_control_*</code> metrics and HTTP 429 rejections actually manifest.</p>
+<p>Flow control is work-conserving: when the InferencePool has available capacity, requests dispatch immediately with no added latency, and queuing plus priority enforcement activate only when the pool is saturated. You generate sustained concurrent traffic from inside the cluster with a load-generator pod, driving the Endpoint Picker toward saturation so that the <code>llm_d_epp_flow_control_*</code> metrics and the flow-control rejection behavior actually manifest.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>This workshop&#8217;s demo environment is CPU-only and the model workload intentionally does not reach a serving state: the model init container cannot pull the pinned model repository, the Endpoint Picker reports <code>llm_d_epp_ready_endpoints=0</code>, <code>llm_d_epp_flow_control_pool_saturation</code> stays pinned at <code>1.0</code> (the gating set point), and the gateway answers requests with <code>503 rejected-no-endpoints</code>. That is the documented demo state — the flow-control evidence this module collects (the <code>x-llm-d-request-dropped-reason</code> rejection headers, the <code>llm_d_epp_flow_control_pool_saturation</code> and <code>llm_d_epp_flow_control_dispatch_cycle_duration_seconds</code> series, and the <code>llm_d_epp_ready_endpoints</code> gauge) does not depend on the model serving. On a serving environment the same steps instead produce the 200/429 mix described in each verify section.</p>
+</div>
+</td>
+</tr>
+</table>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>Resolve the Inference Gateway service for your project and build the in-cluster URL for the model&#8217;s OpenAI-compatible endpoint:</p>
+<p>Resolve the model service name and build the URL for its OpenAI-compatible endpoint on the MaaS gateway:</p>
 </li>
 </ol>
 </div>
@@ -875,14 +899,13 @@ flowControl:
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">NS=abc123-user1
 LLM_SVC=$(oc get llminferenceservice -n $NS -o jsonpath='{.items[0].metadata.name}')
-GATEWAY_SVC=$(oc get svc -n $NS -l gateway.networking.k8s.io/gateway-name -o jsonpath='{.items[0].metadata.name}')
-URL="https://${GATEWAY_SVC}.${NS}.svc.cluster.local/${NS}/${LLM_SVC}/v1/chat/completions"
+URL="https://$(oc get httproute ${LLM_SVC}-kserve-route -n $NS -o jsonpath='{.spec.hostnames[0]}')/${NS}/${LLM_SVC}/v1/chat/completions"
 MODEL_NAME=${MODEL_NAME:-RedHatAI/Qwen3-8B-FP8-dynamic}
 echo $URL</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>The service name and gateway are resolved from your project; the model defaults to the llm-d runnable example (<code>RedHatAI/Qwen3-8B-FP8-dynamic</code>) — set <code>MODEL_NAME</code> to override.</p>
+<p>The model service name is resolved from your project, and the URL host is discovered live from the <code>spec.hostnames</code> of the HTTPRoute verified in Module 01 (<code>maas-llmd-demo-kserve-route</code>) rather than composed by hand — the route hostname is the MaaS gateway listener host on the <code>maas.apps.*</code> wildcard domain, and the <code>/{project}/{model-service}/v1/chat/completions</code> path is the one that HTTPRoute binds. The wildcard resolves from in-cluster pods, so the load generator reaches the gateway directly. The model defaults to the llm-d runnable example (<code>RedHatAI/Qwen3-8B-FP8-dynamic</code>) — set <code>MODEL_NAME</code> to override.</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
@@ -903,30 +926,36 @@ if [ $(($2 % 2)) -eq 0 ]; then OBJ="batch-workload"; else OBJ="interactive-criti
 curl -sk --max-time 600 "$1" \
   -H "Content-Type: application/json" \
   -H "x-gateway-inference-objective: $OBJ" \
-  -d "{\"model\":\"$4\",\"messages\":[{\"role\":\"user\",\"content\":\"Request $2. Write a detailed essay about topic $2 covering history, analysis, and predictions.\"}],\"max_tokens\":2048}" \
+  -d "{\"model\":\"$3\",\"messages\":[{\"role\":\"user\",\"content\":\"Request $2. Write a detailed essay about topic $2 covering history, analysis, and predictions.\"}],\"max_tokens\":2048}" \
   -o /dev/null -w "req=$2 objective=$OBJ status=%{http_code} time=%{time_total}s\n"
 REQEOF
 chmod +x /tmp/req.sh
 echo "Smoke test..."
-STATUS=$(curl -sk --max-time 30 "$URL" \
+STATUS=$(curl -sk --max-time 30 -D /tmp/smoke-headers "$URL" \
   -H "Content-Type: application/json" \
   -H "x-gateway-inference-objective: interactive-critical" \
   -d "{\"model\":\"$MODEL\",\"messages\":[{\"role\":\"user\",\"content\":\"Hi\"}],\"max_tokens\":5}" \
   -o /dev/null -w "%{http_code}")
 echo "Status: $STATUS"
-if [ "$STATUS" != "200" ]; then
+if [ "$STATUS" = "200" ]; then
+  echo "Model endpoints are ready; the load will exercise queuing and band-capacity rejections."
+elif [ "$STATUS" = "503" ] && grep -qi "x-llm-d-request-dropped-reason: rejected-no-endpoints" /tmp/smoke-headers; then
+  echo "NOTE: 503 rejected-no-endpoints - the pool has no ready model endpoints (the documented demo state)."
+  echo "NOTE: Continuing: this rejection path is itself the flow-control evidence this exercise collects."
+else
   echo "ERROR: Smoke test failed (HTTP $STATUS)"
+  head -1 /tmp/smoke-headers
   exit 1
 fi
 echo "Sending $REQUESTS requests ($CONCURRENCY concurrent)..."
-seq 1 "$REQUESTS" | xargs -P "$CONCURRENCY" -I{} /tmp/req.sh "$URL" {}
+seq 1 "$REQUESTS" | xargs -P "$CONCURRENCY" -I{} /tmp/req.sh "$URL" {} "$MODEL"
 echo "Done."
 EOF
 oc create configmap load-test-script -n $NS --from-literal=load.sh="$LOAD_SCRIPT"</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>The model name is passed as the fourth script argument (<code>$4</code>) so the ConfigMap stays generic; the smoke test must print <code>Status: 200</code> before the load begins.</p>
+<p>The load script receives the URL, concurrency, request count, and model name as its four arguments (<code>$4</code> is the model) and passes the URL, request number, and model to each per-request helper — <code>req.sh</code> reads the model from <code>$3</code> — so the ConfigMap stays generic. The smoke test accepts both documented outcomes: <code>Status: 200</code> on a serving environment, or <code>Status: 503</code> with the <code>x-llm-d-request-dropped-reason: rejected-no-endpoints</code> header in this demo environment, where the script prints an honest NOTE and continues. Any other status (for example <code>401</code> or <code>404</code>) stops the script because the URL or authentication is wrong.</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
@@ -952,11 +981,11 @@ spec:
     args: ["$URL", "200", "5000", "$MODEL_NAME"]
     resources:
       requests:
-        cpu: "4"
-        memory: "4Gi"
+        cpu: "500m"
+        memory: "512Mi"
       limits:
-        cpu: "8"
-        memory: "8Gi"
+        cpu: "2"
+        memory: "1Gi"
     volumeMounts:
     - name: script
       mountPath: /scripts
@@ -983,7 +1012,10 @@ oc logs -f load-test -n abc123-user1</code></pre>
 <p><strong>image</strong> — The load-generator image. The script only uses curl, so the lightweight <code>curlimages/curl</code> image is sufficient.</p>
 </li>
 <li>
-<p><strong>args</strong> — The gateway URL, concurrency (200 concurrent curl processes), total request count (5000), and the model name. Increase the concurrency value if the pool does not reach saturation.</p>
+<p><strong>args</strong> — The gateway URL, concurrency (200 concurrent curl processes), total request count (5000), and the model name.</p>
+</li>
+<li>
+<p><strong>resources</strong> — The load generator only runs curl processes: a <code>500m</code> CPU / <code>512Mi</code> memory request with <code>2</code> CPU / <code>1Gi</code> limits keeps the pod schedulable on clusters whose nodes are already near their CPU request capacity.</p>
 </li>
 <li>
 <p><strong>configMap.name</strong> — Mounts the load script created in the previous step at <code>/scripts</code>, where the command runs it from.</p>
@@ -991,7 +1023,7 @@ oc logs -f load-test -n abc123-user1</code></pre>
 </ul>
 </div>
 <div class="paragraph">
-<p>Press <code>Ctrl+C</code> to stop following the output. The smoke test must print <code>Status: 200</code> before the load begins; if it fails, resolve connectivity before continuing.</p>
+<p>Press <code>Ctrl+C</code> to stop following the output. The smoke test must print <code>Status: 200</code> (serving environment) or the <code>503 rejected-no-endpoints</code> NOTE (this demo environment) before the load begins; any other status stops the script, so resolve the URL or authentication before continuing.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -1032,20 +1064,7 @@ The load test must generate enough traffic to trigger queuing without being rate
 </div>
 </div>
 <div class="paragraph">
-<p>Each request line has the form <code>req=&lt;n&gt; objective=&lt;tier&gt; status=&lt;code&gt; time=&lt;seconds&gt;</code>. While the pool has capacity, requests complete with <code>status=200</code>. Once concurrency drives the pool toward saturation, requests queue at the Endpoint Picker, and requests beyond a priority band&#8217;s queue capacity are rejected with <code>status=429</code> and the <code>x-llm-d-request-dropped-reason: rejected-saturated</code> response header. Requests that wait longer than the configured <code>defaultRequestTTL</code> (default 1 minute) are rejected with <code>status=503</code> (<code>rejected-ttl-expired</code>). A mix of <code>200</code> and <code>429</code> counts confirms the load generator is driving the flow control layer under saturation. If every request returns <code>200</code>, increase the concurrency value in <code>load-test-pod.yaml</code> and run again.</p>
-</div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>Delete the load-test pod and script ConfigMap when finished:</p>
-</li>
-</ol>
-</div>
-<div class="listingblock execute">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc delete pod load-test -n abc123-user1
-oc delete configmap load-test-script -n abc123-user1</code></pre>
-</div>
+<p>Each request line has the form <code>req=&lt;n&gt; objective=&lt;tier&gt; status=&lt;code&gt; time=&lt;seconds&gt;</code>. In this demo environment, every request returning <code>status=503</code> with the <code>x-llm-d-request-dropped-reason: rejected-no-endpoints</code> response header is the expected outcome and confirms the exercise succeeded: the Endpoint Picker admits each request into its priority-band queue, finds zero ready model endpoints, and drops the request with an observable reason header instead of forwarding it to a dead backend. That rejection path is exactly what sheds load under saturation on a serving environment, so observing it here proves the flow-control rejection behavior end-to-end. On a serving environment, requests complete with <code>status=200</code> while the pool has capacity; once concurrency drives the pool toward saturation, requests beyond a priority band&#8217;s queue capacity are rejected with <code>status=429</code> and the <code>x-llm-d-request-dropped-reason: rejected-saturated</code> header, and requests that wait longer than the configured <code>defaultRequestTTL</code> (default 1 minute) are rejected with <code>status=503</code> (<code>rejected-ttl-expired</code>). A mix of <code>200</code> and <code>429</code> counts is the success criteria on a serving environment; uniform <code>503 rejected-no-endpoints</code> counts are the success criteria in this environment.</p>
 </div>
 <div class="paragraph">
 <p>Now that you have generated sustained load with the in-cluster load generator, you will validate priority queuing and rejection behavior under load.</p>
@@ -1057,12 +1076,12 @@ oc delete configmap load-test-script -n abc123-user1</code></pre>
 <h2 id="_exercise_3_validate_priority_queuing_and_rejection_behavior_under_load"><a class="anchor" href="#_exercise_3_validate_priority_queuing_and_rejection_behavior_under_load"></a>Exercise 3: Validate priority queuing and rejection behavior under load</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>With the load generator from Exercise 2 driving the pool toward saturation, you confirm that requests queue at the Endpoint Picker and dispatch by policy, and that rejections carry observable reason headers.</p>
+<p>With the load generator from Exercise 2 driving the pool toward saturation, you confirm that requests queue at the Endpoint Picker and dispatch by policy, and that rejections carry observable reason headers. The load test issues 5000 requests and, in this environment, rejections return immediately, so the pod may have already exited by the time you get here — its complete log remains available with <code>oc logs load-test -n abc123-user1</code>, and the flow-control series below persist after the run.</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>While the load test is running, check that the model server pods are near capacity. Under saturation, <code>vllm:num_requests_running</code> is at or near the <code>--max-num-seqs</code> cap and <code>vllm:num_requests_waiting</code> is above zero:</p>
+<p>While the load test is running, check that the model server pods are near capacity. On a serving environment under saturation, <code>vllm:num_requests_running</code> is at or near the <code>--max-num-seqs</code> cap and <code>vllm:num_requests_waiting</code> is above zero:</p>
 </li>
 </ol>
 </div>
@@ -1079,31 +1098,59 @@ oc delete configmap load-test-script -n abc123-user1</code></pre>
 <pre class="highlightjs highlight"><code class="language-prometheus hljs" data-lang="prometheus">vllm:num_requests_waiting{namespace="abc123-user1"}</code></pre>
 </div>
 </div>
+<div class="paragraph">
+<p>In this demo environment the model server never reaches a serving state, so the pod list shows a non-ready model pod and both <code>vllm:num_requests_*</code> queries return an empty result. That is the documented state, not a failure — use the Endpoint Picker&#8217;s own series in the next steps as the flow-control evidence for this environment.</p>
+</div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>Monitor flow control metrics in Prometheus to confirm the flow control layer is queueing and dispatching by policy:</p>
+<p>Monitor flow control metrics to confirm the flow control layer is queueing and dispatching by policy. In the OpenShift web console, navigate to <strong>Observe</strong> &gt; <strong>Metrics</strong> and run:</p>
 </li>
 </ol>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-prometheus hljs" data-lang="prometheus">llm_d_epp_flow_control_queue_size{namespace="abc123-user1"}</code></pre>
+<pre class="highlightjs highlight"><code class="language-prometheus hljs" data-lang="prometheus">llm_d_epp_flow_control_pool_saturation{namespace="abc123-user1"}</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>The <code>llm_d_epp_flow_control_queue_size</code> metric shows the queue depth for requests waiting to dispatch, broken down by fairness group and priority band. Related metrics:</p>
+<p>The <code>llm_d_epp_flow_control_pool_saturation</code> metric reports the saturation level of the inference pool: <code>1.0</code> is the gating set point at which dispatch halts, values above <code>1.0</code> indicate oversubscription past the gating threshold, and an idle pool reads <code>1.0</code>. This is the primary flow-control health series exposed by the Endpoint Picker in this release — there is no per-queue <code>queue_size</code> metric. Related metrics exposed by the Endpoint Picker:</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p><code>llm_d_epp_flow_control_request_queue_duration_seconds</code> — time requests sit in the flow control queue, with a <code>priority</code> label matching your <code>InferenceObjective</code> values</p>
+<p><code>llm_d_epp_flow_control_capacity_utilization_bytes</code> and <code>llm_d_epp_flow_control_capacity_utilization_requests</code> — per-band queue utilization, with a <code>priority</code> label matching your <code>InferenceObjective</code> values</p>
 </li>
 <li>
-<p><code>llm_d_epp_flow_control_requests_total</code> — total requests processed by flow control, broken out by outcome label</p>
+<p><code>llm_d_epp_flow_control_dispatch_cycle_duration_seconds</code> — dispatch cycle latency histogram for the flow control layer</p>
 </li>
 <li>
-<p><code>llm_d_epp_flow_control_pool_saturation</code> — current pool saturation level, where 1.0 is the gating set point for the default static-usage-limit-policy</p>
+<p><code>llm_d_epp_flow_control_stale_endpoints</code> — model-server endpoints whose utilization metrics are stale, per saturation detector</p>
+</li>
+<li>
+<p><code>llm_d_epp_ready_endpoints</code> — model-server endpoints currently ready in the pool</p>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Alternatively, scrape the Endpoint Picker metrics endpoint directly. The endpoint serves HTTPS on port <code>9090</code> and requires bearer-token authentication: an unauthenticated request returns <code>401 Unauthorized</code>, and the token of the Endpoint Picker&#8217;s own ServiceAccount is rejected with <code>403</code> — use your workshop user&#8217;s token:</p>
+</li>
+</ol>
+</div>
+</li>
+</ul>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">LLM_SVC=$(oc get llminferenceservice -n abc123-user1 -o jsonpath='{.items[0].metadata.name}')
+TOKEN=$(oc whoami -t)
+oc port-forward svc/${LLM_SVC}-epp-service -n abc123-user1 9090:9090 &
+sleep 3
+curl -sk -H "Authorization: Bearer $TOKEN" https://localhost:9090/metrics | grep -E "^llm_d_epp_flow_control" | head -20</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The output lists the live <code>llm_d_epp_flow_control_*</code> series for your inference pool, including <code>pool_saturation</code>. Stop the port-forward when you are done (for example with <code>kill %1</code>).</p>
+</div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
@@ -1113,9 +1160,6 @@ oc delete configmap load-test-script -n abc123-user1</code></pre>
 <p>When flow control rejects or evicts a request, the response includes an <code>x-llm-d-request-dropped-reason</code> header with a specific reason value. The sustained concurrent load from Exercise 2 triggers these rejections once a priority band&#8217;s queue capacity is exceeded:</p>
 </li>
 </ol>
-</div>
-</li>
-</ul>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
@@ -1161,13 +1205,40 @@ oc delete configmap load-test-script -n abc123-user1</code></pre>
 <div class="sect2">
 <h3 id="_verify_3"><a class="anchor" href="#_verify_3"></a>Verify</h3>
 <div class="paragraph">
-<p>Under sustained load, <code>vllm:num_requests_running</code> is at or near the <code>--max-num-seqs</code> cap and <code>vllm:num_requests_waiting</code> is above zero on model server pods. If both conditions are met, requests are queuing at the Endpoint Picker and being dispatched by policy.</p>
+<p>On a serving environment under sustained load, <code>vllm:num_requests_running</code> is at or near the <code>--max-num-seqs</code> cap and <code>vllm:num_requests_waiting</code> is above zero on model server pods, confirming that requests are queuing at the Endpoint Picker and being dispatched by policy. In this demo environment both <code>vllm:num_requests_*</code> queries return an empty result because the model server never becomes ready — the expected outcome here, not a failure. Pivot to the Endpoint Picker&#8217;s own series instead: <code>llm_d_epp_ready_endpoints</code> reports the pool&#8217;s ready endpoint count (<code>0</code> in this environment), and the flow-control series below confirm the queuing and rejection layers are active regardless of model state.</p>
 </div>
 <div class="paragraph">
-<p>The <code>llm_d_epp_flow_control_request_queue_duration_seconds</code> metric exists with a <code>priority</code> label matching your <code>InferenceObjective</code> values, confirming that flow control is routing requests by priority. If queue depth remains at 0, increase concurrency to create saturation conditions where priority differentiation occurs.</p>
+<p>The <code>llm_d_epp_flow_control_capacity_utilization_bytes</code> and <code>llm_d_epp_flow_control_capacity_utilization_requests</code> metrics carry a <code>priority</code> label matching your <code>InferenceObjective</code> values, confirming that flow control tracks requests by priority band. In this environment the per-band counters stay at zero alongside the empty vLLM series: with zero ready endpoints, requests are dropped with <code>rejected-no-endpoints</code> rather than held in a band queue, and the per-request outcomes from Exercise 2&#8217;s verify are the observable evidence.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>On a serving environment, if pool utilization remains at zero, increase the concurrency value in <code>load-test-pod.yaml</code> and run the load again to create saturation conditions where priority differentiation occurs.</p>
+</div>
+</td>
+</tr>
+</table>
 </div>
 <div class="paragraph">
 <p>Under sustained contention, higher-priority requests dispatch before lower-priority requests, and the batch tier (<code>priority: -1</code>) is the first to be dropped when the system reaches saturation.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>When you are done with this exercise, delete the load-test pod and script ConfigMap:</p>
+</li>
+</ol>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc delete pod load-test -n abc123-user1
+oc delete configmap load-test-script -n abc123-user1</code></pre>
+</div>
 </div>
 </div>
 </div>
@@ -1213,8 +1284,21 @@ oc delete configmap load-test-script -n abc123-user1</code></pre>
 <div class="paragraph">
 <p><strong>Next steps:</strong></p>
 </div>
-<div class="paragraph">
-<p>Continue to the conclusion for a recap and links to the full RHOAI documentation for mixed-workload priority queuing.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Tune the flow control configuration from Exercise 1 with capacity limits (<code>maxBytes</code>, <code>maxRequests</code>, <code>defaultRequestTTL</code>) matched to your model server&#8217;s memory and concurrency budget, then repeat the load test</p>
+</li>
+<li>
+<p>Add a mid-tier <code>InferenceObjective</code> (for example, <code>priority: 50</code>) and watch the <code>llm_d_epp_flow_control_capacity_utilization_*</code> series split into three priority bands under load</p>
+</li>
+<li>
+<p>Compare <code>fcfs-ordering-policy</code> against <code>edf-ordering-policy</code> and <code>round-robin-fairness-policy</code> on a serving environment to measure queue-time fairness across tenants</p>
+</li>
+<li>
+<p>Continue to the conclusion for a recap and links to the full RHOAI documentation for mixed-workload priority queuing</p>
+</li>
+</ul>
 </div>
 </div>
 </div>

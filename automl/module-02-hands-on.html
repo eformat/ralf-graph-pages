@@ -201,6 +201,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -608,20 +616,6 @@ workbench, and deploy the model for inference.</p>
 </li>
 </ul>
 </div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-This feature is a <strong>Technology Preview</strong>. The dashboard flow and serving
-runtime names shown here may change between releases. Re-check the RHOAI
-documentation for your version.
-</td>
-</tr>
-</table>
-</div>
 </div>
 </div>
 <div class="sect1">
@@ -636,7 +630,7 @@ documentation for your version.
 <td class="content">
 Upload the updated AutoML pipeline definitions before you create your
 first run. Without them, AutoML and AutoRAG pipeline runs fail with image pull
-errors (RHOAIENG-64768 in the RHOAI 3.5 release notes).
+errors (RHOAIENG-64768; see the RHOAI release notes).
 </td>
 </tr>
 </table>
@@ -726,7 +720,7 @@ against a held-out test split.</p>
 <div class="paragraph">
 <p>On the AutoML page, verify that your optimization run appears in the list with a
 status of <strong>Running</strong> or <strong>Completed</strong>. You can also watch the underlying pipeline
-run from the CLI — RHOAI 3.5 pipelines are backed by Argo Workflows:</p>
+run from the CLI — RHOAI pipelines are backed by Argo Workflows:</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
@@ -761,7 +755,7 @@ your task type. The top-ranked model is highlighted. Click a column header to
 sort by a different metric.</p>
 <div class="imageblock">
 <div class="content">
-<a class="image" href="_images/02-leaderboard.png" target="blank"><img src="_images/02-leaderboard.png" alt="The AutoML leaderboard showing the pipeline DAG" width="700" height="and ranked models by accuracy"></a>
+<a class="image" href="_images/02-leaderboard.png" target="blank"><img src="_images/02-leaderboard.png" alt="The AutoML run page — optimization in progress" width="700"></a>
 </div>
 </div>
 </li>
@@ -801,13 +795,13 @@ sort by a different metric.</p>
 </tbody>
 </table>
 <div class="olist arabic">
-<ol class="arabic" start="5">
+<ol class="arabic" start="4">
 <li>
 <p>Click <strong>View details</strong> from the actions menu of a model to inspect its metrics,
 feature importance scores, confusion matrix, ROC curves, and precision recall
 curves. Feature importance is available for tabular tasks only, confusion
 matrix and ROC/precision recall curves for classification tasks only, and
-backtesting charts for time series tasks only. Runs created before RHOAI 3.5
+backtesting charts for time series tasks only. Runs created before RHOAI 3.6
 do not include ROC curve, precision recall curve, or backtesting data.</p>
 </li>
 <li>

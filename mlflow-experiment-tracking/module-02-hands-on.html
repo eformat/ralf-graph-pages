@@ -204,6 +204,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -602,7 +610,7 @@ workbench, and track an experiment from a notebook.</p>
 <p>Enable MLflow integration for a workbench and verify the injected environment variables and RoleBinding</p>
 </li>
 <li>
-<p>Log parameters and metrics with the MLflow SDK and review the run in the dashboard</p>
+<p>Log parameters and metrics with the MLflow SDK and review the run in the MLflow UI</p>
 </li>
 </ul>
 </div>
@@ -793,10 +801,11 @@ form <code><a href="https://&lt;service&gt;.redhat-ods-applications.svc:&lt;port
 </div>
 </li>
 <li>
-<p>Confirm the MLflow UI is available in the RHOAI dashboard: open
-<a href="https://console-openshift-console.apps.cluster.example.com" class="bare">https://console-openshift-console.apps.cluster.example.com</a> and launch the RHOAI dashboard, then in the dashboard
-navigation bar click <strong>Applications</strong> and confirm that <strong>MLflow UI</strong> is listed in
-the applications grid.</p>
+<p>Confirm the MLflow UI is available: open <a href="https://console-openshift-console.apps.cluster.example.com" class="bare">https://console-openshift-console.apps.cluster.example.com</a> and launch
+the RHOAI dashboard, then append the <code>/mlflow</code> path to the dashboard URL in
+your browser — the MLflow UI is embedded in the RHOAI dashboard at that path —
+and confirm that the <strong>Welcome to MLflow</strong> page loads with the workspace
+selector.</p>
 </li>
 <li>
 <p>To view all available configuration options for the MLflow custom
@@ -1038,16 +1047,18 @@ the scope of the automatic integration.
 <div class="sect2">
 <h3 id="_verify_3"><a class="anchor" href="#_verify_3"></a>Verify</h3>
 <div class="paragraph">
-<p>From the RHOAI dashboard, select your project (abc123-user1) from the
-<strong>Project</strong> list, then click <strong>Develop &amp; train → Experiments (MLflow)</strong>. The
-<strong>Experiments</strong> list displays <code>demo-experiment</code>. Click the experiment name to
-see the <strong>Runs</strong> table with <code>demo-run</code>, then click the run name to review the
-logged parameters (<code>model_type</code>, <code>feature_count</code>), the accuracy and loss
-metric charts, and system metrics.</p>
+<p>Open the MLflow UI: in the RHOAI dashboard, append the <code>/mlflow</code> path to the
+dashboard URL in your browser. Select your project workspace (abc123-user1)
+in the workspace selector at the top of the navigation sidebar, then select
+<strong>Model training</strong> next to the workspace selector and click <strong>Experiments</strong> in the
+navigation sidebar. The <strong>Experiments</strong> list displays <code>demo-experiment</code>. Click
+the experiment name to see the <strong>Runs</strong> table with <code>demo-run</code>, then click the
+run name to review the logged parameters (<code>model_type</code>, <code>feature_count</code>) and
+the <code>accuracy</code> and <code>loss</code> metrics.</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<a class="image" href="_images/02-experiments-list.png" target="blank"><img src="_images/02-experiments-list.png" alt="The Experiments (MLflow) page listing demo-experiment" width="700"></a>
+<a class="image" href="_images/02-experiments-list.png" target="blank"><img src="_images/02-experiments-list.png" alt="The Experiments page in the MLflow UI listing demo-experiment" width="700"></a>
 </div>
 </div>
 <div class="imageblock">
@@ -1073,7 +1084,7 @@ metric charts, and system metrics.</p>
 <p>Enabled MLflow integration for a workbench with the <code>opendatahub.io/mlflow-instance</code> annotation and verified the injected variables and RoleBinding</p>
 </li>
 <li>
-<p>Logged a full experiment run with the MLflow SDK and reviewed it in the dashboard&#8217;s <strong>Experiments (MLflow)</strong> page</p>
+<p>Logged a full experiment run with the MLflow SDK and reviewed it in the MLflow UI at the <code>/mlflow</code> path of the RHOAI dashboard URL</p>
 </li>
 </ul>
 </div>
@@ -1089,7 +1100,7 @@ metric charts, and system metrics.</p>
 <p>The <code>MLflow</code> CR must be named <code>mlflow</code>; choose SQLite/PVC for development or PostgreSQL/S3 with <code>serveArtifacts</code> for production</p>
 </li>
 <li>
-<p>The dashboard <strong>Experiments (MLflow)</strong> page shows the same data as the standalone MLflow UI</p>
+<p>The MLflow UI is embedded in the RHOAI dashboard at the <code>/mlflow</code> path, with one workspace per OpenShift project — no standalone MLflow install is required</p>
 </li>
 </ul>
 </div>

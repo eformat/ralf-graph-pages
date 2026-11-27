@@ -201,6 +201,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -805,7 +813,7 @@ and limits</strong> and enter new values for the CPU and Memory requests and lim
 </li>
 <li>
 <p>In the <strong>Serving runtime</strong> field, select <strong>Select from a list of serving runtimes,
-including custom ones</strong> and choose the vLLM CPU ServingRuntime for KServe.</p>
+including custom ones</strong> and choose the vLLM CPU (ppc64le/s390x) ServingRuntime for KServe.</p>
 </li>
 <li>
 <p>In the <strong>Number of model server replicas to deploy</strong> field, specify a value.</p>
@@ -939,7 +947,7 @@ runtimes can vary between releases — list them with
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc annotate servingruntime vllm-cpu-runtime -n abc123-user1 \
   opendatahub.io/template-name=vllm-cpu-runtime-template \
-  opendatahub.io/template-display-name="vLLM CPU ServingRuntime for KServe" \
+  opendatahub.io/template-display-name="vLLM CPU (ppc64le/s390x) ServingRuntime for KServe" \
   --overwrite</code></pre>
 </div>
 </div>

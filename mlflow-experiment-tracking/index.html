@@ -203,6 +203,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -604,7 +612,7 @@ is authorized with Kubernetes RBAC.</p>
 <p>Enable automatic MLflow SDK configuration in a workbench with the <code>opendatahub.io/mlflow-instance</code> annotation, and track experiments from a notebook</p>
 </li>
 <li>
-<p>View and compare runs in the dashboard&#8217;s embedded <strong>Experiments (MLflow)</strong> page</p>
+<p>View and compare runs in the MLflow UI at the <code>/mlflow</code> path of the RHOAI dashboard URL</p>
 </li>
 <li>
 <p>Override artifact storage per project with <code>MLflowConfig</code> and archive trace payloads with the <code>traceArchival</code> section</p>
@@ -619,7 +627,7 @@ is authorized with Kubernetes RBAC.</p>
 <div class="ulist">
 <ul>
 <li>
-<p>An OpenShift cluster with RHOAI 3.5 installed, and you are logged in</p>
+<p>An OpenShift cluster with RHOAI 3.6 installed, and you are logged in</p>
 </li>
 <li>
 <p>The <code>mlflowoperator</code> component set to <code>Managed</code> in your DataScienceCluster (DSC) — module 2 walks through enabling it</p>

@@ -201,6 +201,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -652,7 +660,75 @@ Flow control depends on the Endpoint Picker to enforce priority and fairness pol
 </div>
 </div>
 <div class="paragraph">
-<p>The output shows your deployed models and their status. Note the name of an LLM inference service that is serving traffic.</p>
+<p>The output shows your deployed models and their status. Note the name of an LLM inference service — <code>maas-llmd-demo</code> in the demo environment.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Inspect how the service is exposed through the inference gateway. On RHOAI 3.6 the operator does not create the HTTPRoute from a platform preset: the route is authored inline in the <code>LLMInferenceService</code> under <code>spec.router.route.http</code>, and the operator templates the <code>HTTPRoute</code> from that block. The demo environment&#8217;s service ships the following inline route:</p>
+</li>
+</ol>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">route:
+  http:
+    spec:
+      hostnames:
+      - maas.apps.<cluster-ingress-domain> <1>
+      parentRefs:
+      - group: gateway.networking.k8s.io
+        kind: Gateway
+        name: maas-default-gateway
+        namespace: openshift-ingress <2>
+      rules:
+      - matches:
+        - path:
+            type: PathPrefix
+            value: /abc123-user1/<model-name>/v1 <3>
+        backendRefs:
+        - group: inference.networking.k8s.io
+          kind: InferencePool
+          name: <model-name>-inference-pool
+          port: 8000 <4></code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The hostname of the cluster&#8217;s shared MaaS gateway listener.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The parent gateway: <code>maas-default-gateway</code> in the <code>openshift-ingress</code> namespace.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>The path prefix is scoped to your project and model name, so each model is exposed under its own path.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>The backend is the <code>InferencePool</code> that the llm-d controller creates for the service, on port <code>8000</code>. On RHOAI 3.6 the pool&#8217;s API group is <code>inference.networking.k8s.io</code>.
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Verify that the operator created the HTTPRoute from the inline route and that the gateway accepted it, then check the service conditions:</p>
+</li>
+</ol>
+</div></td>
+</tr>
+</table>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">LLM_SVC=$(oc get llminferenceservice -n abc123-user1 -o jsonpath='{.items[0].metadata.name}')
+oc get httproute -n abc123-user1
+oc get llminferenceservice $LLM_SVC -n abc123-user1 -o jsonpath='{range .status.conditions[*]}{.type}={.status}{" "}{end}'; echo</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The HTTPRoute named <code>&lt;service_name&gt;-kserve-route</code> — <code>maas-llmd-demo-kserve-route</code> in the demo environment — is created by the operator within seconds of the <code>LLMInferenceService</code> being applied and reports <code>Accepted=True</code> bound to the <code>openshift-ingress/maas-default-gateway</code> parents. The service conditions show <code>RouterReady=True</code>, <code>InferencePoolReady=True</code>, and <code>HTTPRoutesReady=True</code>.</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
@@ -688,7 +764,7 @@ oc logs $EPP_POD -n abc123-user1 | grep -i "scheduler\|config"</code></pre>
 <p>The EPP pod is in the <code>Running</code> state, and the logs show scheduler initialization messages confirming which plugins and profiles are loaded. Without flow control enabled, you see the default four-scorer configuration (<code>queue-scorer</code>, <code>kv-cache-utilization-scorer</code>, <code>prefix-cache-scorer</code>, <code>no-hit-lru-scorer</code> with weights 2:2:3:2) and no flow control configuration.</p>
 </div>
 <div class="paragraph">
-<p>Your model deployment is serving traffic and the Endpoint Picker is running. Now that you have a healthy deployment with the Endpoint Picker running, you will enable flow control and saturation detection on it.</p>
+<p>On a serving environment the model deployment reports <code>MainWorkloadReady=True</code> and serves traffic. On the CPU-only demo cluster the model workload remains <code>MainWorkloadReady=False</code> (<code>MinimumReplicasUnavailable</code>) — the documented demo state — while the components flow control depends on are all <code>True</code>: <code>RouterReady</code>, <code>InferencePoolReady</code>, <code>HTTPRoutesReady</code>, and <code>SchedulerWorkloadReady</code>. The Endpoint Picker is running. Now that you have a deployment with the Endpoint Picker running, you will enable flow control and saturation detection on it.</p>
 </div>
 </div>
 </div>
@@ -729,15 +805,43 @@ oc patch llminferenceservice $LLM_SVC -n abc123-user1 --type=merge -p '{"spec":{
 </li>
 <li>
 <p><strong>kvCacheUtilThreshold</strong> — The KV cache utilization threshold from 0.0 to 1.0. Default is 0.8. Model servers are considered saturated when either threshold is crossed.</p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>If you prefer editing the resource as YAML instead of <code>oc patch</code>, do not apply a partial YAML fragment with <code>oc apply</code>. Client-side apply three-way-merges your file against the resource&#8217;s last-applied configuration: every field present on the cluster but absent from your fragment — including <code>spec.baseRefs</code>, <code>spec.model.uri</code>, and any <code>spec.router.scheduler.template</code> resource overrides — is deleted, silently breaking the deployment. Use the console <strong>Edit YAML</strong> editor, which presents the complete resource spec, or apply a cumulative manifest that contains the full desired spec.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>On RHOAI 3.6, the <code>llm-d.ai/v1alpha1</code> form of <code>EndpointPickerConfig</code> used in this patch is accepted and takes effect — the Endpoint Picker loads the configuration with no parse errors — but it logs a deprecation warning on startup (<code>DEPRECATION: apiVersion llm-d.ai/v1alpha1/EndpointPickerConfig is deprecated and is removed in a later release</code>) and normalizes the configuration internally to <code>llm-d.ai/v1</code>. For new configurations, <code>apiVersion: llm-d.ai/v1</code> is the forward-compatible form.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
 <p>Wait for the EPP pod to restart with the new configuration:</p>
 </li>
 </ol>
-</div>
-</li>
-</ul>
 </div>
 <div class="listingblock execute">
 <div class="content">
@@ -753,14 +857,31 @@ oc get pods -n abc123-user1 | grep router-scheduler</code></pre>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>Confirm the LLM inference service is still <code>Ready</code> after the configuration change:</p>
+<p>Confirm the service conditions are unchanged after the configuration change:</p>
 </li>
 </ol>
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get llminferenceservice $LLM_SVC -n abc123-user1</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get llminferenceservice $LLM_SVC -n abc123-user1 -o jsonpath='{range .status.conditions[*]}{.type}={.status}{" "}{end}'; echo</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>Compare the output with the conditions you printed in Exercise 1: <code>RouterReady</code>, <code>InferencePoolReady</code>, <code>HTTPRoutesReady</code>, <code>SchedulerWorkloadReady</code>, and <code>PresetsCombined</code> remain <code>True</code>, while <code>Ready</code>, <code>MainWorkloadReady</code>, and <code>WorkloadsReady</code> remain <code>False</code> — the documented CPU-only demo state, unchanged by enabling flow control.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Reminder: <code>Ready=False</code> is the expected, documented state in the demo environment — the CPU-only cluster does not run the model workload. Enabling flow control does not change the service conditions; the Endpoint Picker, the InferencePool, and the flow-control configuration are running and that is what this exercise validates.</p>
+</div>
+</td>
+</tr>
+</table>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
@@ -771,16 +892,16 @@ oc get pods -n abc123-user1 | grep router-scheduler</code></pre>
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get servicemonitors -n abc123-user1 -l app.kubernetes.io/component=llmmonitoring</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get servicemonitors -n abc123-user1 -l app.kubernetes.io/component=llm-monitoring</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>The output shows a ServiceMonitor resource with a name that begins with <code>kserve-llm-isvc-scheduler</code>. This resource scrapes EPP and inference scheduler metrics from the metrics port on the scheduler service.</p>
+<p>The output shows a ServiceMonitor resource with a name that contains <code>kserve-llm-isvc-scheduler</code> — <code>maas-llmd-demo-kserve-llm-isvc-scheduler</code> in the demo environment. This resource points the monitoring stack at the metrics port on the scheduler service.</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>Flow control exposes the <code>llm_d_epp_flow_control_*</code> metric family once active. In the OpenShift web console, navigate to <strong>Observe</strong> &gt; <strong>Metrics</strong> and run the following query:</p>
+<p>Flow control exposes the <code>llm_d_epp_flow_control_*</code> metric family once active. The Red Hat OpenShift AI monitoring stack (<code>data-science-monitoringstack-prometheus</code>) ingests these series from the Endpoint Picker, so you can query them from the console. In the OpenShift web console, navigate to <strong>Observe</strong> &gt; <strong>Metrics</strong> and run the following query:</p>
 </li>
 </ol>
 </div>
@@ -790,7 +911,7 @@ oc get pods -n abc123-user1 | grep router-scheduler</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>The query returns a result for your deployment. The value is the current pool saturation level, where <code>1.0</code> is the gating set point at which dispatch halts and values above <code>1.0</code> indicate oversubscription past the gating threshold.</p>
+<p>The query returns a result for your deployment. The value is the current pool saturation level, where <code>1.0</code> is the gating set point at which dispatch halts, values above <code>1.0</code> indicate oversubscription past the gating threshold, and an idle or empty pool reads <code>1.0</code>. There is no per-queue <code>queue_size</code> metric in this release — pool saturation is the flow-control health signal to watch. Module 02 shows how to scrape the Endpoint Picker&#8217;s <code>:9090</code> metrics endpoint directly; that endpoint requires bearer-token authentication.</p>
 </div>
 <div class="paragraph">
 <p>Flow control is enabled on your model deployment. Next you will define priority tiers that the flow control layer uses to decide which requests dispatch first.</p>
@@ -829,15 +950,25 @@ oc get pods -n abc123-user1 | grep router-scheduler</code></pre>
 <p>Flow control is work-conserving: queuing and priority enforcement activate only when the pool is saturated</p>
 </li>
 <li>
-<p>The scheduler ServiceMonitor provides the <code>llm_d_epp_flow_control_*</code> metrics used to validate priority queuing</p>
+<p>The scheduler ServiceMonitor and the Red Hat OpenShift AI monitoring stack provide the <code>llm_d_epp_flow_control_*</code> metrics used to validate priority queuing</p>
 </li>
 </ul>
 </div>
 <div class="paragraph">
 <p><strong>Next steps:</strong></p>
 </div>
-<div class="paragraph">
-<p>In the next module you will create <code>InferenceObjective</code> resources that define priority tiers, then drive load to see priority-based queuing and fairness in action.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Create <code>InferenceObjective</code> resources that define priority tiers for interactive and batch traffic</p>
+</li>
+<li>
+<p>Drive concurrent multi-tenant load against the gateway to exercise the flow control queues</p>
+</li>
+<li>
+<p>Observe priority queuing and fairness in the <code>llm_d_epp_flow_control_*</code> metrics</p>
+</li>
+</ul>
 </div>
 </div>
 </div>

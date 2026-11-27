@@ -201,6 +201,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -599,7 +607,7 @@ CLI.</p>
 <p>Explain how isolated sandboxes and controlled network egress contain agent actions</p>
 </li>
 <li>
-<p>Locate OpenShell-managed agents as Sandbox custom resources (CRs) in the dashboard</p>
+<p>Check whether the Agent Sandbox surface is installed on your cluster and locate the dashboard&#8217;s Agents → Deployments view where OpenShell-managed agents (Sandbox CRs) appear</p>
 </li>
 </ul>
 </div>
@@ -718,25 +726,73 @@ should be an explicit, allow-listed destination.
 <div class="sectionbody">
 <div class="paragraph">
 <p>OpenShell keeps track of agent instances as <strong>OpenShell-managed Sandbox custom
-resources (CRs)</strong>. A related Developer Preview feature in RHOAI 3.5 surfaces these in
-the dashboard: you can view a list of running agent deployments directly in the
-dashboard, with the name and status of each deployed agent instance in each
-namespace, and filtering capabilities to help manage deployed agents.</p>
+resources (CRs)</strong>, backed by the Agent Sandbox operator (the <code>sandboxes.agents.x-k8s.io</code>
+API). A related Developer Preview feature surfaces these in the dashboard: the
+<strong>Agents → Deployments</strong> view lists running agent deployments per namespace, with the
+name and status of each deployed agent instance. Both surfaces only exist where the
+Agent Sandbox operator is installed, so this exercise starts by checking what your
+cluster actually ships:</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>From the OpenShift AI dashboard, look for the running agent deployments view for
-your namespace. Agents that were deployed manually appear there as
-OpenShell-managed Sandbox CRs.</p>
+<p>Check whether the Sandbox surface is installed on your cluster:</p>
 </li>
 </ol>
 </div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get crd sandboxes.agents.x-k8s.io</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If the command returns the CRD, the Agent Sandbox operator is installed and you can
+continue with the dashboard and CLI steps below. If it returns <code>NotFound</code>, the Sandbox
+surface is not installed on your cluster — installing it is an administrator-level
+control-plane change, not something a workshop user can do — and that single fact
+gates everything else in this exercise: the dashboard list stays empty ("No agent
+sandboxes were found in this project"), no Sandbox CRs or sandboxed agent pods can
+exist, and <code>oc get sandboxes</code> reports that the server has no such resource type. On
+this workshop cluster the CRD is absent. Read the remaining steps to see what to
+expect when the operator ships in your environment.</p>
+</div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>If your facilitator has deployed an agent into your workshop namespace, observe the
-workloads the sandbox produces:</p>
+<p>If the CRD exists, open the running agent deployments view in the dashboard: in
+RHOAI 3.6 it is <strong>AI hub → Agents</strong> (marked Dev Preview) → the <strong>Deployments</strong> tab —
+"View and manage agent deployments across your fleet", scoped per namespace.
+Agents that were deployed manually appear there as OpenShell-managed Sandbox CRs.</p>
+</li>
+</ol>
+</div>
+<div class="imageblock">
+<div class="content">
+<a class="image" href="_images/03-agents-deployments-empty.png" target="blank"><img src="_images/03-agents-deployments-empty.png" alt="The Agents Deployments tab on the workshop cluster showing the empty state &quot;No agent deployments — No agent sandboxes were found in this project&quot; while the Agent Sandbox operator is not installed" width="700"></a>
+</div>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+The older <strong>Gen AI studio → Agent ops</strong> page does not exist in the RHOAI
+3.5.1 or 3.6.0 dashboard builds — the route 404s ("We can&#8217;t find that page" on 3.5.1;
+"404 Page not found" on 3.6.0) with no nav entry, even with the <code>agentOps</code> flag set
+and the agent-ops backend Running. Use the <strong>Agents → Deployments</strong> tab instead; where
+a dashboard surface ships is exactly the kind of thing that changes between preview
+releases.
+</td>
+</tr>
+</table>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>If the CRD exists and your facilitator has deployed an agent into your workshop
+namespace, observe the workloads the sandbox produces:</p>
 </li>
 </ol>
 </div>
@@ -748,11 +804,14 @@ workloads the sandbox produces:</p>
 <div class="paragraph">
 <p>Expect a pod for the sandboxed agent alongside any supporting components, such as
 identity or proxy sidecars; the exact names depend on the deployment, so treat this as
-an observation rather than a fixed output.</p>
+an observation rather than a fixed output. You can also list the Sandbox CRs
+themselves with <code>oc get sandboxes -n abc123-user1</code> — on a cluster without the
+operator this fails with "the server doesn&#8217;t have a resource type", the same gate as
+the dashboard&#8217;s empty list.</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<a class="image" href="_images/02-sandbox-pods.png" target="blank"><img src="_images/02-sandbox-pods.png" alt="The pods in the workshop namespace including the sandboxed agent pods running from the Sandbox CRs" width="700"></a>
+<a class="image" href="_images/02-sandbox-pods.png" target="blank"><img src="_images/02-sandbox-pods.png" alt="The pods in the workshop namespace including the sandboxed agent pods running from the Sandbox CRs — captured on a cluster where the Agent Sandbox operator is installed" width="700"></a>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -763,8 +822,10 @@ an observation rather than a fixed output.</p>
 </td>
 <td class="content">
 <div class="paragraph">
-<p>Because the dashboard view and the OpenShell CRs come from Developer Preview
-features, the exact console location and resource names may change between releases.</p>
+<p>Because the dashboard view, the Sandbox CRD, and the OpenShell CRs come from
+Developer Preview features, the exact console location and resource names may change
+between releases — as the move from the (404ing) Gen AI studio Agent ops page to the
+Agents → Deployments tab shows.</p>
 </div>
 </td>
 </tr>
@@ -788,8 +849,7 @@ to the platform</p>
 <p>Reviewed how isolated sandboxes and controlled network egress contain agent actions</p>
 </li>
 <li>
-<p>Located OpenShell-managed agents as Sandbox CRs in the dashboard and observed the
-workloads in your namespace</p>
+<p>Checked whether the Agent Sandbox surface ships on your cluster and located the Agents → Deployments dashboard view where Sandbox CRs appear (empty until the operator is installed and an agent is deployed)</p>
 </li>
 </ul>
 </div>
@@ -809,8 +869,10 @@ with Kata Containers is a complementary containment strategy for high-security
 workloads</p>
 </li>
 <li>
-<p>Agents deployed manually surface as OpenShell-managed Sandbox CRs, visible in the
-dashboard with name, status, and filtering per namespace</p>
+<p>Agents deployed manually surface as OpenShell-managed Sandbox CRs, listed with name,
+status, and filtering per namespace in the dashboard&#8217;s Agents → Deployments view
+once the Agent Sandbox operator is installed — on clusters without it the list is
+empty and the older Gen AI studio Agent ops page 404s</p>
 </li>
 </ul>
 </div>

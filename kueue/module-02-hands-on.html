@@ -201,6 +201,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -583,8 +591,9 @@
 <div class="sectionbody">
 <div class="paragraph">
 <p>In this module you will work through the core Kueue workflow end to end: submit a
-PyTorch training job to your LocalQueue, watch Kueue admit it, hold a second job that
-exceeds the quota, and monitor Kueue health with alerts and error messages.</p>
+distributed PyTorch training job as a TrainJob (the Kubeflow Trainer v2 API) to your
+LocalQueue, watch Kueue admit it, hold a second job that exceeds the quota, and
+monitor Kueue health with alerts and error messages.</p>
 </div>
 <div class="paragraph">
 <p><strong>Learning objectives:</strong></p>
@@ -613,128 +622,97 @@ exceeds the quota, and monitor Kueue health with alerts and error messages.</p>
 only lets the job&#8217;s pods run when the quota is available.</p>
 </div>
 <div class="paragraph">
-<p>First, create the training script. This example training script selects its backend
-dynamically: <code>nccl</code> for GPU, <code>gloo</code> for CPU, so it runs on the CPU-only workshop
-cluster. Save it as <code>train.py</code>:</p>
-</div>
-<div class="listingblock execute">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">cat &gt; train.py &lt;&lt;'EOF'
-import os
-import torch
-import torch.distributed as dist
-
-def main():
-    # Select backend dynamically: nccl for GPU, gloo for CPU
-    backend = "nccl" if torch.cuda.is_available() else "gloo"
-    # Initialize the process group
-    dist.init_process_group(backend)
-    # Get rank and world size
-    rank = dist.get_rank()
-    world_size = dist.get_world_size()
-    # Select device dynamically
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print(f"Running on rank {rank} out of {world_size} using {device} with backend {backend}.")
-    # Initialize tensor on the selected device
-    tensor = torch.zeros(1, device=device)
-    if rank == 0:
-        tensor += 1
-        for i in range(1, world_size):
-            dist.send(tensor, dst=i)
-    else:
-        dist.recv(tensor, src=0)
-    print(f"Rank {rank}: Tensor value {tensor.item()} on {device}")
-
-if __name__ == "__main__":
-    main()
-EOF</code></pre>
-</div>
+<p>On RHOAI 3.6, distributed PyTorch training runs through the Kubeflow Trainer v2 API:
+you create a <code>TrainJob</code> that references a <code>ClusterTrainingRuntime</code>, and the runtime
+supplies the training image and pod template. The example training script selects its
+backend dynamically: <code>nccl</code> for GPU, <code>gloo</code> for CPU, so it runs on the CPU-only
+workshop cluster; the Trainer controller injects the rendezvous environment
+(<code>PET_NNODES</code>, <code>PET_MASTER_ADDR</code>, and so on) into each training pod.</p>
 </div>
 <div class="paragraph">
-<p>Create a ConfigMap to store the training script:</p>
+<p>Create a file named <code>trainjob.yaml</code> that defines the training job, with the script
+passed inline through the trainer args:</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc create configmap training-script-configmap --from-file=train.py -n abc123-user1</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Create a file named <code>pytorchjob.yaml</code> that defines the training job:</p>
-</div>
-<div class="listingblock execute">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">cat &gt; pytorchjob.yaml &lt;&lt;'EOF'
-apiVersion: kubeflow.org/v1
-kind: PyTorchJob
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">cat &gt; trainjob.yaml &lt;&lt;'EOF'
+apiVersion: trainer.kubeflow.org/v1alpha1
+kind: TrainJob
 metadata:
-  name: pytorch-ddp
+  name: kueue-trainjob
   labels:
     kueue.x-k8s.io/queue-name: workshop-lq
 spec:
-  pytorchReplicaSpecs:
-    Master:
-      replicas: 1
-      restartPolicy: OnFailure
-      template:
-        metadata:
-          labels:
-            app: pytorch-ddp
-        spec:
-          containers:
-          - name: pytorch
-            image: registry.redhat.io/rhoai/odh-training-cuda128-torch28-py312-rhel9:v3.0
-            command: ["python", "/workspace/train.py"]
-            volumeMounts:
-            - name: training-script-volume
-              mountPath: /workspace
-            resources:
-              requests:
-                cpu: "1"
-                memory: 2Gi
-              limits:
-                cpu: "1"
-                memory: 2Gi
-          volumes:
-          - name: training-script-volume
-            configMap:
-              name: training-script-configmap
-    Worker:
-      replicas: 1
-      restartPolicy: OnFailure
-      template:
-        metadata:
-          labels:
-            app: pytorch-ddp
-        spec:
-          containers:
-          - name: pytorch
-            image: registry.redhat.io/rhoai/odh-training-cuda128-torch28-py312-rhel9:v3.0
-            command: ["python", "/workspace/train.py"]
-            volumeMounts:
-            - name: training-script-volume
-              mountPath: /workspace
-            resources:
-              requests:
-                cpu: "1"
-                memory: 2Gi
-              limits:
-                cpu: "1"
-                memory: 2Gi
-          volumes:
-          - name: training-script-volume
-            configMap:
-              name: training-script-configmap
+  runtimeRef:
+    apiGroup: trainer.kubeflow.org
+    kind: ClusterTrainingRuntime
+    name: torch-distributed-cpu-torch211-py312
+  trainer:
+    numNodes: 1
+    command: ["/bin/bash", "-c"]
+    args:
+      - |
+        cat &gt; /tmp/train.py &lt;&lt;'PYEOF'
+        import os
+        import torch
+        import torch.distributed as dist
+
+        nnodes = int(os.environ.get("PET_NNODES", "1"))
+        nproc = int(os.environ.get("PET_NPROC_PER_NODE", "1"))
+        node_rank = int(os.environ.get("PET_NODE_RANK", "0"))
+        master_addr = os.environ.get("PET_MASTER_ADDR", "127.0.0.1")
+        master_port = os.environ.get("PET_MASTER_PORT", "29500")
+        rank = node_rank * nproc
+        world_size = nnodes * nproc
+
+        # Select backend dynamically: nccl for GPU, gloo for CPU
+        backend = "nccl" if torch.cuda.is_available() else "gloo"
+        dist.init_process_group(
+            backend,
+            init_method=f"tcp://{master_addr}:{master_port}",
+            rank=rank,
+            world_size=world_size,
+        )
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        tensor = torch.zeros(1, device=device)
+        if rank == 0:
+            tensor += 1
+            for i in range(1, world_size):
+                dist.send(tensor, dst=i)
+        else:
+            dist.recv(tensor, src=0)
+        print(f"Running on rank {rank} out of {world_size} using {device} with backend {backend}.")
+        print(f"Rank {rank}: Tensor value {tensor.item()} on {device}")
+        dist.destroy_process_group()
+        PYEOF
+        python3 /tmp/train.py
+    resourcesPerNode:
+      requests:
+        cpu: "1"
+        memory: 2Gi
 EOF</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>The <code>kueue.x-k8s.io/queue-name</code> label binds the job to the <code>workshop-lq</code>
-LocalQueue, which queues it against the ClusterQueue quota. <code>replicas: 1</code> —
-only one master node is needed for the PyTorchJob. The training image is the
-RHOAI CUDA training image; the script still runs on CPU because it selects the
-<code>gloo</code> backend when no GPU is present. The CPU and memory requests must fit
-within the ClusterQueue nominal quota, or Kueue holds the job. The ConfigMap
-mounts the training script that you created into the job pods.</p>
+<p>The <code>kueue.x-k8s.io/queue-name</code> label binds the TrainJob to the <code>workshop-lq</code>
+LocalQueue, which queues it against the ClusterQueue quota. The <code>runtimeRef</code>
+selects the <code>torch-distributed-cpu-torch211-py312</code> ClusterTrainingRuntime — a
+platform-provided runtime that pins the CPU PyTorch training image. <code>numNodes: 1</code>
+requests a single training node. The CPU and memory requests under
+<code>resourcesPerNode</code> must fit within the ClusterQueue nominal quota, or Kueue holds
+the job. When you apply the TrainJob, Kueue creates a Workload resource named
+<code>trainjob-kueue-trainjob-&lt;id&gt;</code> for it.</p>
+</div>
+<div class="paragraph">
+<p>Inspect the training image that the runtime pins:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get clustertrainingruntime torch-distributed-cpu-torch211-py312 -o jsonpath='{.spec.template.spec.replicatedJobs[0].template.spec.template.spec.containers[0].image}'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The output shows the pinned CPU training image, <code>registry.redhat.io/rhoai/odh-th-torch-cpu-py312-rhel9</code> at a digest (<code>sha256:2a727b&#8230;&#8203;</code>). List the other platform-provided runtimes with <code>oc get clustertrainingruntime</code> — GPU and ROCm variants pin their own images the same way.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -744,20 +722,23 @@ mounts the training script that you created into the job pods.</p>
 </td>
 <td class="content">
 <div class="paragraph">
-<p>The example is configured for NVIDIA GPUs in the RHOAI documentation. If you use AMD
-accelerators, change <code>nvidia.com/gpu</code> to <code>amd.com/gpu</code> in the resource requests and
-remove any <code>NCCL_DEBUG</code> environment entries from the job manifest.</p>
+<p>The example runs on CPU through the <code>torch-distributed-cpu-torch211-py312</code> runtime.
+To train on accelerators, reference a GPU-pinned runtime instead (for example
+<code>torch-distributed-cuda130-torch211-py312</code> for NVIDIA or
+<code>torch-distributed-rocm714-torch211-py312</code> for AMD) and create a ClusterQueue whose
+resource groups cover <code>nvidia.com/gpu</code> or <code>amd.com/gpu</code> — Kueue only admits
+workloads whose requests fit a flavor it knows.</p>
 </div>
 </td>
 </tr>
 </table>
 </div>
 <div class="paragraph">
-<p>Create the distributed training job:</p>
+<p>Apply the training job:</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc apply -f pytorchjob.yaml -n abc123-user1</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc apply -f trainjob.yaml -n abc123-user1</code></pre>
 </div>
 </div>
 <div class="sect2">
@@ -767,22 +748,26 @@ remove any <code>NCCL_DEBUG</code> environment entries from the job manifest.</p
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get pytorchjobs -n abc123-user1</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get trainjobs -n abc123-user1</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>The <code>pytorch-ddp</code> job is listed. Then check the pod logs:</p>
+<p>The <code>kueue-trainjob</code> TrainJob is listed. The <code>STATE</code> column stays empty while the
+job runs and shows <code>Complete</code> once the script finishes. Then check the pod logs.
+The Trainer controller creates the JobSet child jobs as
+<code>&lt;trainjob-name&gt;-node-&lt;index&gt;</code>:</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc logs pytorch-ddp-master-0 -n abc123-user1</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc logs job/kueue-trainjob-node-0 -n abc123-user1</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>The logs show each rank&#8217;s tensor value, for example <code>Rank 0: Tensor value 1.0 on cpu</code>.
-The worker pod is named <code>pytorch-ddp-worker-0</code>; check its logs the same way. In the
-console, click <strong>Workloads</strong> → <strong>Pods</strong> and verify that the head pod and the worker pod are
-running.</p>
+In the console, click <strong>Workloads</strong> → <strong>Pods</strong> and verify that the training pod
+<code>kueue-trainjob-node-0-0-&lt;suffix&gt;</code> is running or has completed. You can also select
+the training pods with the JobSet label:
+<code>oc get pods -n abc123-user1 -l jobset.sigs.k8s.io/jobset-name=kueue-trainjob</code>.</p>
 </div>
 <div class="paragraph">
 <p>Now that you have submitted a queued training job, you will watch Kueue make
@@ -799,15 +784,15 @@ scheduling decisions by submitting a second job that exceeds the quota.</p>
 whether the job is admitted, pending, or suspended, and why.</p>
 </div>
 <div class="paragraph">
-<p>Create a file named <code>pytorchjob-xl.yaml</code> — a copy of <code>pytorchjob.yaml</code> with the name
-<code>pytorch-ddp-xl</code> and resource requests that exceed the <code>workshop-cq</code> nominal quota of
-8 CPU, for example <code>cpu: "50"</code> in both replica specs:</p>
+<p>Create a file named <code>trainjob-xl.yaml</code> — a copy of <code>trainjob.yaml</code> with the name
+<code>kueue-trainjob-xl</code> and resource requests that exceed the <code>workshop-cq</code> nominal quota of
+8 CPU, for example <code>cpu: "50"</code> in <code>resourcesPerNode</code>:</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">sed -e 's/name: pytorch-ddp$/name: pytorch-ddp-xl/' \
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">sed -e 's/name: kueue-trainjob$/name: kueue-trainjob-xl/' \
     -e 's/cpu: "1"/cpu: "50"/' -e 's/memory: 2Gi/memory: 8Gi/' \
-    pytorchjob.yaml &gt; pytorchjob-xl.yaml</code></pre>
+    trainjob.yaml &gt; trainjob-xl.yaml</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -815,7 +800,7 @@ whether the job is admitted, pending, or suspended, and why.</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc apply -f pytorchjob-xl.yaml -n abc123-user1</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc apply -f trainjob-xl.yaml -n abc123-user1</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -827,13 +812,14 @@ whether the job is admitted, pending, or suspended, and why.</p>
 </div>
 </div>
 <div class="paragraph">
-<p>Expected output (abbreviated):</p>
+<p>Expected output (abbreviated; the Workload names carry a generated suffix, so yours
+will differ):</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>NAME                  QUEUE         ADMITTED   AGE
-pytorch-ddp-2f4d7     workshop-lq   True       5m
-pytorch-ddp-xl-9c1ab  workshop-lq   False      30s</pre>
+<pre>NAME                              QUEUE         ADMITTED   FINISHED   AGE
+trainjob-kueue-trainjob-9f4c2     workshop-lq   True       False      5m
+trainjob-kueue-trainjob-xl-7b1d   workshop-lq   False      False      30s</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -851,7 +837,7 @@ pytorch-ddp-xl-9c1ab  workshop-lq   False      30s</pre>
 <p>Click <strong>Search</strong>, and from the Resources list, select <strong>Workload</strong>.</p>
 </li>
 <li>
-<p>Select the Workload resource that is created with the <code>pytorch-ddp-xl</code> job, and click the <strong>YAML</strong> tab.</p>
+<p>Select the Workload resource that is created with the <code>kueue-trainjob-xl</code> job, and click the <strong>YAML</strong> tab.</p>
 </li>
 <li>
 <p>Check the text in the <code>status.conditions.message</code> field, which provides the reason for the pending state.</p>
@@ -859,8 +845,8 @@ pytorch-ddp-xl-9c1ab  workshop-lq   False      30s</pre>
 </ol>
 </div>
 <div class="paragraph">
-<p>The message follows this pattern, reported in the RHOAI documentation for a GPU
-shortage:</p>
+<p>The message follows this pattern (example for a CPU quota shortage — the RHOAI
+documentation reports the same pattern for GPU shortages):</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -868,9 +854,18 @@ shortage:</p>
   conditions:
   - lastTransitionTime: '2024-05-29T13:05:09Z'
     message: &gt;-
-      couldn't assign flavors to pod set small-group-jobtest12: insufficient quota
-      for nvidia.com/gpu in flavor default-flavor in ClusterQueue</code></pre>
+      couldn't assign flavors to pod set node: insufficient quota
+      for cpu in flavor default-flavor (requests 0 + 50 &gt; maximum capacity 8)</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>While the workload is not admitted, the TrainJob stays suspended and no pods run:
+Kueue releases the JobSet&#8217;s pods only when the quota reservation succeeds.</p>
+</div>
+<div class="paragraph">
+<p>Your console YAML view shows the same <code>status.conditions</code> structure as the
+example above; the message text in your cluster reflects its flavor names and
+quota numbers.</p>
 </div>
 <div class="sect2">
 <h3 id="_verify_2"><a class="anchor" href="#_verify_2"></a>Verify</h3>
@@ -880,7 +875,7 @@ shortage:</p>
 </div>
 </div>
 <div class="paragraph">
-<p>The <code>pytorch-ddp-xl</code> Workload shows <code>ADMITTED False</code> and its
+<p>The <code>trainjob-kueue-trainjob-xl-&lt;id&gt;</code> Workload shows <code>ADMITTED False</code> and its
 <code>status.conditions.message</code> explains the insufficient quota for <code>cpu</code> in flavor
 <code>default-flavor</code> in ClusterQueue.</p>
 </div>
@@ -999,10 +994,7 @@ the linked runbook steps to identify the cause and resolve the situation.</p>
 <td class="tableblock halign-left valign-top"><p class="tableblock">The Kueue pod might not be running.</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Check `oc get pods -n redhat-ods-applications</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">grep kueue`, then contact your administrator.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Check <code>oc get pods -n openshift-kueue-operator</code>, then contact your administrator.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Workload pods terminated before the image was pulled</p></td>
@@ -1032,8 +1024,8 @@ the linked runbook steps to identify the cause and resolve the situation.</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc delete pytorchjob/pytorch-ddp -n abc123-user1
-oc delete pytorchjob/pytorch-ddp-xl -n abc123-user1</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc delete trainjob/kueue-trainjob -n abc123-user1
+oc delete trainjob/kueue-trainjob-xl -n abc123-user1</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1058,7 +1050,7 @@ oc delete pytorchjob/pytorch-ddp-xl -n abc123-user1</code></pre>
 <div class="ulist">
 <ul>
 <li>
-<p>Submitted a PyTorch training job to your LocalQueue and watched its pods run</p>
+<p>Submitted a distributed PyTorch training job as a TrainJob to your LocalQueue and watched its pods run</p>
 </li>
 <li>
 <p>Held a second job that exceeded the ClusterQueue quota and read the Workload conditions that explain why</p>
@@ -1075,6 +1067,9 @@ oc delete pytorchjob/pytorch-ddp-xl -n abc123-user1</code></pre>
 <ul>
 <li>
 <p>The <code>kueue.x-k8s.io/queue-name</code> label routes a workload to a LocalQueue</p>
+</li>
+<li>
+<p>On RHOAI 3.6, the TrainJob API (Kubeflow Trainer v2) submits distributed training; the referenced ClusterTrainingRuntime supplies the pinned training image</p>
 </li>
 <li>
 <p>The Workload resource reports the admission decision, and its conditions explain held work</p>

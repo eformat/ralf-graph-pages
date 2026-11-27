@@ -201,6 +201,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -676,26 +684,42 @@ infrastructure namespace where the MaaS components run:</p>
 <div class="paragraph">
 <p>Finally, resolve the MaaS gateway hostname. External OIDC users authenticate
 against the API exposed through this gateway, so you need the URL for the
-verification exercise in module 2:</p>
+verification exercise in module 2. The gateway listener hostname is the
+authoritative external hostname:</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">export MAAS_GATEWAY_URL=https://$(oc get route -n openshift-ingress \
-  -l gateway.networking.k8s.io/gateway-name=maas-default-gateway \
-  -o jsonpath='{.items[0].spec.host}')
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">export MAAS_GATEWAY_URL=https://$(oc get gateway maas-default-gateway \
+  -n openshift-ingress \
+  -o jsonpath={.spec.listeners[0].hostname})
 echo $MAAS_GATEWAY_URL</code></pre>
 </div>
 </div>
-<div class="paragraph">
-<p>The gateway Route carries the external hostname on every cluster (on
-LoadBalancer clusters the listener hostname equals it). If the listener
-hostname is set on your cluster, the gateway JSON shows it equivalently:</p>
-</div>
-<div class="listingblock execute">
+<div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get gateway maas-default-gateway -n openshift-ingress \
-  -o jsonpath={.spec.listeners[0].hostname}</code></pre>
+<pre>https://maas.apps.ocp5-m6wl4-2plgg.sandbox1832.opentlc.com</pre>
 </div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>On clusters where the gateway is backed by an OpenShift Route, the external
+hostname is also carried on the Route labeled
+<code>gateway.networking.k8s.io/gateway-name=maas-default-gateway</code> — <code>oc get route
+-n openshift-ingress -l
+gateway.networking.k8s.io/gateway-name=maas-default-gateway -o
+jsonpath='{.items[0].spec.host}'</code> returns it there. On LoadBalancer-service
+gateways such as this workshop cluster&#8217;s, no Route carries that label (the
+query returns empty) and the listener hostname above is the hostname to use.</p>
+</div>
+</td>
+</tr>
+</table>
 </div>
 <div class="sect2">
 <h3 id="_verify"><a class="anchor" href="#_verify"></a>Verify</h3>
@@ -710,7 +734,7 @@ hostname is set on your cluster, the gateway JSON shows it equivalently:</p>
 </li>
 <li>
 <p><code>$MAAS_GATEWAY_URL</code> contains a hostname, for example
-<code>maas-default-gateway-openshift-ingress.apps.cluster.example.com</code>.</p>
+<code><a href="https://maas.apps.ocp5-m6wl4-2plgg.sandbox1832.opentlc.com" class="bare">https://maas.apps.ocp5-m6wl4-2plgg.sandbox1832.opentlc.com</a></code>.</p>
 </li>
 </ul>
 </div>
@@ -747,7 +771,7 @@ tokens.</p>
 </ul>
 </div>
 <div class="paragraph">
-<p>In OpenShift AI 3.5, the OIDC configuration lives on the <code>AITenant</code> custom
+<p>In OpenShift AI 3.6, the OIDC configuration lives on the <code>AITenant</code> custom
 resource in the <code>ai-tenants</code> management namespace.</p>
 </div>
 <div class="olist arabic">
@@ -891,7 +915,7 @@ upgrade.</p>
 <p>API keys for external OIDC users are created through the MaaS API, not the dashboard, which uses OpenShift OAuth</p>
 </li>
 <li>
-<p>The <code>AITenant</code> resource is the source of truth for OIDC configuration in OpenShift AI 3.5</p>
+<p>The <code>AITenant</code> resource is the source of truth for OIDC configuration in OpenShift AI 3.6</p>
 </li>
 </ul>
 </div>

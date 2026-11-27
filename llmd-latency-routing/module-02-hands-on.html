@@ -201,6 +201,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -596,7 +604,7 @@ latency metrics that show how requests were routed.</p>
 <p>Recognize the plugins that make a scheduler configuration latency-aware</p>
 </li>
 <li>
-<p>Select a router configuration in the model deployment wizard and verify it on the deployed model</p>
+<p>Deploy a model with the llm-d serving stack and verify its routing configuration in <code>spec.baseRefs</code></p>
 </li>
 <li>
 <p>Observe TTFT, TPOT, and ITL metrics and interpret latency patterns for your deployment</p>
@@ -717,11 +725,15 @@ picker that replaces <code>max-score-picker</code>.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_exercise_2_apply_latency_aware_routing_to_a_deployment"><a class="anchor" href="#_exercise_2_apply_latency_aware_routing_to_a_deployment"></a>Exercise 2: Apply latency-aware routing to a deployment</h2>
+<h2 id="_exercise_2_deploy_with_the_llm_d_routing_layer"><a class="anchor" href="#_exercise_2_deploy_with_the_llm_d_routing_layer"></a>Exercise 2: Deploy with the llm-d routing layer</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>With a compatible router configuration available, the advanced routing section
-of the model deployment wizard attaches it to new model deployments.</p>
+<p>New llm-d deployments use the platform&#8217;s <strong>Default optimized routing</strong> — the
+4-scorer baseline profile you read about in module 01 — unless a custom router
+configuration is attached. Router configurations are created by your
+administrator under <strong>Settings &gt; llm-d routing configurations</strong> (Exercise 1
+showed the empty state), and the deployment wizard only lists them when they
+exist for your cluster.</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
@@ -730,61 +742,63 @@ of the model deployment wizard attaches it to new model deployments.</p>
 and click <strong>Deploy model</strong>.</p>
 </li>
 <li>
-<p>Select a deployment topology that matches one of the router&#8217;s supported
-topology types, then configure model storage.</p>
+<p>Select the <strong>LLM inference service with llm-d</strong> deployment method and configure
+model storage.</p>
 </li>
 <li>
-<p>Click <strong>Advanced routing</strong> to expand the routing options. By default,
-<strong>Default optimized routing</strong> is pre-selected, which means the LLM-D controller
-uses built-in defaults.</p>
+<p>If your administrator created router configurations and your dashboard build
+exposes the routing options, select a router config with latency-aware
+scheduling from the <strong>Router configuration</strong> list. In this workshop environment
+no custom router configurations exist, so your deployment runs on the
+platform&#8217;s default optimized routing.</p>
 </li>
 <li>
-<p>From the <strong>Router configuration</strong> list, select a router config with
-latency-aware scheduling. The list shows only configurations compatible with
-your selected topology.</p>
+<p>Click <strong>Create</strong>. The deployment appears on the <strong>Models</strong> tab of your project.
+On a CPU-only workshop cluster the model workloads stay in <strong>Pending</strong> or
+<strong>Starting</strong> status — that is expected and does not block the rest of this
+module.</p>
 </li>
 <li>
-<p>Click <strong>Create</strong> and wait for the deployment to reach <strong>Ready</strong> status on the
-<strong>Models</strong> tab of your project.</p>
-</li>
-<li>
-<p>Verify that the router configuration was attached. On the model details page,
-check the YAML representation of the generated <code>LLMInferenceService</code> resource:</p>
+<p>Verify the routing configuration of the deployment. Check the YAML
+representation of the generated <code>LLMInferenceService</code> resource:</p>
 <div class="listingblock execute">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get llmisvc -n abc123-user1 -o yaml | grep -A 6 baseRefs</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Expected output shows the topology preset first, then your selected router
-configuration:</p>
+<p>Expected output lists the platform template preset under <code>baseRefs</code> — for
+example, the CPU single-node preset used by this workshop environment:</p>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre>spec:
   baseRefs:
-  - name: config-llm-template
-    namespace: kserve-system
-  - name: latency-router-config</pre>
+  - name: v3-6-0-kserve-config-llm-template-cpu</pre>
 </div>
+</div>
+<div class="paragraph">
+<p>When a router configuration is attached, a second entry — the router config&#8217;s
+name — appears after the template preset. If your deployment shows only the
+template preset, it is running with the default <strong>Default optimized routing</strong>;
+continue to Exercise 3 — the metrics you observe there are the same ones a
+latency-aware configuration optimizes. Your administrator can attach a custom
+latency-aware router configuration by creating an <code>LLMInferenceServiceConfig</code>
+labeled <code>opendatahub.io/config-type: router</code> (the structure matches the
+<code>EndpointPickerConfig</code> example in Exercise 1).</p>
 </div>
 </li>
 </ol>
 </div>
-<div class="paragraph">
-<p>If no router configuration is available in your workshop environment, stay with
-the default <strong>Default optimized routing</strong> and continue to Exercise 3 — the
-metrics you observe there are the same ones a latency-aware configuration
-optimizes.</p>
-</div>
 <div class="sect2">
 <h3 id="_verify_2"><a class="anchor" href="#_verify_2"></a>Verify</h3>
 <div class="paragraph">
-<p>Your deployed model&#8217;s <code>LLMInferenceService</code> resource lists the selected router
-configuration in <code>spec.baseRefs</code> after the topology preset config.</p>
+<p>Your deployed model&#8217;s <code>LLMInferenceService</code> resource lists the platform
+template preset in <code>spec.baseRefs</code> — plus your administrator&#8217;s router
+configuration when one is attached.</p>
 </div>
 <div class="paragraph">
-<p>Now that the router configuration is attached, you will generate inference traffic and observe the latency metrics it produces.</p>
+<p>Now that the routing configuration is settled, you will generate inference traffic and observe the latency metrics it produces.</p>
 </div>
 </div>
 </div>
@@ -846,16 +860,22 @@ documentation:</p>
 <div class="listingblock execute">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">export INFER_URL=$(oc get llmisvc -n abc123-user1 -o jsonpath='{.items[0].status.url}')
-curl -k $INFER_URL/v1/chat/completions \
+curl -k $INFER_URL/chat/completions \
   -H "Content-Type: application/json" \
-  -d '{"model": "RedHatAI/Qwen3-8B-FP8-dynamic", "messages": [{"role": "user", "content": "What is Red Hat OpenShift AI?"}]}'</code></pre>
+  -d '{"model": "maas-llmd-demo", "messages": [{"role": "user", "content": "What is Red Hat OpenShift AI?"}]}'</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>If you deployed more than one model in your project, adjust the index in
-<code>.items[0]</code> so the query points at the deployment from Exercise 2. The model
-name defaults to the llm-d runnable example (<code>RedHatAI/Qwen3-8B-FP8-dynamic</code>);
-replace it with the model you deployed in Exercise 2 if it differs. Send a few
+<code>.items[0]</code> so the query points at your llm-d deployment. The <code>status.url</code> of an
+llm-d inference service already ends in <code>/v1</code>, so the curl path is
+<code>$INFER_URL/chat/completions</code> — do not append a second <code>/v1</code>. The model name
+<code>maas-llmd-demo</code> resolves to <code>maas-llmd-demo</code>, the llm-d deployment pre-staged in
+your workshop project; replace it with the name of the model you deployed if it
+differs. Gateways that enable authentication reject requests without a valid
+subscription — if you receive <code>401</code> (authentication required) or <code>403</code> (no
+matching subscription), ask your facilitator for workshop credentials that have
+a subscription, and otherwise continue to the metrics exercise. Send a few
 requests, including longer prompts, so the TTFT and TPOT distributions have
 spread.</p>
 </div>
@@ -951,7 +971,7 @@ that chart it) for your deployment.</p>
 <p>Inspected a latency-aware scheduler configuration and its three required plugins</p>
 </li>
 <li>
-<p>Applied a router configuration through the deployment wizard and verified it in <code>baseRefs</code></p>
+<p>Deployed with the llm-d serving stack&#8217;s default optimized routing and verified the routing configuration in <code>baseRefs</code></p>
 </li>
 <li>
 <p>Observed TTFT, TPOT, and ITL metrics and interpreted the documented latency patterns</p>
@@ -977,9 +997,18 @@ that chart it) for your deployment.</p>
 <div class="paragraph">
 <p><strong>Next steps:</strong></p>
 </div>
-<div class="paragraph">
-<p>Head to the conclusion for the resources that go deeper, including the
-<strong>Configure request routing</strong> chapters of the llm-d documentation.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Read the <strong>Configure request routing</strong> chapters of the llm-d documentation, linked in the conclusion</p>
+</li>
+<li>
+<p>Explore the <strong>EPP and inference scheduler metrics for llm-d</strong> chapter to go deeper on SLO monitoring</p>
+</li>
+<li>
+<p>Head to the conclusion for the related catalog workshops that build on the llm-d serving stack</p>
+</li>
+</ul>
 </div>
 </div>
 </div>

@@ -201,6 +201,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -939,6 +947,25 @@ correct.</p>
 </li>
 </ol>
 </div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The interactive walkthrough (index page, <strong>Watch the demo</strong>) was recorded on
+RHOAI 3.5.1, where the <strong>External models</strong> tab did not exist yet — the player
+states this explicitly in its dashboard beat. On RHOAI 3.6 the tab exists and
+this procedure was re-verified live (2026-11-27): the model row, the expanded
+provider details (provider URL, API key authentication, <code>messages</code> API format,
+target model ID), the MaaS governance pages, and the API-key dialog all match
+the steps as written. The demo was not re-recorded; its end-state frames are
+from the 3.5.1 capture.
+</td>
+</tr>
+</table>
+</div>
 <div class="sect2">
 <h3 id="_verify_2"><a class="anchor" href="#_verify_2"></a>Verify</h3>
 <div class="ulist">
@@ -1166,10 +1193,24 @@ external model using the <code>model</code> field from the request body.</p>
 </ul>
 </div>
 <div class="paragraph">
-<p>You have verified both access patterns. If a request with an unmatched model
-name does not fail immediately — the request is not handled by the external
-model routing pipeline and might result in a routing error or timeout
-downstream rather than an immediate rejection with a clear error message.</p>
+<p>You have verified both access patterns.</p>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>If a request with an unmatched model name does not fail immediately — the
+request is not handled by the external model routing pipeline and might
+result in a routing error or timeout downstream rather than an immediate
+rejection with a clear error message.</p>
+</div>
+</td>
+</tr>
+</table>
 </div>
 </div>
 </div>
@@ -1212,10 +1253,18 @@ downstream rather than an immediate rejection with a clear error message.</p>
 <div class="paragraph">
 <p><strong>Next steps:</strong></p>
 </div>
-<div class="paragraph">
-<p>Continue to the conclusion for the documentation chapters behind this
-workshop, including the complete passthrough decision matrix and the
-Vertex AI behavior differences.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Continue to <a href="conclusion.html" class="xref page">Conclusion</a> for the documentation chapters behind this workshop, including the complete passthrough decision matrix and the Vertex AI behavior differences</p>
+</li>
+<li>
+<p>Point an AI coding tool such as Claude Code at the single gateway URL with <code>ANTHROPIC_BASE_URL</code> and switch models mid-session using body-based routing — the configuration from the previous section</p>
+</li>
+<li>
+<p>If your external provider supports the OpenAI Responses API, repeat the exercise with <code>apiFormat: openai-responses</code> to exercise the other passthrough-eligible format</p>
+</li>
+</ul>
 </div>
 </div>
 </div>

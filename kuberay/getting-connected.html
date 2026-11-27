@@ -204,6 +204,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -595,7 +603,7 @@
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>Get the API server URL and credentials from your workshop facilitator.</p>
+<p>Get the application programming interface (API) server URL and credentials from your workshop facilitator.</p>
 </li>
 <li>
 <p>Log in from a terminal:</p>
@@ -616,6 +624,10 @@
 </div>
 <div class="paragraph">
 <p>You should see your workshop username.</p>
+</div>
+<div class="paragraph">
+<p>Authenticated against the cluster API, you next create the project that
+isolates your workshop resources.</p>
 </div>
 </div>
 </div>
@@ -638,6 +650,10 @@
 <div class="paragraph">
 <p>The output shows your new project as the current namespace.</p>
 </div>
+<div class="paragraph">
+<p>With your project in place, you next open the OpenShift console and confirm
+the RHOAI dashboard is reachable.</p>
+</div>
 </div>
 </div>
 </div>
@@ -648,6 +664,13 @@
 <p>Navigate to the OpenShift console and sign in with your workshop credentials.
 Locate <strong>Red Hat OpenShift AI</strong> in the application launcher grid; the RHOAI
 dashboard opens in a new tab.</p>
+</div>
+<div class="sect2">
+<h3 id="_verify_3"><a class="anchor" href="#_verify_3"></a>Verify</h3>
+<div class="paragraph">
+<p>The RHOAI dashboard opens in a new browser tab, signed in with the same
+workshop credentials.</p>
+</div>
 </div>
 </div>
 </div>
@@ -660,7 +683,7 @@ dashboard opens in a new tab.</p>
 <div class="ulist">
 <ul>
 <li>
-<p>Logged in to the OpenShift cluster with the <code>oc</code> CLI</p>
+<p>Logged in to the OpenShift cluster with the <code>oc</code> command-line interface (CLI)</p>
 </li>
 <li>
 <p>Created a personal working project</p>

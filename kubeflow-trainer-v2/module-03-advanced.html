@@ -204,6 +204,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -688,7 +696,7 @@ spec:
               spec:
                 containers:
                 - name: trainer
-                  image: registry.redhat.io/rhoai/odh-training-cuda128-torch28-py312-rhel9:v3.0 <2>
+                  image: registry.redhat.io/rhoai/odh-th-torch-cuda-py312-rhel9@sha256:13cfdd48a974c3f359744439cb65339ceeca75ab2ed08f0d3c6abd5b5f12bc0a <2>
                   env:
                   - name: MASTER_ADDR
                     value: "$(JOB_NAME)-node-0-0.$(JOB_NAME)"
@@ -715,7 +723,7 @@ spec:
 </tr>
 <tr>
 <td><i class="conum" data-value="2"></i><b>2</b></td>
-<td><strong><code>image</code></strong> — a custom container image with your libraries pre-installed.</td>
+<td><strong><code>image</code></strong> — a custom container image with your libraries pre-installed. The example pins, by digest, the same <code>odh-th-torch-cuda-py312-rhel9</code> image the pre-built <code>torch-distributed</code> runtime ships; replace it with your own image reference when you create the runtime.</td>
 </tr>
 <tr>
 <td><i class="conum" data-value="3"></i><b>3</b></td>
@@ -972,7 +980,7 @@ reads the S3 credentials from the connection&#8217;s Kubernetes secret and expos
 as environment variables to the training pods — no credentials in <code>env</code>. This
 flow uses a local-first architecture: checkpoints are saved to a local <code>emptyDir</code>
 staging volume first, then uploaded to S3 in the background without blocking GPU
-training. See "Configure model checkpointing" in the RHOAI 3.5 documentation.</p>
+training. See "Configure model checkpointing" in the RHOAI 3.6 documentation.</p>
 </div>
 </td>
 </tr>
@@ -1001,7 +1009,7 @@ step — the name the SDK printed when you submitted the job:</p>
 <div class="listingblock execute">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">JOB_NAME=$(oc get trainjob -n abc123-user1 -o jsonpath='{.items[0].metadata.name}')
-oc get pods -n abc123-user1 -l job-name=$JOB_NAME</code></pre>
+oc get pods -n abc123-user1 -l jobset.sigs.k8s.io/jobset-name=$JOB_NAME</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1275,7 +1283,7 @@ appears in the job list.</p>
 </div>
 <div class="paragraph">
 <p>Review the full example TrainJob resources and fine-tuning notebooks in the
-Kubeflow Trainer v2 chapter of the RHOAI 3.5 documentation, then continue to the
+Kubeflow Trainer v2 chapter of the RHOAI 3.6 documentation, then continue to the
 conclusion.</p>
 </div>
 </div>

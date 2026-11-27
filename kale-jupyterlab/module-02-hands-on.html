@@ -201,6 +201,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -629,6 +637,28 @@ JupyterLab to be green (Module 01). A yellow status means KFP is disconnected
 — go back to Module 01 before continuing.</p>
 </div>
 </li>
+</ol>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+A yellow status is not always a missing prerequisite. On the build this
+workshop&#8217;s demo was captured on (RHOAI 3.5.1), the Kale panel stayed
+<strong>Disconnected</strong> (yellow) even with the Data Science Pipelines Application
+Ready. If the status stays yellow after you have re-checked Module 01, the
+disconnect is a limitation of your build, not a step you missed — continue
+with the exercises and use the observability path in Exercise 2; where a step
+depends on the submit action being enabled, the exercise says so explicitly.
+</td>
+</tr>
+</table>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
 <li>
 <p>In JupyterLab, open the <strong>File Browser</strong> in the left sidebar and create a blank
 notebook or open an existing one.</p>
@@ -649,6 +679,25 @@ the notebook.</p>
 </li>
 </ol>
 </div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+On the build this workshop&#8217;s demo was captured on (RHOAI 3.5.1,
+runtime-datascience image), the <strong>Enable</strong> toggle did not render for notebooks —
+the Kale panel loaded, but the per-notebook controls were unavailable. If the
+toggle does not appear for your notebook, the annotation step is
+platform-blocked in your build; continue to Exercise 2, whose verification
+path states plainly what remains demonstrable (SDK and dashboard
+observability) and what is blocked (the notebook submit handoff), and report
+the limitation to your facilitator.
+</td>
+</tr>
+</table>
+</div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
@@ -660,7 +709,7 @@ the notebook annotation following the upstream Kale documentation flow.</p>
 </ol>
 </div>
 <div class="paragraph">
-<p>The field-level editor options are not documented in the RHOAI 3.5 product
+<p>The field-level editor options are not documented in the RHOAI 3.6 product
 docs — the release notes defer to the upstream Kale documentation for that
 detail.</p>
 </div>
@@ -682,7 +731,11 @@ conversion behavior may change between releases.
 <div class="paragraph">
 <p>The <strong>Enable</strong> toggle is switched on for your notebook, the <strong>Kale metadata
 editor</strong> panel is open, and each notebook cell shows an execution count with no
-error output in any cell.</p>
+error output in any cell. If the <strong>Enable</strong> toggle does not render for your
+notebook (as captured on the demo build), the annotation step is
+platform-blocked in your build — record that outcome and continue; Exercise 2
+verifies the pipeline backend through a path that does not depend on the
+blocked controls.</p>
 </div>
 <div class="paragraph">
 <p>With the notebook annotated, the next step is to convert it and run the
@@ -705,9 +758,28 @@ run the pipeline from the workbench, then observe the run in the dashboard.</p>
 <p>In the Kale metadata editor, convert the annotated notebook and submit the
 converted pipeline to the pipeline server connected in Module 01. The exact
 panel controls for the submit action are part of the field-level editor that
-the RHOAI 3.5 docs leave to the upstream Kale documentation — follow that
+the RHOAI 3.6 docs leave to the upstream Kale documentation — follow that
 flow. The documented contract is the destination: the converted pipeline goes
 to the pipeline server attached to your project.</p>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+This submit handoff requires Kale to report <strong>Connected</strong> (green).
+On the build this workshop&#8217;s demo was captured on, the Kale panel stayed
+<strong>Disconnected</strong> (yellow) with the Data Science Pipelines Application Ready,
+and <strong>Compile and Run</strong> stayed disabled — the upload-and-run handoff was not
+demonstrable. If your panel is also stuck on <strong>Disconnected</strong>, the submit step
+is platform-blocked in your build: skip the submit and demonstrate the
+pipeline-server side of the flow through the SDK and dashboard observability
+steps below, which do not depend on the blocked controls.
+</td>
+</tr>
+</table>
+</div>
 </li>
 <li>
 <p>Once the converted pipeline run is created, it executes once immediately by
@@ -758,7 +830,8 @@ print(client.list_pipelines())</code></pre>
 </div>
 <div class="paragraph">
 <p>The output lists the experiments and pipelines defined on the pipeline server
-for your project — including the pipeline converted from your notebook.</p>
+for your project — including, when the submit succeeded, the pipeline
+converted from your notebook.</p>
 </div>
 </li>
 </ol>
@@ -822,12 +895,29 @@ in your cluster.
 <div class="sect2">
 <h3 id="_verify_2"><a class="anchor" href="#_verify_2"></a>Verify</h3>
 <div class="paragraph">
-<p>The pipeline run appears on the <strong>Runs</strong> tab under <strong>Develop &amp; train →
-Experiments</strong> with a status of <strong>Succeeded</strong> (or <strong>Running</strong> while it executes),
-the run details page opens from <strong>Develop &amp; train → Pipelines → Runs</strong> with the
-run graph and step logs, the <code>client.list_pipelines()</code> output lists the
-pipeline converted from your notebook, and the pipeline server details open
-from <strong>Pipeline server actions → Manage pipeline server configuration</strong>.</p>
+<p>The outcome depends on whether Kale reached the pipeline server:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>If Kale reported <strong>Connected</strong> and the submit went through: the pipeline run
+appears on the <strong>Runs</strong> tab under <strong>Develop &amp; train → Experiments</strong> with a status
+of <strong>Succeeded</strong> (or <strong>Running</strong> while it executes), and the run details page
+opens from <strong>Develop &amp; train → Pipelines → Runs</strong> with the run graph and step
+logs.</p>
+</li>
+<li>
+<p>If Kale stayed <strong>Disconnected</strong> and <strong>Compile and Run</strong> remained disabled: the
+submit step is platform-blocked on this build and no run exists to observe —
+state that outcome plainly. The demonstrable fallback is the SDK path above:
+<code>client.list_pipelines()</code> returns against the pipeline server, proving your
+route, credentials, and Data Science Pipelines Application are reachable.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>In both cases the pipeline server details open from <strong>Pipeline server actions →
+Manage pipeline server configuration</strong>.</p>
 </div>
 </div>
 </div>
@@ -864,6 +954,9 @@ from <strong>Pipeline server actions → Manage pipeline server configuration</s
 </li>
 <li>
 <p>Pipeline definitions live in the <code>/pipelines</code> folder of the S3-compatible bucket, and run artifacts in the <code>/pipeline-name</code> folder; the KFP SDK lists what the pipeline server holds</p>
+</li>
+<li>
+<p>On some builds Kale stays <strong>Disconnected</strong> (yellow) even with a Ready Data Science Pipelines Application and <strong>Compile and Run</strong> disabled — the upload-and-run handoff is then platform-blocked, and the SDK and dashboard observability steps remain the demonstrable path</p>
 </li>
 </ul>
 </div>

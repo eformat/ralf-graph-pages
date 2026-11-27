@@ -201,6 +201,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -698,7 +706,7 @@ pip install -r requirements.txt</code></pre>
 your <code>.gitignore</code> — never commit it):</p>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">OPENAI_API_KEY=&lt;your_api_key&gt;
+<pre class="highlightjs highlight"><code class="language-text hljs" data-lang="text">OPENAI_API_KEY=&lt;your_api_key&gt;
 TEACHER_MODEL=openai/gpt-5.2
 JUDGE_MODEL=openai/gpt-4o</code></pre>
 </div>
@@ -724,6 +732,24 @@ JUDGE_MODEL=openai/gpt-4o</code></pre>
 <p>Start your MCP servers and verify they are healthy. By default the example
 servers start on ports 8001 through 8006; if you use your own servers, update
 <code>MCP_SERVERS</code> in the generation notebook:</p>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The bundled scripts have prerequisites: clone
+<a href="https://github.com/Accenture/mcp-bench" class="bare">https://github.com/Accenture/mcp-bench</a> as a sibling directory of the sdg_hub
+repository (<code>../mcp-bench</code>), create the repository&#8217;s uv-managed virtualenv at
+the repository root (<code>uv pip install</code> into <code>.venv</code> — the scripts invoke
+<code>$PROJECT_ROOT/.venv/bin/python</code>), and install the <code>langgraph</code> CLI used by
+<code>start_agents.sh</code>. Learners bringing their own MCP servers can skip these
+scripts.
+</td>
+</tr>
+</table>
+</div>
 <div class="listingblock execute">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">bash start_servers.sh
@@ -921,7 +947,7 @@ LLM inference cost and time.
 </div>
 </li>
 <li>
-<p>Check the evaluation results summary for <code>ZERO_JUDGE</code> and <code>ZERO_METRICS</code>
+<p>Check the evaluation results summary for <code>ZERO_JUDGE</code> and <code>ZERO_RESULT</code>
 failure indicators. These constants mark tasks where a model produced no valid
 response; a high proportion of zero-value results for a model suggests it
 cannot handle the tool-calling tasks.</p>

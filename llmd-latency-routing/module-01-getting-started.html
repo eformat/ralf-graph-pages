@@ -201,6 +201,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -625,7 +633,7 @@ pods with available capacity, while throughput-sensitive traffic fills pods
 that are already handling longer work.</p>
 </div>
 <div class="paragraph">
-<p>In Red Hat OpenShift AI 3.5 this capability is a <strong>Developer Preview</strong> feature
+<p>In Red Hat OpenShift AI 3.6 this capability is a <strong>Developer Preview</strong> feature
 and works together with <strong>Distributed Inference with llm-d</strong>, the serving stack
 that provides the routing layer where the predictions and placement decisions
 are made.</p>
@@ -752,14 +760,17 @@ same inline scheduler configuration controls both layers.</p>
 <div class="sect2">
 <h3 id="_verify_2"><a class="anchor" href="#_verify_2"></a>Verify</h3>
 <div class="paragraph">
-<p>In the RHOAI dashboard, navigate to <strong>Data Science Projects</strong>, select your
-project, and click <strong>Deploy model</strong>. In the wizard, expand <strong>Advanced routing</strong> and
-note that a <strong>Default optimized routing</strong> option is pre-selected — that default
-is the 4-scorer profile, and it is what a latency-aware configuration replaces
-or extends.</p>
+<p>In the RHOAI dashboard, navigate to <strong>Data Science Projects</strong>, select your project,
+and click <strong>Deploy model</strong>. The wizard offers an <strong>LLM inference service with llm-d</strong>
+deployment method — that method deploys on the llm-d serving stack whose routing
+layer hosts latency-aware scheduling. You do not need to complete the wizard:
+routing is a platform-level concern. Deployments use the platform&#8217;s default
+optimized routing — the 4-scorer profile — unless your administrator created
+router configurations for the cluster, in which case the deployment can select
+one (module 02 covers those configurations).</p>
 </div>
 <div class="paragraph">
-<p>Now that you know which routing option the wizard pre-selects, you will confirm the llm-d serving resources exist in your cluster.</p>
+<p>Now that you have seen where the llm-d serving stack appears in the dashboard, you will confirm the llm-d resources exist in your cluster.</p>
 </div>
 </div>
 </div>
@@ -825,8 +836,10 @@ your workshop facilitator before continuing.</p>
 <div class="sect2">
 <h3 id="_verify_3"><a class="anchor" href="#_verify_3"></a>Verify</h3>
 <div class="paragraph">
-<p>You ran read-only <code>oc</code> commands without errors and located the Advanced routing
-section of the model deployment wizard.</p>
+<p>You ran read-only <code>oc</code> commands without errors and confirmed the llm-d serving
+stack is present in your cluster: <code>LLMInferenceService</code> resources are
+recognized, and the <code>LLMInferenceServiceConfig</code> templates that back the
+deployment wizard&#8217;s topology and router options are installed.</p>
 </div>
 </div>
 </div>
@@ -846,7 +859,7 @@ section of the model deployment wizard.</p>
 <p>Mapped the Endpoint Picker&#8217;s Flow Control and Scheduling layers and the three latency-aware plugins</p>
 </li>
 <li>
-<p>Confirmed the llm-d serving resources and the Advanced routing wizard section exist in your cluster</p>
+<p>Confirmed the llm-d serving resources and the <code>LLMInferenceServiceConfig</code> templates that back the deployment wizard&#8217;s options exist in your cluster</p>
 </li>
 </ul>
 </div>
@@ -869,10 +882,18 @@ section of the model deployment wizard.</p>
 <div class="paragraph">
 <p><strong>Next steps:</strong></p>
 </div>
-<div class="paragraph">
-<p>Continue to the next module, where you explore a latency-aware scheduler
-configuration, attach it to a deployment, and observe the latency metrics that
-show the routing decisions in action.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Continue to module 02, where you inspect a latency-aware scheduler configuration and its three required plugins</p>
+</li>
+<li>
+<p>Walk through the deployment wizard with the llm-d serving stack and see how routing behavior attaches to a deployment</p>
+</li>
+<li>
+<p>Generate inference traffic and observe the latency metrics that reveal the routing decisions in action</p>
+</li>
+</ul>
 </div>
 </div>
 </div>

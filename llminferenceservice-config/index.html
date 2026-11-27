@@ -203,6 +203,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -597,16 +605,16 @@ template model that powers the dashboard&#8217;s llm-d topology selector.</p>
 <p>How <code>LLMInferenceService</code> composes model, router, gateway, scheduler, and template configuration in one CR</p>
 </li>
 <li>
-<p>Deploying a model with a real <code>LLMInferenceService</code> manifest and sending an authenticated chat-completion request</p>
+<p>Deploying a CPU-served model with a real <code>LLMInferenceService</code> manifest and sending an authenticated chat-completion request — no GPU required</p>
 </li>
 <li>
-<p>The four llm-d topology patterns and how <code>opendatahub.io/config-type</code> labels drive wizard discovery</p>
+<p>The llm-d topology patterns and how <code>opendatahub.io/config-type</code> labels drive wizard discovery of accelerator configurations</p>
 </li>
 <li>
-<p>Creating topology and router <code>LLMInferenceServiceConfig</code> templates as an administrator, and how <code>baseRefs</code> merges them</p>
+<p>Managing accelerator <code>LLMInferenceServiceConfig</code> templates as an administrator, and how <code>baseRefs</code> merges them into your service</p>
 </li>
 <li>
-<p>Running a disaggregated prefill/decode workload with the <code>prefill</code> spec section</p>
+<p>How disaggregated prefill/decode and multi-node serving work — covered conceptually, because they require GPU capacity that a CPU-only cluster does not provide</p>
 </li>
 </ul>
 </div>
@@ -618,7 +626,7 @@ template model that powers the dashboard&#8217;s llm-d topology selector.</p>
 <div class="ulist">
 <ul>
 <li>
-<p>An OpenShift cluster with RHOAI 3.5 installed and the model serving platform enabled</p>
+<p>An OpenShift cluster with RHOAI 3.6 installed and the model serving platform enabled</p>
 </li>
 <li>
 <p>OpenShift 4.19.9 or later, with OpenShift Service Mesh v2 <strong>not</strong> installed</p>

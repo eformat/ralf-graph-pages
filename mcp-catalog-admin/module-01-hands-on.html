@@ -198,6 +198,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -580,7 +588,7 @@
 <div class="sectionbody">
 <div class="paragraph">
 <p>In this module you take a guided tour of the <strong>MCP Catalog administrative interface</strong>, a
-Developer Preview feature in RHOAI 3.5. You confirm your cluster is ready for MCP catalog
+Developer Preview feature in RHOAI 3.6. You confirm your cluster is ready for MCP catalog
 administration, tour the dashboard Settings page where MCP catalog source entries live,
 and walk through the YAML-based add, edit, and remove workflows.</p>
 </div>
@@ -665,7 +673,7 @@ dashboard feature flag. You verify both next.</p>
 <div class="sectionbody">
 <div class="paragraph">
 <p>In this exercise you confirm that your cluster meets the workshop prerequisites: RHOAI
-3.5 installed, the MCP Lifecycle Operator enabled, and the MCP Catalog dashboard flag on.
+3.6 installed, the MCP Lifecycle Operator enabled, and the MCP Catalog dashboard flag on.
 These are observe steps — you run read-only commands and check the output.</p>
 </div>
 <div class="olist arabic">
@@ -682,8 +690,40 @@ These are observe steps — you run read-only commands and check the output.</p>
 </div>
 </li>
 <li>
-<p>Confirm that the MCP Lifecycle Operator is reported as installed. Replace
-<code>default-dsc</code> with your object name if different:</p>
+<p>Confirm that the MCP Lifecycle Operator is ready. Query the <code>Ready</code> condition on
+the operator&#8217;s own custom resource — the authoritative readiness check for this
+feature:</p>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get mcplifecycleoperators default \
+  -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The expected output is <code>True</code>. If the command fails because the resource kind does
+not exist, or the condition comes back empty or <code>False</code>, the operator is not enabled
+yet — see the enablement commands in the Verify section below.</p>
+</div>
+</li>
+<li>
+<p>Cross-check the readiness condition that the <code>DataScienceCluster</code> itself reports
+for the operator:</p>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get datasciencecluster default-dsc \
+  -o jsonpath='{.status.conditions[?(@.type=="MCPLifecycleOperatorReady")].status}'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The expected output is <code>True</code>.</p>
+</div>
+</li>
+<li>
+<p>For completeness, inspect the <code>installedComponents</code> map of the
+<code>DataScienceCluster</code>, which older RHOAI material suggested checking. On RHOAI 3.x
+builds this map stays empty for the MCP Lifecycle Operator even when the component
+is <code>Managed</code> and ready, so an empty output here does <strong>not</strong> mean the operator is
+missing — the condition checks in the previous two steps are authoritative:</p>
 <div class="listingblock execute">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get datasciencecluster default-dsc \
@@ -691,7 +731,8 @@ These are observe steps — you run read-only commands and check the output.</p>
 </div>
 </div>
 <div class="paragraph">
-<p>The expected output is <code>true</code>.</p>
+<p>An empty result is the expected output on this build. This is an informational step:
+you run it once to recognize the quirk instead of mistaking it for a failure.</p>
 </div>
 </li>
 <li>
@@ -712,8 +753,12 @@ that surfaces MCP catalog features in the dashboard:</p>
 <div class="sect2">
 <h3 id="_verify"><a class="anchor" href="#_verify"></a>Verify</h3>
 <div class="paragraph">
-<p>All three commands succeed and the two jsonpath checks return <code>true</code>. If the
-<code>mcpCatalog</code> flag is missing or <code>false</code>, your facilitator must enable it first:</p>
+<p>All five commands succeed: the two readiness condition checks return <code>True</code>, the
+<code>mcpCatalog</code> flag check returns <code>true</code>, and the informational <code>installedComponents</code>
+check returns empty output — the documented behavior on this build, not a failure.
+If the operator readiness condition is missing or <code>False</code>, or <code>oc get
+mcplifecycleoperators</code> reports that the resource kind does not exist, the MCP
+Lifecycle Operator is not enabled yet and your facilitator must enable it first:</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
@@ -732,8 +777,8 @@ oc patch odhdashboardconfig odh-dashboard-config -n redhat-ods-applications \
 <td class="content">
 <div class="paragraph">
 <p>The enablement steps are walked through hands-on in the <strong>MCP Catalog support-tier
-labeling</strong> workshop in this catalog. If the <code>mcplifecycleoperator</code> jsonpath check
-returns <code>false</code>, complete that workshop&#8217;s Exercise 1 before continuing here.</p>
+labeling</strong> workshop in this catalog. If the operator readiness condition checks do
+not report <code>True</code>, complete that workshop&#8217;s Exercise 1 before continuing here.</p>
 </div>
 </td>
 </tr>
@@ -792,7 +837,7 @@ edit, and remove patterns you learn here apply to model catalog sources too.</p>
 <div class="paragraph">
 <p>Because this is a Developer Preview, the exact submenu label for the MCP catalog
 settings entry may differ between releases. If you cannot find it under the Settings
-page, check the RHOAI 3.5 release notes linked from the conclusion for the current
+page, check the RHOAI 3.6 release notes linked from the conclusion for the current
 location.</p>
 </div>
 </td>
@@ -812,8 +857,9 @@ location.</p>
 provides, and see how it replaces the old ConfigMap-driven approach.</p>
 </div>
 <div class="paragraph">
-<p><strong>The old way: manual ConfigMap edits.</strong> In RHOAI 3.5, MCP server configuration at the
-platform level is documented as a <code>ConfigMap</code> in the <code>redhat-ods-applications</code>
+<p><strong>The old way: manual ConfigMap edits.</strong> Before the MCP Catalog administrative
+interface (introduced in RHOAI 3.5), MCP server configuration at the
+platform level was documented as a <code>ConfigMap</code> in the <code>redhat-ods-applications</code>
 namespace, where each case-sensitive key holds a JSON definition for one MCP server:</p>
 </div>
 <div class="listingblock">
@@ -985,7 +1031,8 @@ what you learned.</p>
 <ul>
 <li>
 <p>Verified the cluster was ready for MCP catalog administration: the MCP Lifecycle
-Operator installed and the <code>mcpCatalog</code> dashboard flag enabled</p>
+Operator readiness conditions reported <code>True</code> and the <code>mcpCatalog</code> dashboard flag
+was enabled</p>
 </li>
 <li>
 <p>Toured the dashboard Settings page where MCP catalog source configurations are managed</p>

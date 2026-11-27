@@ -201,6 +201,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -614,22 +622,6 @@ included.</p>
 </li>
 </ul>
 </div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-Saved agents is a <strong>Developer Preview</strong> feature. Developer Preview features
-are not supported by Red Hat in any way, might not have any documentation, are
-subject to change or removal at any time, and have received limited testing.
-The feature is gated behind the <code>agentConfigManagement</code> dashboard configuration
-option.
-</td>
-</tr>
-</table>
-</div>
 </div>
 </div>
 <div class="sect1">
@@ -667,9 +659,9 @@ enabled and you can skip ahead to Exercise 3.</p>
 The <code>OdhDashboardConfig</code> custom resource lives in the
 <code>redhat-ods-applications</code> namespace and is created by the OpenShift AI
 operator. It controls the visibility of dashboard features such as Gen AI
-Studio itself, the model catalog, and the saved-agent management UI. This is
-the same mechanism used by other Developer Preview features such as the Agent
-Catalog flag.
+Studio itself, the model catalog, and the saved-agent management UI. Other
+Gen AI Studio dashboard features, such as the Agent Catalog flag, use the
+same mechanism.
 </td>
 </tr>
 </table>
@@ -709,7 +701,7 @@ the <code>agentConfigManagement</code> feature flag.</p>
 <h2 id="_exercise_2_enable_the_agentconfigmanagement_feature_flag"><a class="anchor" href="#_exercise_2_enable_the_agentconfigmanagement_feature_flag"></a>Exercise 2: Enable the agentConfigManagement feature flag</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>To enable this Developer Preview feature, set the <code>agentConfigManagement</code>
+<p>To enable saved agents, set the <code>agentConfigManagement</code>
 dashboard configuration option to <code>true</code> in the <code>OdhDashboardConfig</code> custom
 resource.</p>
 </div>

@@ -201,6 +201,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -863,10 +871,27 @@ oc get isvc -n autorag-ml-demo</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>NAME             URL                                        READY   UPDATED   UPDATINGAVAILABLE   DEGRADED
+<pre>NAME             URL                                        READY   UPDATED   UPDATING   AVAILABLE   DEGRADED
 aml-bge-m3       http://aml-bge-m3.autorag-ml-demo.svc.cluster.local   True
 aml-llama32-3b   http://aml-llama32-3b.autorag-ml-demo.svc.cluster.local   True</pre>
 </div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Deleting the pod bypasses the pull failure rather than fixing it — it relies on
+another node having already cached the digest. If every node reports
+<code>manifest unknown</code>, verify the ServingRuntime image digest and registry access
+instead of rescheduling.</p>
+</div>
+</td>
+</tr>
+</table>
 </div>
 <div class="paragraph">
 <p>If a predictor pod sits in <code>ImagePullBackOff</code> with <code>manifest unknown</code> for the

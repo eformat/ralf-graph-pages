@@ -210,6 +210,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -642,7 +650,7 @@ parallel execution and horizontal scalability across namespaces and tenants.</p>
 <tbody>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><strong>EvalHub Server</strong></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">A REST API service that handles evaluation workflows, job orchestration, and provider management, with PostgreSQL storage. It can also run in local mode on a workstation for development without a cluster.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A REST API service that handles evaluation workflows, job orchestration, and provider management. Storage is configured on the <code>EvalHub</code> CR: <code>sqlite</code> is the lightweight default and is what the workshop deployment runs, while <code>postgresql</code> is optional for shared production state (it requires a pre-composed database URL in the referenced secret). It can also run in local mode on a workstation for development without a cluster.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><strong>EvalHub SDK and CLI</strong></p></td>
@@ -791,6 +799,9 @@ namespace and registered your working project as a tenant.</p>
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get pods -l app=eval-hub -n abc123-evalhub</code></pre>
 </div>
 </div>
+<div class="paragraph">
+<p>Sample output:</p>
+</div>
 <div class="listingblock">
 <div class="content">
 <pre>NAME                         READY   STATUS    RESTARTS   AGE
@@ -806,13 +817,14 @@ evalhub-7b9f4c6d88-x2k4p     1/1     Running   0          2m</pre>
 curl $EVALHUB_URL/api/v1/health | jq .</code></pre>
 </div>
 </div>
+<div class="paragraph">
+<p>Sample output (your timestamp will differ):</p>
+</div>
 <div class="listingblock">
 <div class="content">
 <pre>{
   "status": "healthy",
-  "timestamp": "2026-04-13T10:00:00Z",
-  "version": "0.3.0",
-  "uptime": 3600000000000
+  "timestamp": "2026-11-27T18:45:12Z"
 }</pre>
 </div>
 </div>
@@ -880,9 +892,18 @@ in your working project.</p>
 <div class="paragraph">
 <p><strong>Next steps:</strong></p>
 </div>
-<div class="paragraph">
-<p>With the deployment verified, install the EvalHub CLI and submit your first
-evaluation job in the hands-on module.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Install and configure the EvalHub SDK and CLI against your EvalHub server</p>
+</li>
+<li>
+<p>Explore the registered providers and benchmarks</p>
+</li>
+<li>
+<p>Submit your first evaluation job in the hands-on module</p>
+</li>
+</ul>
 </div>
 </div>
 </div>

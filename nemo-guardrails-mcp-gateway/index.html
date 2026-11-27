@@ -200,6 +200,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -580,26 +588,11 @@
 <h1 class="page">Welcome to the NeMo Guardrails integration with MCP Gateway Workshop</h1>
 <div id="preamble">
 <div class="sectionbody">
-<div class="admonitionblock warning">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-warning" title="Warning"></i>
-</td>
-<td class="content">
-This feature is a <strong>Technology Preview</strong>. Technology Preview features are
-not supported with Red Hat production service-level agreements (SLAs) and might
-not be functionally complete.
-</td>
-</tr>
-</table>
-</div>
 <div class="paragraph">
 <p>This workshop introduces <strong>NeMo Guardrails integration with MCP Gateway</strong>: you
-enforce guardrails on agent tool calls at the gateway layer, so PII leakage,
-prompt injection, and content safety violations are blocked before traffic
-reaches backend tool servers — without implementing guardrails in each agent
-application.</p>
+attach guardrail checks to the platform AI Gateway, so unsafe content — PII
+leakage, secrets, injection attempts — is detected before traffic proceeds to
+your models, without implementing guardrails in each application.</p>
 </div>
 <div class="paragraph">
 <p><strong>What you will learn:</strong></p>
@@ -607,16 +600,16 @@ application.</p>
 <div class="ulist">
 <ul>
 <li>
-<p>How the TrustyAI operator discovers the MCP gateway and BBR plugin and provisions the <code>mcp-sse-strip</code> EnvoyFilter</p>
+<p>How the <code>NemoGuardrails</code> provider CR and the <code>AIGuardrail</code> attachment CR cooperate to enforce guardrails at the platform AI Gateway</p>
 </li>
 <li>
-<p>How to verify the MCP gateway prerequisites from the CLI</p>
+<p>How to verify the guardrails prerequisites from the CLI</p>
 </li>
 <li>
 <p>How to deploy a standalone NeMo Guardrails service and test its built-in detectors with <code>/v1/guardrail/checks</code></p>
 </li>
 <li>
-<p>How to configure the <code>mcpGateway</code> field of the <code>NemoGuardrails</code> CR and verify discovery through CR status fields</p>
+<p>How to move the provider workload into gateway scope with <code>aiGatewayMode</code> and authorize consumers with <code>allowedConsumers</code></p>
 </li>
 </ul>
 </div>
@@ -628,19 +621,13 @@ application.</p>
 <div class="ulist">
 <ul>
 <li>
-<p>RHOAI operator installed with the TrustyAI component set to <code>Managed</code></p>
+<p>RHOAI operator installed with the TrustyAI component set to <code>Managed</code> and the NeMo Guardrails service enabled</p>
 </li>
 <li>
-<p>Guardrails enabled in the DataScienceCluster</p>
+<p>The platform AI Gateway (<code>default-aigateway</code>) deployed and ready, provisioned by your workshop facilitator</p>
 </li>
 <li>
-<p>An MCP gateway with a Kubernetes <code>Gateway</code> resource deployed by your workshop facilitator</p>
-</li>
-<li>
-<p>The <code>MCPGatewayExtension</code> CRD from RHCL MCP gateway available, with at least one resource in the target namespace</p>
-</li>
-<li>
-<p>OpenShift Service Mesh or Istio with <code>EnvoyFilter</code> support, and the <code>nemo-request-guard</code> and <code>nemo-response-guard</code> BBR plugins installed in the gateway namespace</p>
+<p>The <code>NemoGuardrails</code> and <code>AIGuardrail</code> CRDs available on the cluster</p>
 </li>
 <li>
 <p>Recommended prerequisite: complete the <a href="../nemo-guardrails/index.html" class="xref page">NeMo Guardrails</a> workshop first</p>

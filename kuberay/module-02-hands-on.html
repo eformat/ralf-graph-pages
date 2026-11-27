@@ -204,6 +204,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -624,6 +632,77 @@ Module 03.
 </div>
 </div>
 <div class="sect1">
+<h2 id="_two_ways_in"><a class="anchor" href="#_two_ways_in"></a>Two ways in</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>There are two equivalent ways to create a Ray cluster in your project, and this
+workshop shows both. Both paths submit work to the same local queue in the
+<code>kuberay-workshop</code> project and pass through the same KubeRay and Kueue lifecycle —
+they differ only in where you drive the creation from.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top"></th>
+<th class="tableblock halign-left valign-top">Path A: console Import YAML</th>
+<th class="tableblock halign-left valign-top">Path B: CodeFlare SDK from a workbench</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Where you run it</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">OpenShift console, <strong>Import YAML</strong> — no workbench required</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Jupyter notebook in your workbench</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Cluster name</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>ray-lab</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>raytest</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Ray image</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>rayproject/ray:2.41.0-py311-cpu</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>quay.io/modh/ray:2.47.1-py311-cu121</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Queue</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>kueue.x-k8s.io/queue-name: workshop-lq</code> label</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>local_queue="workshop-lq"</code> argument</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Path A is the flow recorded in the interactive walkthrough demo —
+<a href="_attachments/kuberay-demo.html" target="_blank" rel="noopener">watch the demo</a> — and is the
+fastest way to see the full create, queue, and admit lifecycle. Path B is the
+hands-on notebook flow you build in this module.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The two paths use different Ray images, and both are valid. The console
+demo (Path A) uses the community CPU image <code>rayproject/ray:2.41.0-py311-cpu</code>,
+which is enough to exercise the complete KubeRay and Kueue lifecycle. The
+CodeFlare SDK (Path B) defaults to Red Hat&#8217;s CUDA (Compute Unified Device
+Architecture) image <code>quay.io/modh/ray:2.47.1-py311-cu121</code>. GPU (graphics
+processing unit) workloads need the CUDA image; for a CPU-only workshop the
+community CPU image keeps the demo light.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_exercise_1_create_a_workbench_for_distributed_training"><a class="anchor" href="#_exercise_1_create_a_workbench_for_distributed_training"></a>Exercise 1: Create a workbench for distributed training</h2>
 <div class="sectionbody">
 <div class="olist arabic">
@@ -641,7 +720,8 @@ project</strong>, enter a name, and click <strong>Create</strong>.</p>
 </li>
 <li>
 <p>Enter a workbench name. In the <strong>Workbench image</strong> section, select an image that
-contains the CodeFlare SDK, for example the <strong>Standard Data Science</strong> image.</p>
+contains the CodeFlare SDK, for example the <strong>Standard Data Science</strong> image
+(<code>s2i-generic-data-science-notebook</code>).</p>
 </li>
 <li>
 <p>In the <strong>Deployment size</strong> section, select a suitable <strong>Hardware profile</strong>. The hardware
@@ -661,6 +741,10 @@ you can share data between the workbench and training runs.</p>
 <div class="paragraph">
 <p>On the <strong>Workbenches</strong> tab, the workbench status changes from <strong>Starting</strong> to <strong>Running</strong>.
 Open the workbench and log in to JupyterLab.</p>
+</div>
+<div class="paragraph">
+<p>Your workbench is Running — next you download the CodeFlare SDK demo notebooks
+that drive the rest of this module.</p>
 </div>
 </div>
 </div>
@@ -716,6 +800,10 @@ demo notebooks.</p>
 notebooks, including <code>2_basic_interactive.ipynb</code>.</p>
 </li>
 </ul>
+</div>
+<div class="paragraph">
+<p>With the demo notebooks in place, you are ready to configure and start a Ray
+cluster of your own.</p>
 </div>
 </div>
 </div>
@@ -780,14 +868,14 @@ server is the text after <code>--server=</code>. Do not save them in Git; they e
 <pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">cluster = Cluster(
     ClusterConfiguration(
         name="raytest",                                        <1>
-        namespace="my_project",                                <2>
+        namespace="kuberay-workshop",                          <2>
         num_workers=1,                                         <3>
         head_cpu_requests="500m",
         head_cpu_limits="500m",
         worker_memory_requests=1,
         worker_memory_limits=1,
         image="quay.io/modh/ray:2.47.1-py311-cu121",           <4>
-        local_queue="local_queue_name",                        <5>
+        local_queue="workshop-lq",                             <5>
     )
 )
 cluster.up()
@@ -871,14 +959,14 @@ is <code>Active</code>.</p>
 </li>
 <li>
 <p>From your terminal, confirm the KubeRay Operator created the cluster and Kueue
-admitted it as a workload:</p>
+admitted it as a workload in the shared <code>kuberay-workshop</code> project:</p>
 </li>
 </ul>
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get rayclusters -n user1
-oc get workloads -n user1</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get rayclusters -n kuberay-workshop
+oc get workloads -n kuberay-workshop</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -891,7 +979,7 @@ head and workers are up):</p>
 raytest   1                 1                   ready    2m
 
 NAME      QUEUE              ADMITTED   AGE
-raytest   local_queue_name   True       2m</pre>
+raytest   workshop-lq        True       2m</pre>
 </div>
 </div>
 <div class="ulist">
@@ -1019,9 +1107,18 @@ corresponding URL is shown in the notebook.</p>
 <div class="paragraph">
 <p><strong>Next steps:</strong></p>
 </div>
-<div class="paragraph">
-<p>In Module 03 you go beyond notebooks: run Ray from an AI pipeline, monitor workload
-metrics, and troubleshoot the most common failure states.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Run Ray workloads from an AI pipeline instead of a notebook (Module 03)</p>
+</li>
+<li>
+<p>Monitor workload metrics and status in the OpenShift AI dashboard (Module 03)</p>
+</li>
+<li>
+<p>Diagnose and troubleshoot the most common Ray cluster failure states (Module 03)</p>
+</li>
+</ul>
 </div>
 </div>
 </div>

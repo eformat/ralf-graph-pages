@@ -201,6 +201,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -591,7 +599,7 @@ evaluates against, and create your first AutoRAG optimization run.</p>
 <div class="ulist">
 <ul>
 <li>
-<p>Explain the role of AutoRAG in RHOAI and the limits of its Technology Preview scope</p>
+<p>Explain the role of AutoRAG in RHOAI and the documented limits of its optimization runs</p>
 </li>
 <li>
 <p>Prepare a JSON test data file with questions, expected answers, and document IDs</p>
@@ -600,19 +608,6 @@ evaluates against, and create your first AutoRAG optimization run.</p>
 <p>Create an AutoRAG optimization run from the RHOAI dashboard</p>
 </li>
 </ul>
-</div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-This feature is a <strong>Technology Preview</strong>. APIs, manifests, and console
-navigation shown here may change between releases.
-</td>
-</tr>
-</table>
 </div>
 </div>
 </div>
@@ -752,8 +747,7 @@ and models carefully before you click <strong>Create run</strong>.</p>
 <div class="ulist">
 <ul>
 <li>
-<p>The cluster administrator set <code>spec.dashboardConfig.genAiStudio</code> and
-<code>spec.dashboardConfig.autorag</code> to <code>true</code> in the DataScienceCluster.</p>
+<p>The AutoRAG and Gen AI Studio dashboard flags are enabled (checked below).</p>
 </li>
 <li>
 <p>Your project has a pipeline server with AutoML and AutoRAG pipelines enabled.
@@ -777,6 +771,31 @@ supported.</p>
 and API key.</p>
 </li>
 </ul>
+</div>
+<div class="paragraph">
+<p>The AutoRAG and Gen AI Studio flags live in the <code>OdhDashboardConfig</code> resource
+named <code>odh-dashboard-config</code> in the <code>redhat-ods-applications</code> namespace — not
+in the <code>DataScienceCluster</code> (the v3 <code>DataScienceCluster</code> schema has no
+<code>dashboardConfig</code> field, so older instructions that patch the
+<code>DataScienceCluster</code> no longer apply). On this cluster both flags ship
+enabled. An administrator can confirm this with:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get odhdashboardconfig odh-dashboard-config -n redhat-ods-applications -o jsonpath='{.spec.dashboardConfig.genAiStudio}{" "}{.spec.dashboardConfig.autorag}'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Expected output: <code>true true</code>.</p>
+</div>
+<div class="paragraph">
+<p>On a cluster where either flag is still disabled, an administrator enables
+both by patching that same <code>OdhDashboardConfig</code> resource:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc patch odhdashboardconfig odh-dashboard-config -n redhat-ods-applications --type=merge -p '{"spec":{"dashboardConfig":{"genAiStudio":true,"autorag":true}}}'</code></pre>
+</div>
 </div>
 <div class="admonitionblock warning">
 <table>
@@ -942,17 +961,13 @@ language of your evaluation questions automatically.</p>
 testing all RAG configurations.</p>
 </div>
 <div class="paragraph">
-<p>Keep the following Technology Preview limits in mind while your run executes:</p>
+<p>Keep the following documented limits in mind while your run executes:</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
 <p>A maximum of three foundation models and two embedding models per
 optimization run. Specifying more models can cause the run to fail.</p>
-</li>
-<li>
-<p>Images embedded in documents are not processed, and optical character
-recognition (OCR) is not available for PDF documents.</p>
 </li>
 <li>
 <p>Table structure detection for PDF documents is available only with the
@@ -998,7 +1013,7 @@ leaderboard and put the best pattern to work.</p>
 <p>The run preset trades speed for retrieval quality — Faster uses recursive chunking only, Better quality adds hybrid chunking and table parsing</p>
 </li>
 <li>
-<p>Technology Preview limits such as remote-only vector databases and the 3+2 model maximum can fail a run if ignored</p>
+<p>Documented limits such as remote-only vector databases and the 3+2 model maximum can fail a run if ignored</p>
 </li>
 </ul>
 </div>

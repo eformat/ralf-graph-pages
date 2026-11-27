@@ -201,6 +201,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -771,7 +779,7 @@ YAML</a> with these workshop values). On a CPU-only cluster the published model
 is <code>facebook-opt-125m</code> (the model deployed in module 02 Exercise 1):</p>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">cat &gt; maas-subscription.yaml &lt;&lt;EOF
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">cat > maas-subscription.yaml <<EOF
 apiVersion: maas.opendatahub.io/v1alpha1
 kind: MaaSSubscription
 metadata:
@@ -780,13 +788,13 @@ metadata:
 spec:
   owner:
     groups:
-      - name: {guid}-model-users
+      - name: abc123-model-users
   tokenMetadata:
     costCenter: na
     organizationId: na
   modelRefs:
     - name: facebook-opt-125m
-      namespace: {guid}-{user}
+      namespace: abc123-user1
       tokenRateLimits:
         - limit: 100000
           window: 1m
@@ -799,16 +807,50 @@ metadata:
 spec:
   subjects:
     groups:
-      - name: {guid}-model-users
+      - name: abc123-model-users
   modelRefs:
     - name: facebook-opt-125m
-      namespace: {guid}-{user}
+      namespace: abc123-user1
 EOF
 oc apply -f maas-subscription.yaml</code></pre>
 </div>
 </div>
 </li>
 </ol>
+</div>
+<div class="paragraph">
+<p>The manifests decide who can call the model and how many tokens they may spend.
+Review the key fields:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">spec:
+  owner:
+    groups:
+      - name: abc123-model-users       # <1>
+  modelRefs:
+    - name: facebook-opt-125m
+      namespace: abc123-user1         # <2>
+      tokenRateLimits:
+        - limit: 100000
+          window: 1m                   # <3></code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td><strong>Subscription group</strong> — only members of this workshop group receive tokens for the model.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td><strong>Model reference</strong> — points at the model you published from your project in Exercise 1.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td><strong>Token rate limit</strong> — caps each user at 100,000 tokens per minute; raise it if requests return <code>429 Too Many Requests</code>.</td>
+</tr>
+</table>
 </div>
 <div class="admonitionblock note">
 <table>

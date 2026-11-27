@@ -201,6 +201,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -655,6 +663,27 @@ here may change between releases.
 catalog. After the Operator is running, you complete the setup in the following
 exercises by applying the custom resources it expects.</p>
 </div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Not every environment catalogues the <code>mcp-gateway</code> package in OperatorHub. To
+check, run <code>oc get packagemanifest mcp-gateway -n openshift-marketplace</code>. If
+the package is not present, the MCP gateway capability is delivered by the
+<code>mcp-gateway-controller</code> shipped with Red Hat Connectivity Link 1.5 in the
+<code>kuadrant-system</code> namespace — verify with <code>oc get crd | grep mcp.kuadrant.io</code>
+and <code>oc get csv -n kuadrant-system</code>. If the <code>mcp.kuadrant.io</code> CRDs are already
+registered, skip Exercise 1 and continue at Exercise 2: all workshop custom
+resources use those existing CRDs.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
@@ -780,6 +809,10 @@ The name of the install plan has a random suffix, for example, <code>install-4rq
 Use Red Hat Connectivity Link 1.4.1 or later. Connectivity Link 1.4.0
 is deprecated, and clusters running it can experience authentication failures,
 API key management errors, gateway instability, or gateway pod memory pressure.
+Connectivity Link 1.5 — the current release on this workshop environment —
+delivers the <code>mcp-gateway-controller</code> in the <code>kuadrant-system</code> namespace, which
+provides the MCP gateway capability when the standalone <code>mcp-gateway</code> Operator
+package is not catalogued.
 </td>
 </tr>
 </table>
@@ -830,7 +863,11 @@ and <code>mcpvirtualservers</code> CRDs that this module and Module 02 apply. Th
 exist on the cluster only after the Operator installs — until the CSV reports
 <code>Succeeded</code>, <code>oc apply</code> fails with <code>no matches for kind</code>. If the list is empty,
 install the Operator from OperatorHub or reapply the Subscription from this
-exercise, then recheck before continuing.</p>
+exercise, then recheck before continuing. If the <code>mcp.kuadrant.io</code> CRDs are
+already registered because Connectivity Link 1.5 delivered the
+<code>mcp-gateway-controller</code> in <code>kuadrant-system</code> (see the note at the start of
+this exercise), skip the rest of this exercise and continue at Exercise 2 —
+the workshop custom resources use those existing CRDs.</p>
 </div>
 <div class="paragraph">
 <p>With the Operator running and its CRDs registered, you can now create the

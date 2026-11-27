@@ -210,6 +210,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -591,8 +599,9 @@
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p>In this module you will submit and track evaluation runs, compare completed
-runs, build a custom benchmark collection, log results to MLflow, and manage
+<p>In this module you will run an evaluation from the Evaluations page of the
+RHOAI dashboard, submit and track runs with the CLI, compare completed runs,
+build a custom benchmark collection, log results to MLflow, and manage
 tenant access with RBAC.</p>
 </div>
 <div class="paragraph">
@@ -601,7 +610,13 @@ tenant access with RBAC.</p>
 <div class="ulist">
 <ul>
 <li>
+<p>Run and track an evaluation from the <strong>Evaluations</strong> page of the RHOAI dashboard</p>
+</li>
+<li>
 <p>Submit evaluation jobs with the CLI and track them through the job lifecycle</p>
+</li>
+<li>
+<p>Compare completed runs side by side in the dashboard comparison view</p>
 </li>
 <li>
 <p>Create a custom collection that groups benchmarks into a reusable suite</p>
@@ -617,11 +632,14 @@ tenant access with RBAC.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_exercise_1_submit_an_evaluation_run"><a class="anchor" href="#_exercise_1_submit_an_evaluation_run"></a>Exercise 1: Submit an evaluation run</h2>
+<h2 id="_exercise_1_run_an_evaluation_from_the_dashboard"><a class="anchor" href="#_exercise_1_run_an_evaluation_from_the_dashboard"></a>Exercise 1: Run an evaluation from the dashboard</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Submit an evaluation job with the EvalHub CLI, as in module 2, and track it
-through the job lifecycle.</p>
+<p>The RHOAI dashboard ships an <strong>Evaluations</strong> page that drives the same EvalHub
+back end you verified in module 1 — benchmark collections, run creation, and
+run tracking, no CLI required. On RHOAI 3.6 the <strong>Evaluations</strong> UI is a
+Technology Preview while the evaluation back end is Generally Available, and
+the dashboard states this on the page itself.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -631,13 +649,118 @@ through the job lifecycle.</p>
 </td>
 <td class="content">
 <div class="paragraph">
-<p>On RHOAI builds that surface the <strong>Develop &amp; train</strong> → <strong>Evaluations</strong> dashboard
-page, you can follow the same flow visually: the <strong>Start evaluation run</strong> form
-selects benchmarks, configures parameters, and sets pass or fail thresholds,
-and dashboard suites correspond to EvalHub collections. That page is not part
-of the RHOAI 3.5.1 dashboard — this build&#8217;s <code>OdhDashboardConfig</code> schema
-exposes no flag that controls it — so on 3.5.1, submit and track runs with
-the CLI.</p>
+<p>The <strong>Develop &amp; train</strong> → <strong>Evaluations</strong> page shows an info alert: "The <strong>AI
+Evaluations UI is in Technology Preview</strong>; the AI Evaluations back end is
+Generally Available." The back end that executes your jobs is the GA EvalHub
+service from module 1; the Technology Preview label applies to the dashboard
+UI.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Open the RHOAI dashboard and navigate to <strong>Develop &amp; train</strong> → <strong>Evaluations</strong>
+(the nav item carries a <strong>Tech Preview</strong> badge). Confirm the project selector
+next to the page title shows your working project.</p>
+</li>
+<li>
+<p>Explore the three tabs at the top of the page:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Gallery</strong> — curated benchmark collections for your project. On a fresh
+project this tab is empty — "No collections found" — because collections
+must be added to your project before your evaluations can use them, as the
+page intro explains: "Add a collection to your project to use it in your
+evaluations."</p>
+</li>
+<li>
+<p><strong>Benchmark collections</strong> — the working surface. It lists your recent
+collections with a <strong>View all</strong> shortcut, a <strong>Create your own collection</strong> card
+("Build a reusable collection by selecting benchmarks, setting thresholds,
+and configuring pass criteria"), and a <strong>Browse all benchmarks</strong> entry:
+"Explore 100+ individual benchmarks across all evaluation frameworks to run
+a one-off evaluation."</p>
+</li>
+<li>
+<p><strong>Runs</strong> — your evaluation runs. A fresh project shows the honest starting
+state: "No evaluation runs — Go to collections to create a collection or run
+an individual benchmark."</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Create a collection for your project: on the <strong>Benchmark collections</strong> tab,
+click <strong>Create collection</strong> and build it by selecting benchmarks, setting
+thresholds, and configuring pass criteria — the same benchmark-level and
+collection-level thresholds module 1 introduced.</p>
+</li>
+<li>
+<p>Start an evaluation run against your deployed model service from module 2,
+from your new collection or as a one-off run from <strong>Browse all benchmarks</strong>.</p>
+</li>
+<li>
+<p>Open the <strong>Runs</strong> tab and watch the run appear. The EvalHub server creates one
+Kubernetes Job per benchmark, exactly as in the CLI flow in exercise 2, so
+progress updates benchmark by benchmark.</p>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>On capacity-constrained clusters, benchmark pods may stay pending
+(<code>FailedScheduling</code>, <code>Insufficient cpu</code>); the run remains pending in the
+<strong>Runs</strong> tab until nodes free up.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</li>
+</ol>
+</div>
+<div class="sect2">
+<h3 id="_verify"><a class="anchor" href="#_verify"></a>Verify</h3>
+<div class="paragraph">
+<p>The <strong>Runs</strong> tab lists your run, and the collection you created appears on the
+<strong>Benchmark collections</strong> tab under <strong>Recent benchmark collections</strong>. If the run
+cannot reach your model endpoint, the <strong>Runs</strong> tab shows that state honestly —
+check the endpoint before rerunning.</p>
+</div>
+<div class="paragraph">
+<p>Now that you have driven a run from the dashboard, you will submit the same
+job from the CLI.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_exercise_2_submit_an_evaluation_run_with_the_cli"><a class="anchor" href="#_exercise_2_submit_an_evaluation_run_with_the_cli"></a>Exercise 2: Submit an evaluation run with the CLI</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Submit an evaluation job with the EvalHub CLI and track it through the job
+lifecycle.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Exercise 1 ran this same flow from the <strong>Evaluations</strong> page of the RHOAI 3.6
+dashboard (Technology Preview UI over the GA back end). The CLI submits
+through the same REST API the dashboard uses, and suites on the dashboard
+correspond to EvalHub collections — so choose the surface that fits: the
+dashboard for interactive runs, the CLI for scripts and automation.</p>
 </div>
 </td>
 </tr>
@@ -680,8 +803,24 @@ or <code>partially_failed</code> when some benchmarks complete and others fail.<
 </li>
 </ol>
 </div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>On capacity-constrained clusters, benchmark pods may stay pending with
+<code>FailedScheduling</code> (<code>Insufficient cpu</code>); the job remains in <code>pending</code> until
+nodes free up.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
 <div class="sect2">
-<h3 id="_verify"><a class="anchor" href="#_verify"></a>Verify</h3>
+<h3 id="_verify_2"><a class="anchor" href="#_verify_2"></a>Verify</h3>
 <div class="paragraph">
 <p><code>evalhub eval status &lt;job_id&gt;</code> reports a terminal state. <code>evalhub eval
 results &lt;job_id&gt;</code> prints the metric values each provider reported, one row
@@ -695,7 +834,7 @@ completed runs side by side.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_exercise_2_compare_evaluation_runs"><a class="anchor" href="#_exercise_2_compare_evaluation_runs"></a>Exercise 2: Compare evaluation runs</h2>
+<h2 id="_exercise_3_compare_evaluation_runs"><a class="anchor" href="#_exercise_3_compare_evaluation_runs"></a>Exercise 3: Compare evaluation runs</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>You can compare two or more completed evaluation runs in an embedded MLflow
@@ -711,10 +850,11 @@ each run is <code>Completed</code>.</p>
 </td>
 <td class="content">
 <div class="paragraph">
-<p>The <strong>Evaluations</strong> page walkthrough below applies to RHOAI builds that surface
-it. The page is not part of the RHOAI 3.5.1 dashboard — there, compare runs
-in the MLflow UI, using the <code>mlflow_experiment_url</code> from the job results
-(Exercise 4 documents the API call that returns it).</p>
+<p>Run comparison lives on the <strong>Evaluations</strong> page of the RHOAI 3.6 dashboard
+(Technology Preview UI, Generally Available back end). If you also configure
+MLflow tracking (exercise 5), the MLflow UI is an equivalent surface: open the
+<code>mlflow_experiment_url</code> from the job results (exercise 5 documents the API
+call that returns it).</p>
 </div>
 </td>
 </tr>
@@ -770,7 +910,7 @@ changes based on your knowledge of each benchmark.</p>
 </table>
 </div>
 <div class="sect2">
-<h3 id="_verify_2"><a class="anchor" href="#_verify_2"></a>Verify</h3>
+<h3 id="_verify_3"><a class="anchor" href="#_verify_3"></a>Verify</h3>
 <div class="paragraph">
 <p>The MLflow comparison view displays parameters and metrics for every selected
 run in aligned columns.</p>
@@ -783,7 +923,7 @@ build a reusable evaluation suite from the CLI.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_exercise_3_create_a_custom_collection"><a class="anchor" href="#_exercise_3_create_a_custom_collection"></a>Exercise 3: Create a custom collection</h2>
+<h2 id="_exercise_4_create_a_custom_collection"><a class="anchor" href="#_exercise_4_create_a_custom_collection"></a>Exercise 4: Create a custom collection</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>Collections group benchmarks from one or more providers into a reusable
@@ -793,7 +933,7 @@ thresholds.</p>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>Create a collection spec file:</p>
+<p>Create a collection spec file named <code>my-safety-suite.yaml</code>:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">name: my-safety-suite
@@ -860,7 +1000,7 @@ collection.</p>
 </ol>
 </div>
 <div class="sect2">
-<h3 id="_verify_3"><a class="anchor" href="#_verify_3"></a>Verify</h3>
+<h3 id="_verify_4"><a class="anchor" href="#_verify_4"></a>Verify</h3>
 <div class="paragraph">
 <p>Confirm the collection was created:</p>
 </div>
@@ -871,6 +1011,10 @@ collection.</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">evalhub collections describe &lt;collection_id&gt;</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>+
+Sample output:</p>
 </div>
 <div class="paragraph">
 <p>+</p>
@@ -895,23 +1039,26 @@ The output shows the collection name, category, and benchmark list.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_exercise_4_mlflow_tracking_and_tenant_access"><a class="anchor" href="#_exercise_4_mlflow_tracking_and_tenant_access"></a>Exercise 4: MLflow tracking and tenant access</h2>
+<h2 id="_exercise_5_mlflow_tracking_and_tenant_access"><a class="anchor" href="#_exercise_5_mlflow_tracking_and_tenant_access"></a>Exercise 5: MLflow tracking and tenant access</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p><strong>Log results to an MLflow experiment.</strong> When MLflow is configured for
 EvalHub, jobs log benchmark metrics as runs in a designated experiment. Your
-facilitator sets the tracking URI in the EvalHub CR:</p>
+facilitator sets the tracking URI in the EvalHub CR — the deployed workshop
+instance points at the cluster MLflow service in the <code>redhat-ods-applications</code>
+namespace:</p>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">env:
 - name: MLFLOW_TRACKING_URI
-  value: "http://mlflow.mlflow.svc.cluster.local:5000"</code></pre>
+  value: "https://mlflow.redhat-ods-applications.svc.cluster.local:8443"</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Include an <code>experiment</code> block in your YAML config file when you submit the
-job — replace <code>&lt;model-svc&gt;</code> with the service name of your deployed model:</p>
+<p>Include an <code>experiment</code> block in a config file named <code>eval-with-mlflow.yaml</code>
+when you submit the job — replace <code>&lt;model-svc&gt;</code> with the service name of your
+deployed model:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -941,9 +1088,12 @@ experiment:
   $EVALHUB_URL/api/v1/evaluations/jobs/<job_id> | jq .results.mlflow_experiment_url</code></pre>
 </div>
 </div>
+<div class="paragraph">
+<p>Sample output:</p>
+</div>
 <div class="listingblock">
 <div class="content">
-<pre>"https://mlflow.example.com/#/experiments/42"</pre>
+<pre>"https://mlflow.redhat-ods-applications.svc.cluster.local:8443/#/experiments/42"</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -986,18 +1136,17 @@ operations checked in the tenant namespace.</td>
 </div>
 </li>
 <li>
-<p>Apply the Role and bind it to a principal:</p>
+<p>Save the Role YAML to a file named <code>evalhub-evaluator-role.yaml</code>, then apply
+it:</p>
 <div class="listingblock execute">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc apply -f evalhub-evaluator-role.yaml -n abc123-user1</code></pre>
 </div>
 </div>
-<div class="paragraph">
-<p>For an OpenShift user, the RoleBinding looks like:</p>
-</div>
 </li>
-</ol>
-</div>
+<li>
+<p>For an OpenShift user, create a RoleBinding that grants the teammate the
+<code>evalhub-evaluator</code> Role permissions:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: rbac.authorization.k8s.io/v1
@@ -1024,9 +1173,20 @@ permissions; replace <code>&lt;user_name&gt;</code> with your teammate&#8217;s u
 <tr>
 <td><i class="conum" data-value="2"></i><b>2</b></td>
 <td><strong>Role reference</strong>&#8201;&#8212;&#8201;binds the subject to the <code>evalhub-evaluator</code> Role
-created in the previous step.
-<div class="olist arabic">
-<ol class="arabic">
+created in the previous step.</td>
+</tr>
+</table>
+</div>
+</li>
+<li>
+<p>Save the RoleBinding YAML to a file named <code>user-evalhub-access.yaml</code>, then
+apply it:</p>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc apply -f user-evalhub-access.yaml -n abc123-user1</code></pre>
+</div>
+</div>
+</li>
 <li>
 <p>Verify the permissions with an impersonation check:</p>
 <div class="listingblock execute">
@@ -1041,16 +1201,17 @@ created in the previous step.
 </div>
 </li>
 </ol>
-</div></td>
-</tr>
-</table>
 </div>
 <div class="sect2">
-<h3 id="_verify_4"><a class="anchor" href="#_verify_4"></a>Verify</h3>
+<h3 id="_verify_5"><a class="anchor" href="#_verify_5"></a>Verify</h3>
 <div class="paragraph">
 <p>The MLflow experiment URL resolves in the MLflow UI, and
 <code>oc auth can-i create evaluations.trustyai.opendatahub.io</code> returns <code>yes</code> for
 the bound principal.</p>
+</div>
+<div class="paragraph">
+<p>You have now driven evaluations end to end — from the dashboard and the CLI
+through collections, MLflow tracking, and tenant access control.</p>
 </div>
 </div>
 </div>
@@ -1064,7 +1225,10 @@ the bound principal.</p>
 <div class="ulist">
 <ul>
 <li>
-<p>Submitted an evaluation with benchmarks and tracked it through the job lifecycle</p>
+<p>Ran and tracked an evaluation from the <strong>Evaluations</strong> page of the RHOAI dashboard</p>
+</li>
+<li>
+<p>Submitted an evaluation with benchmarks from the CLI and tracked it through the job lifecycle</p>
 </li>
 <li>
 <p>Compared completed evaluation runs in the embedded MLflow comparison view</p>
@@ -1083,7 +1247,10 @@ the bound principal.</p>
 <div class="ulist">
 <ul>
 <li>
-<p>Dashboard benchmark suites map directly to EvalHub collections (on builds that surface the Evaluations page)</p>
+<p>The <strong>Evaluations</strong> page in the RHOAI 3.6 dashboard drives the GA EvalHub back end; the UI itself is a Technology Preview</p>
+</li>
+<li>
+<p>Dashboard benchmark suites map directly to EvalHub collections</p>
 </li>
 <li>
 <p>Thresholds set in the dashboard (0–100) match the API&#8217;s <code>0.0</code>–<code>1.0</code> pass criteria</p>
@@ -1096,11 +1263,19 @@ the bound principal.</p>
 <div class="paragraph">
 <p><strong>Next steps:</strong></p>
 </div>
-<div class="paragraph">
-<p>To go further, export evaluation artifacts to an OCI registry for long-term
-traceability, or run the EvalHub server in local mode to develop adapters on
-your workstation — both are covered in the RHOAI documentation linked from the
-conclusion.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Export evaluation artifacts to an OCI registry for long-term traceability</p>
+</li>
+<li>
+<p>Run the EvalHub server in local mode to develop adapters on your workstation</p>
+</li>
+<li>
+<p>Find both topics in the RHOAI documentation linked from the
+<a href="conclusion.html" class="xref page">conclusion</a></p>
+</li>
+</ul>
 </div>
 </div>
 </div>

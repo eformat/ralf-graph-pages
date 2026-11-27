@@ -203,6 +203,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -583,9 +591,23 @@
 <h1 class="page">Welcome to the Distributed Inference with llm-d (core) Workshop</h1>
 <div id="preamble">
 <div class="sectionbody">
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Distributed Inference with llm-d is <strong>generally available</strong> in Red Hat
+OpenShift AI 3.6. The llm-d serving stack and the LLM deployment topology
+selector are fully supported for production use.
+</td>
+</tr>
+</table>
+</div>
 <div class="paragraph">
 <p>This workshop introduces <strong>Distributed Inference with llm-d (core)</strong>: deploying and serving
-large language models at scale with the llm-d serving stack on Red Hat OpenShift AI 3.5.</p>
+large language models at scale with the llm-d serving stack on Red Hat OpenShift AI 3.6.</p>
 </div>
 <div class="paragraph">
 <p><strong>What you will learn:</strong></p>
@@ -601,15 +623,17 @@ CRs back it (<code>LLMInferenceService</code>, <code>LLMInferenceServiceConfig</
 and the two prefill/decode disaggregate patterns — and their hardware requirements</p>
 </li>
 <li>
-<p>Deploy a model with the llm-d topology selector from the dashboard, then repeat the
-deployment from the CLI with an <code>LLMInferenceService</code> manifest</p>
+<p>Deploy with the <strong>LLM inference service with llm-d</strong> deployment method and an accelerator
+configuration from the dashboard wizard, then inspect the generated <code>LLMInferenceService</code>
+from the CLI</p>
 </li>
 <li>
-<p>Make authenticated inference requests against a deployed model with a ServiceAccount token</p>
+<p>Send live OpenAI-compatible chat completion requests to the internal inference endpoint</p>
 </li>
 <li>
-<p>Create router and topology configuration templates as an administrator and apply advanced
-routing</p>
+<p>Enable distributed inference with llm-d as an administrator and manage
+<code>LLMInferenceServiceConfig</code> templates — including a KV cache-aware scheduler configuration —
+cluster-side with <code>oc</code></p>
 </li>
 </ul>
 </div>
@@ -681,7 +705,7 @@ multi-node deployments</p>
 <h2 id="_watch_the_demo"><a class="anchor" href="#_watch_the_demo"></a>Watch the demo</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p><a href="_attachments/llmd-core-demo.html" target="_blank" rel="noopener">▶ Watch the demo — interactive walkthrough</a></p>
+<p><a href="_attachments/llmd-core-demo.html" class="xref attachment" target="_blank" rel="noopener">▶ Watch the demo — interactive walkthrough</a></p>
 </div>
 </div>
 </div>

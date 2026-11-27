@@ -200,6 +200,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -615,13 +623,13 @@ per-user usage dashboard, and exporting showback data.</p>
 <div class="ulist">
 <ul>
 <li>
-<p>Verify the MaaS and observability prerequisites on your cluster (CRDs, User Workload Monitoring, Tenant readiness)</p>
+<p>Verify the MaaS and observability prerequisites on your cluster (CRDs, User Workload Monitoring, AITenant readiness)</p>
 </li>
 <li>
-<p>Enable Kuadrant observability (<code>PodMonitor</code> for Limitador rate-limiting metrics) and MaaS telemetry on the Tenant custom resource</p>
+<p>Enable Kuadrant observability (<code>PodMonitor</code> for Limitador rate-limiting metrics) and MaaS usage logging via the <code>maasconfig</code> Config</p>
 </li>
 <li>
-<p>Enable per-user metrics collection with <code>captureUser</code> and understand its Prometheus cardinality cost</p>
+<p>Enable the usage metrics dashboard and understand how per-user usage attribution works</p>
 </li>
 <li>
 <p>Navigate the MaaS observability dashboard: overview metrics, filters, and the Token Consumption by User table</p>

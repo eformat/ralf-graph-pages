@@ -204,6 +204,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -755,12 +763,19 @@ definitions. Run a series of checks to confirm the deployment is healthy.</p>
 <div class="listingblock">
 <div class="content">
 <pre>aitenants.maas.opendatahub.io
+configs.maas.opendatahub.io
+externalmodels.maas.opendatahub.io
 maasauthpolicies.maas.opendatahub.io
 maasmodelrefs.maas.opendatahub.io
 maassubscriptions.maas.opendatahub.io
 maastenantconfigs.maas.opendatahub.io
 tenants.maas.opendatahub.io</pre>
 </div>
+</div>
+<div class="paragraph">
+<p>On OpenShift AI 3.6 the tenant state lives in <code>AITenant</code> resources in the
+<code>ai-tenants</code> namespace and in a per-tenant <code>MaasTenantConfig</code> resource in each
+tenant namespace; the <code>tenants</code> CRD is installed but has no tenant instances.</p>
 </div>
 </li>
 <li>
@@ -777,27 +792,32 @@ status:</p>
 </div>
 </li>
 <li>
-<p>Verify that the default tenant is <code>Ready</code> and <code>Reconciled</code>:</p>
+<p>Verify that the AI tenant is <code>Ready</code> and <code>Reconciled</code>:</p>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get tenants.maas.opendatahub.io -n models-as-a-service</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get aitenants.maas.opendatahub.io -n ai-tenants</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Expected output shows at least one Tenant resource:</p>
+<p>Expected output shows the <code>AITenant</code> resource that bootstraps the default
+<code>models-as-a-service</code> tenant namespace:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>NAME             READY   REASON        AGE
-default-tenant   True    Reconciled    5m</pre>
+<pre>NAME                  READY   TENANT NAMESPACE      GATEWAY                AGE
+models-as-a-service   True    models-as-a-service   maas-default-gateway   5d17h
+red-team              True    ai-tenant-red-team    red-team               92m</pre>
 </div>
+</div>
+<div class="paragraph">
+<p>Your cluster may show additional tenants created by other users or exercises.</p>
 </div>
 </li>
 <li>
-<p>Drill into the <code>Ready</code> condition of the Tenant resource:</p>
+<p>Drill into the <code>Ready</code> condition of the AI tenant resource:</p>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get tenants.maas.opendatahub.io default-tenant -n models-as-a-service -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}'</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get aitenants.maas.opendatahub.io models-as-a-service -n ai-tenants -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}'</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -806,8 +826,11 @@ message:</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get tenants.maas.opendatahub.io default-tenant -n models-as-a-service -o jsonpath='{.status.conditions[?(@.type=="Ready")].message}'</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get aitenants.maas.opendatahub.io models-as-a-service -n ai-tenants -o jsonpath='{.status.conditions[?(@.type=="Ready")].message}'</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>Expected output is <code>AITenant bootstrap resources are reconciled</code>.</p>
 </div>
 </li>
 <li>
@@ -860,13 +883,14 @@ navigate to <strong>Administration</strong> → <strong>CustomResourceDefinition
 <div class="ulist">
 <ul>
 <li>
-<p>All six <code>maas.opendatahub.io</code> CRDs are deployed and available.</p>
+<p>All <code>maas.opendatahub.io</code> CRDs from the listing are deployed and available.</p>
 </li>
 <li>
 <p>The <code>openshift-user-workload-monitoring</code> namespace exists.</p>
 </li>
 <li>
-<p>The default Tenant shows <code>READY: True</code> with <code>REASON: Reconciled</code>.</p>
+<p>The <code>models-as-a-service</code> AI tenant shows <code>READY: True</code> (condition reason
+<code>Reconciled</code>).</p>
 </li>
 <li>
 <p>The MaaS dashboard flags are present in <code>OdhDashboardConfig</code>.</p>
@@ -874,10 +898,13 @@ navigate to <strong>Administration</strong> → <strong>CustomResourceDefinition
 </ul>
 </div>
 <div class="paragraph">
-<p>If the Tenant status shows <code>False</code> or <code>Degraded</code>, the usual causes are missing
-User Workload Monitoring, a missing <code>maas-db-config</code> secret in the
+<p>If the tenant conditions show <code>False</code> or <code>Degraded</code>, the usual causes are
+missing User Workload Monitoring, a missing <code>maas-db-config</code> secret in the
 infrastructure namespace (default <code>redhat-ai-gateway-infra</code> for OpenShift AI
-3.5), or a Kuadrant custom resource that is not ready.</p>
+3.6), or a Kuadrant custom resource that is not ready. Inspect the conditions
+on the <code>MaasTenantConfig</code> resource in the tenant namespace —
+<code>oc describe maastenantconfig default-tenant -n models-as-a-service</code> — where
+each condition names the dependency it tracks.</p>
 </div>
 </div>
 </div>
@@ -894,7 +921,7 @@ infrastructure namespace (default <code>redhat-ai-gateway-infra</code> for OpenS
 <p>Mapped the MaaS access model to the <code>MaaSModelRef</code>, <code>MaaSSubscription</code>, and <code>MaaSAuthPolicy</code> custom resources</p>
 </li>
 <li>
-<p>Verified the MaaS CRDs, User Workload Monitoring, and the default tenant status in your cluster</p>
+<p>Verified the MaaS CRDs, User Workload Monitoring, and the AI tenant status in your cluster</p>
 </li>
 <li>
 <p>Confirmed the MaaS dashboard flags are enabled for user and admin surfaces</p>
@@ -913,7 +940,7 @@ infrastructure namespace (default <code>redhat-ai-gateway-infra</code> for OpenS
 <p>Users authenticate with subscription-bound API keys, not service-account tokens</p>
 </li>
 <li>
-<p>The MaaS observability and degradation signals live in the Tenant status conditions and User Workload Monitoring</p>
+<p>The MaaS observability and degradation signals live in the <code>AITenant</code> and <code>MaasTenantConfig</code> status conditions and User Workload Monitoring</p>
 </li>
 </ul>
 </div>

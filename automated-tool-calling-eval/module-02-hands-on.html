@@ -204,6 +204,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -593,7 +601,7 @@
 <div class="ulist">
 <ul>
 <li>
-<p>Enable the MCP server on the <code>EvalHub</code> custom resource and expose it through a route</p>
+<p>Enable the MCP server on the <code>EvalHub</code> custom resource and connect to it through the operator-created route</p>
 </li>
 <li>
 <p>Register the EvalHub MCP server with an AI coding agent using an authenticated HTTP transport</p>
@@ -624,9 +632,9 @@ the EvalHub server.</p>
 </td>
 <td class="content">
 <div class="paragraph">
-<p>EvalHub requires a PostgreSQL connection Secret and a running EvalHub instance
-before you enable the MCP server. If <code>oc get evalhub -n abc123-evalhub</code> returns no
-resources, ask your facilitator to complete the base EvalHub deployment first.</p>
+<p>A running EvalHub instance is required before you enable the MCP server. If
+<code>oc get evalhub -n abc123-evalhub</code> returns no resources, ask your facilitator
+to complete the base EvalHub deployment first.</p>
 </div>
 </td>
 </tr>
@@ -634,6 +642,24 @@ resources, ask your facilitator to complete the base EvalHub deployment first.</
 </div>
 <div class="olist arabic">
 <ol class="arabic">
+<li>
+<p>Create the credential Secret that the MCP server uses to authenticate to the
+EvalHub API:</p>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc create secret generic evalhub-mcp-auth \
+  --from-literal=token="$(oc whoami -t)" -n abc123-evalhub</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>evalhub-mcp</code> server calls the EvalHub API on behalf of your agent and
+authenticates with the token in the Secret referenced by <code>spec.mcp.authSecret</code>.
+Without this Secret the server falls back to its own service-account token,
+which the EvalHub API rejects with <code>401 Unauthorized</code>, and every tool call in
+Exercise 2 fails. The <code>token</code> key must hold a token the EvalHub API accepts —
+your current user token works for the workshop.</p>
+</div>
+</li>
 <li>
 <p>Create the <code>EvalHub</code> CR with the <code>spec.mcp</code> configuration:</p>
 <div class="listingblock execute">
@@ -646,8 +672,7 @@ metadata:
 spec:
   replicas: 1
   database:
-    type: postgresql
-    secret: evalhub-db-credentials
+    type: sqlite
   providers:
     - lm-evaluation-harness
     - garak
@@ -655,6 +680,7 @@ spec:
     enabled: true
     transport: http
     port: 3001
+    authSecret: evalhub-mcp-auth
 EOF
 oc apply -f evalhub_cr.yaml -n abc123-evalhub</code></pre>
 </div>
@@ -666,23 +692,59 @@ oc apply -f evalhub_cr.yaml -n abc123-evalhub</code></pre>
 <p><strong>mcp</strong> enables the MCP server alongside the EvalHub server; <code>enabled: true</code>
 deploys the MCP server container. <code>transport: http</code> is for remote MCP clients
 such as your coding agent (use <code>stdio</code> for local clients that launch the
-server as a child process); <code>port</code> is the MCP server port for <code>http</code>
-transport.</p>
+server as a child process). <code>authSecret</code> names the Secret from step 1 — the
+required deployment prerequisite. The <code>sqlite</code> database type is the documented
+lightweight path and the proven-Ready backend for this workshop; the
+<code>postgresql</code> option is documented but requires the referenced Secret to carry a
+pre-composed <code>db-url</code> key pointing at an external PostgreSQL server — the
+operator does not deploy one, and without that key the server pod fails
+<code>FailedMount: references non-existent secret key: db-url</code>.</p>
 </div>
 <div class="paragraph">
 <p>+
-The TrustyAI Operator reconciles the CR and deploys the MCP server.</p>
+The TrustyAI Operator reconciles the CR, defaults it, and deploys the MCP server.</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>Create a route to expose the MCP server:</p>
+<p>Inspect the live, operator-defaulted CR:</p>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc expose service evalhub-mcp --port=3001 -n abc123-evalhub</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get evalhub evalhub -n abc123-evalhub -o yaml</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>The operator defaults the applied manifest on reconcile. The live CR on the
+workshop cluster shows <code>generation: 2</code>, 13 default collections
+(<code>leaderboard-v2</code> through <code>coding-v1</code>), and <code>tenancy: multi</code>, while <code>spec.mcp</code>
+is reduced to <code>authSecret</code>, <code>enabled</code>, <code>resources</code>, and <code>transport</code> — the
+applied <code>port: 3001</code> is dropped because the operator manages the MCP server
+port, so <code>port</code> is not meaningful configuration.</p>
 </div>
 </li>
+<li>
+<p>Confirm the operator-created route to the MCP server:</p>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get route evalhub-mcp -n abc123-evalhub</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The TrustyAI Operator creates the <code>evalhub-mcp</code> route when it deploys the MCP
+server — you do not expose the service yourself. Expected output shows the
+<code>evalhub-mcp-&#8230;&#8203;-apps&#8230;&#8203;</code> host with <code>TERMINATION reencrypt/Redirect</code>:</p>
+</div>
+</li>
+</ol>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>NAME          HOST/PORT                                            SERVICES      PORT    TERMINATION          WILDCARD
+evalhub-mcp   evalhub-mcp-{guid}-evalhub.apps.&lt;cluster-domain&gt;     evalhub-mcp   https   reencrypt/Redirect   None</pre>
+</div>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
 <li>
 <p>Store the MCP server URL for later steps:</p>
 <div class="listingblock execute">
@@ -710,7 +772,8 @@ echo $MCP_URL</code></pre>
 <div class="paragraph">
 <p>+
 Expected output shows <code>mcp=true</code> for the EvalHub pod. A route named <code>evalhub-mcp</code>
-must also appear in <code>oc get routes -n abc123-evalhub</code>.</p>
+must also appear in <code>oc get routes -n abc123-evalhub</code>, with
+<code>TERMINATION reencrypt/Redirect</code> as created by the operator.</p>
 </div>
 <div class="paragraph">
 <p>Now that the MCP server is exposed through a route, you will register it with your coding agent.</p>
@@ -754,7 +817,12 @@ instead set <code>EVALHUB_TOKEN="$(oc whoami -t)"</code>.</p>
 <div class="paragraph">
 <p>Tokens created by using <code>oc create token</code> expire. If the MCP client returns a
 <code>401 Unauthorized</code> response, create a new token and update the client
-configuration.</p>
+configuration. If the 401 persists, check the deployment-side credential: the
+<code>evalhub-mcp</code> server uses the token in the Secret referenced by
+<code>spec.mcp.authSecret</code> (Exercise 1) to authenticate to the EvalHub API. A missing
+Secret — or a <code>token</code> key the EvalHub API rejects — fails every tool call with
+<code>401 Unauthorized</code> regardless of the client configuration. Re-create the Secret
+with a fresh token and confirm the CR still references it.</p>
 </div>
 </td>
 </tr>
@@ -813,10 +881,19 @@ letting the agent construct valid job requests from the provider&#8217;s agent m
 </div>
 </div>
 <div class="paragraph">
-<p>The agent calls <code>discover_providers</code> filtered by target type and capability tags.
-Because you set a filter, providers without agent metadata are excluded from the
-results, and <code>garak</code> returns with its <code>evaluates</code> tags, <code>hints</code>, and
-<code>result_interpretation</code> guidance.</p>
+<p>The agent calls <code>discover_providers</code> with <code>target_type</code> — the kind of resource
+to evaluate: <code>model</code>, <code>agent</code>, or <code>inference_server</code> — and <code>evaluates</code>, an
+array of capability tags. Your safety question maps to arguments like:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>{"target_type": "model", "evaluates": ["safety"]}</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Providers without agent metadata do not match these arguments, so <code>garak</code>
+returns with its <code>evaluates</code> tags, <code>hints</code>, and <code>result_interpretation</code>
+guidance.</p>
 </div>
 </li>
 <li>
@@ -1025,7 +1102,7 @@ with <code>quick (garak): completed</code>. If a job failed, run
 <div class="ulist">
 <ul>
 <li>
-<p>Enabled the MCP server on the <code>EvalHub</code> CR and exposed it through the <code>evalhub-mcp</code> route</p>
+<p>Enabled the MCP server on the <code>EvalHub</code> CR with its <code>authSecret</code> credential and confirmed the operator-created <code>evalhub-mcp</code> route</p>
 </li>
 <li>
 <p>Registered the EvalHub MCP server with Claude Code using an authenticated HTTP transport and tenant header</p>
@@ -1041,10 +1118,10 @@ with <code>quick (garak): completed</code>. If a job failed, run
 <div class="ulist">
 <ul>
 <li>
-<p>The <code>spec.mcp</code> block is the only configuration change needed to make EvalHub agent-accessible</p>
+<p>The <code>spec.mcp</code> block — including the required <code>authSecret</code> credential — is the only configuration change needed to make EvalHub agent-accessible</p>
 </li>
 <li>
-<p>Filtered <code>discover_providers</code> calls exclude providers without agent metadata, so custom providers must add an <code>agent</code> block to be discoverable</p>
+<p><code>discover_providers</code> matches on <code>target_type</code> and <code>evaluates</code> capability tags, and providers without agent metadata are excluded, so custom providers must add an <code>agent</code> block to be discoverable</p>
 </li>
 <li>
 <p>MCP tool calls and the <code>evalhub</code> CLI read from the same job store — use either to validate the other</p>

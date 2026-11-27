@@ -204,6 +204,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -594,7 +602,7 @@ stack fits into Red Hat OpenShift AI, and which custom resources back it.</p>
 <div class="ulist">
 <ul>
 <li>
-<p>Explain how llm-d fits into the unified generative model serving entry point in RHOAI 3.5</p>
+<p>Explain how llm-d fits into the unified generative model serving entry point in RHOAI 3.6</p>
 </li>
 <li>
 <p>Describe the four validated deployment topology patterns and when to use each</p>
@@ -618,32 +626,41 @@ gateway routes requests through an inference scheduler (the endpoint picker) to 
 that can run as single pods or as multi-node LeaderWorkerSets.</p>
 </div>
 <div class="paragraph">
-<p>In RHOAI 3.5, all generative AI models deploy through a single <strong>Deploy model</strong> entry point.
-When you select <strong>Generative AI</strong> or <strong>Distributed inference with llm-d</strong> from the model framework
-radio button options, the deployment wizard guides you through:</p>
+<p>In RHOAI 3.6, all generative AI models deploy through a single <strong>Deploy model</strong> entry point.
+The deployment wizard guides you through five steps — <strong>Preconfigure deployment</strong>, <strong>Model
+details</strong>, <strong>Model deployment</strong>, <strong>Advanced settings</strong>, and <strong>Review</strong>:</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p>Selecting a deployment topology appropriate for your model size and hardware constraints</p>
+<p>In <strong>Model details</strong> you pick the <strong>Model type</strong> — <strong>Predictive model</strong> or <strong>Generative AI model</strong>
+— and tell the wizard where the model lives: <strong>S3 object storage</strong>, <strong>OCI compliant registry</strong>,
+<strong>URI</strong>, or <strong>NVIDIA NIM</strong></p>
 </li>
 <li>
-<p>Configuring hardware profiles and accelerator resources (for single-node deployments)</p>
+<p>In <strong>Model deployment</strong> you name the deployment and choose the <strong>Deployment method</strong>:
+<strong>LLM inference service</strong>, <strong>LLM inference service with llm-d</strong>, or <strong>Inference service</strong>. The
+llm-d method adds distributed serving with advanced routing techniques such as cache-aware
+routing and disaggregated prefill and decode</p>
 </li>
 <li>
-<p>Optionally applying advanced routing configurations for production workloads</p>
+<p>Selecting the llm-d deployment method surfaces the <strong>Accelerator configuration</strong> presets —
+under <strong>Manual selection</strong> you pick from the built-in, global-scoped
+<code>LLMInferenceServiceConfig</code> configurations that your administrator enabled</p>
 </li>
 <li>
-<p>Deploying the model with validated configuration templates</p>
+<p>In <strong>Advanced settings</strong> you can require token authentication, attach gateways, and set
+model capabilities; <strong>Review</strong> summarizes the deployment before it is created</p>
 </li>
 </ul>
 </div>
 <div class="paragraph">
-<p>This template-based approach reduces YAML errors and enables self-service deployment for data
-scientists who do not have deep Kubernetes expertise, while platform administrators retain
-control over available topologies through <code>LLMInferenceServiceConfig</code> template management.
-Non-single-node topologies are disabled in the wizard until an administrator creates the
-required configuration templates.</p>
+<p>The wizard has no topology radio buttons: the serving pattern follows from the accelerator
+configuration and hardware you select. The shipped presets scope themselves to the workload
+topologies they support — single-node, multi-node data-parallel, and the prefill/decode
+disaggregate variants — through their <code>opendatahub.io/supported-topologies</code> annotations, and
+platform administrators control which configurations are available through
+<code>LLMInferenceServiceConfig</code> template management (see Module 03).</p>
 </div>
 <div class="paragraph">
 <p>The four validated deployment topology patterns:</p>
@@ -690,7 +707,7 @@ networking</p></td>
 <div class="paragraph">
 <p>A fifth pattern, <strong>Wide expert parallelism (WideEP)</strong>, distributes Mixture of Experts model
 experts across GPU nodes for very large MoE models such as DeepSeek-R1. It is a Developer
-Preview feature in RHOAI 3.5.</p>
+Preview feature in RHOAI 3.6.</p>
 </div>
 <div class="paragraph">
 <p>Each <code>LLMInferenceService</code> deployment creates a <strong>per-namespace inference stack</strong> consisting of:</p>
@@ -721,16 +738,18 @@ deployments). A namespace can contain only one inference stack.</p>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>Locate the feature in the RHOAI dashboard: open <strong>Red Hat OpenShift AI</strong>, then click
-<strong>Data Science Projects</strong>.</p>
+<p>Locate the feature in the RHOAI dashboard: open <strong>Red Hat OpenShift AI</strong> and navigate to
+<strong>AI hub &gt; Models &gt; Deployments</strong>.</p>
 </li>
 <li>
-<p>Select your project and click the <strong>Models</strong> tab.</p>
+<p>Set the <strong>Project</strong> filter to your project and scan the <strong>Deployment resource</strong> column — llm-d
+deployments show <strong>Distributed inference with llm-d</strong> there.</p>
 </li>
 <li>
-<p>Click <strong>Deploy model</strong> and observe the <strong>Deployment method</strong> radio buttons: <strong>Distributed
-inference with llm-d</strong> appears alongside the single-model serving platform option. Do not
-deploy yet — you will complete the wizard in the next module.</p>
+<p>Click <strong>Deploy model</strong> and observe the <strong>Deployment method</strong> radio buttons in the <strong>Model
+deployment</strong> step: <strong>LLM inference service with llm-d</strong> appears alongside <strong>LLM inference
+service</strong> and <strong>Inference service</strong>. Do not deploy yet — you will complete the wizard in the
+next module.</p>
 </li>
 </ol>
 </div>
@@ -738,7 +757,8 @@ deploy yet — you will complete the wizard in the next module.</p>
 <h3 id="_verify"><a class="anchor" href="#_verify"></a>Verify</h3>
 <div class="paragraph">
 <p>You can name the four validated topology patterns, the model-size band each serves, and where
-the <strong>Distributed inference with llm-d</strong> deployment method appears in the RHOAI dashboard.</p>
+llm-d deployments live in the RHOAI dashboard — <strong>AI hub &gt; Models &gt; Deployments</strong>, with
+<strong>Distributed inference with llm-d</strong> in the <strong>Deployment resource</strong> column.</p>
 </div>
 <div class="paragraph">
 <p>Now that you know where the feature lives, inspect the custom resources and operators that
@@ -784,7 +804,7 @@ back it in your cluster.</p>
 <div class="listingblock execute">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get pods -n redhat-ods-applications \
-  -l 'app.kubernetes.io/name in (kserve-controller-manager, llmisvc-controller-manager, workload-variant-autoscaler)'</code></pre>
+  -l 'app.kubernetes.io/name in (kserve-controller-manager, llmisvc-controller-manager)'</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -792,10 +812,9 @@ back it in your cluster.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>NAME                                              READY   STATUS    RESTARTS   AGE
-kserve-controller-manager-6d8f9b7c4d-xk2lv        2/2     Running   0          3d
-llmisvc-controller-manager-8c5e2f9a1-vn3qs        2/2     Running   0          3d
-workload-variant-autoscaler-4a7d3b8f2-pt7wk       1/1     Running   0          3d</pre>
+<pre>NAME                                          READY   STATUS    RESTARTS   AGE
+kserve-controller-manager-957445747-t7kmm     1/1     Running   48         31h
+llmisvc-controller-manager-5d57579f75-fpppl   1/1     Running   64         3d17h</pre>
 </div>
 </div>
 <div class="olist arabic">
@@ -830,7 +849,7 @@ oc get gateway openshift-ai-inference -n openshift-ingress -o wide</code></pre>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>List the <code>LLMInferenceServiceConfig</code> templates that back the wizard&#8217;s <strong>Topology
+<p>List the <code>LLMInferenceServiceConfig</code> configurations that back the wizard&#8217;s <strong>Accelerator
 configuration</strong> list:</p>
 </li>
 </ol>
@@ -841,15 +860,18 @@ configuration</strong> list:</p>
 </div>
 </div>
 <div class="paragraph">
-<p>Each template carries an <code>opendatahub.io/config-type</code> label that categorizes it by topology
-type: <code>workload-single-node</code>, <code>workload-multi-node-data-parallel</code>,
-<code>workload-single-node-pd</code>, or <code>workload-multi-node-data-parallel-pd</code>. Router templates use
-the value <code>router</code> and declare compatible topologies through the
-<code>opendatahub.io/supported-topologies</code> annotation.</p>
+<p>The <code>redhat-ods-applications</code> namespace ships 43 of them: 15 accelerator presets labeled
+<code>opendatahub.io/config-type=accelerator</code> — the only <code>config-type</code> value in RHOAI 3.6 — for
+vLLM serving on CPU, NVIDIA CUDA (single-node, multi-node, and prefill/decode variants),
+AMD ROCm, IBM Spyre, and Intel Gaudi hardware, plus scheduler and platform configurations.
+Each preset declares the workload topologies it supports through the
+<code>opendatahub.io/supported-topologies</code> annotation: <code>workload-single-node</code>,
+<code>workload-multi-node-data-parallel</code>, and their <code>-pd</code> prefill/decode variants.</p>
 </div>
 <div class="paragraph">
-<p>You can also view the templates in the RHOAI dashboard as an administrator under <strong>Settings</strong>
-&#8594; <strong>llm-d topology configurations</strong>.</p>
+<p>Administrators view and enable the presets in the RHOAI dashboard under <strong>Settings &gt; Model
+resources and operations &gt; Model deployment settings &gt; LLM accelerator configurations</strong> —
+Module 03 walks through that page.</p>
 </div>
 <div class="sect2">
 <h3 id="_verify_2"><a class="anchor" href="#_verify_2"></a>Verify</h3>
@@ -886,12 +908,13 @@ programmed, ask your facilitator to complete the cluster setup before continuing
 <div class="ulist">
 <ul>
 <li>
-<p><code>LLMInferenceService</code> deploys a model; <code>LLMInferenceServiceConfig</code> templates define the
-topologies and routers the wizard exposes</p>
+<p><code>LLMInferenceService</code> deploys a model; <code>LLMInferenceServiceConfig</code> accelerator presets
+define the serving configurations behind the wizard&#8217;s <strong>Accelerator configuration</strong> list</p>
 </li>
 <li>
-<p>Single-node topology is always available; every other pattern needs an
-administrator-created template and RDMA-class hardware for disaggregation</p>
+<p>Every preset scopes itself to the workload topologies it supports through the
+<code>opendatahub.io/supported-topologies</code> annotation; disaggregated patterns additionally need
+RDMA-class hardware</p>
 </li>
 <li>
 <p>A namespace holds one inference stack, and the Gateway is shared across stacks</p>
@@ -902,9 +925,10 @@ administrator-created template and RDMA-class hardware for disaggregation</p>
 <p><strong>Next steps:</strong></p>
 </div>
 <div class="paragraph">
-<p>In the next module you deploy a model with the llm-d topology selector from the dashboard,
-then repeat the deployment from the CLI with a real <code>LLMInferenceService</code> manifest and send
-authenticated inference requests to it.</p>
+<p>In the next module you explore llm-d deployments in <strong>AI hub &gt; Models &gt; Deployments</strong>, walk
+through the <strong>Deploy model</strong> wizard with the <strong>LLM inference service with llm-d</strong> deployment
+method, inspect the resulting <code>LLMInferenceService</code> from the CLI, and send live inference
+requests to the internal endpoint.</p>
 </div>
 </div>
 </div>

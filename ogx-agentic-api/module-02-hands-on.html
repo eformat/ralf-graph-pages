@@ -204,6 +204,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -585,8 +593,10 @@
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p>In this module you will deploy an OGXServer, connect an OpenAI SDK client to its
-OpenAI-compatible surface, and drive a multi-turn conversation with server-side state.</p>
+<p>In this module you will connect an OpenAI SDK client to the workshop&#8217;s shared OGX server,
+sanity-check inference with Chat Completions, and build a stateful, multi-turn chat with the
+Conversations API. You deploy nothing yourself: the guided path consumes the workshop&#8217;s shared
+OGXServer over HTTPS, and every step runs against that live server.</p>
 </div>
 <div class="paragraph">
 <p><strong>Learning objectives:</strong></p>
@@ -594,13 +604,22 @@ OpenAI-compatible surface, and drive a multi-turn conversation with server-side 
 <div class="ulist">
 <ul>
 <li>
-<p>Deploy an OGXServer and verify it reaches the Running phase</p>
+<p>Connect to the shared workshop OGX server and verify it is healthy and at version 1.4.2+rhaiv.0</p>
 </li>
 <li>
-<p>Configure an OpenAI SDK client against the OGX route</p>
+<p>Configure an OpenAI SDK client against the OGX route and select a large language model (LLM)
+by <code>model_type</code></p>
 </li>
 <li>
-<p>Use the Conversations API to build multi-turn, context-aware chats</p>
+<p>Sanity-check inference with Chat Completions</p>
+</li>
+<li>
+<p>Persist conversation items in the OpenAI array-wrapped shape and drive multi-turn context
+explicitly through Chat Completions</p>
+</li>
+<li>
+<p>Recognize the surfaces that silently no-op or are absent on this build: flat item bodies,
+the <code>conversation</code> parameter on Chat Completions, and the Responses API</p>
 </li>
 </ul>
 </div>
@@ -613,7 +632,9 @@ OpenAI-compatible surface, and drive a multi-turn conversation with server-side 
 <td class="content">
 This feature is a <strong>Technology Preview</strong>. While the Conversations API is functional and
 suitable for evaluation, some endpoints and parameters might change in future releases. It is not
-recommended for production use.
+recommended for production use. On the workshop build (OGX 1.4.2+rhaiv.0), availability differs
+further still from the documented target state — see the build-availability matrix in
+<a href="module-01-concepts.html" class="xref page">Module 01</a>.
 </td>
 </tr>
 </table>
@@ -621,90 +642,12 @@ recommended for production use.
 </div>
 </div>
 <div class="sect1">
-<h2 id="_exercise_1_deploy_an_ogxserver"><a class="anchor" href="#_exercise_1_deploy_an_ogxserver"></a>Exercise 1: Deploy an OGXServer</h2>
+<h2 id="_exercise_1_connect_to_the_workshop_ogx_server"><a class="anchor" href="#_exercise_1_connect_to_the_workshop_ogx_server"></a>Exercise 1: Connect to the workshop OGX server</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>An OGXServer CR declares the OGX runtime for your project. The following example uses the
-<code>rh-dev</code> distribution with an inline Ollama inference model, which is self-contained for workshop
-environments.</p>
-</div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>Create a file named <code>ogxserver.yaml</code>:</p>
-</li>
-</ol>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: ogx.io/v1beta1
-kind: OGXServer
-metadata:
-  name: ogx-agentic
-spec:
-  distribution:
-    name: rh-dev <i class="conum" data-value="1"></i><b>(1)</b>
-  workload:
-    replicas: 1 <i class="conum" data-value="2"></i><b>(2)</b>
-  storage:
-    size: "20Gi" <i class="conum" data-value="3"></i><b>(3)</b>
-  overrides:
-    env:
-      - name: OLLAMA_INFERENCE_MODEL <i class="conum" data-value="4"></i><b>(4)</b>
-        value: "llama3.2:1b"
-      - name: OLLAMA_URL <i class="conum" data-value="5"></i><b>(5)</b>
-        value: "http://ollama-server-service.ollama-dist.svc.cluster.local:11434"</code></pre>
-</div>
-</div>
-<div class="colist arabic">
-<table>
-<tr>
-<td><i class="conum" data-value="1"></i><b>1</b></td>
-<td><strong>distribution.name</strong> — the OGX distribution that runs the server; <code>rh-dev</code> is the
-developer-oriented distribution shipped with RHOAI.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="2"></i><b>2</b></td>
-<td><strong>workload.replicas</strong> — the number of OGX server pods to run; one is sufficient for
-evaluation.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="3"></i><b>3</b></td>
-<td><strong>storage.size</strong> — persistent storage for OGX metadata and state.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="4"></i><b>4</b></td>
-<td><strong>OLLAMA_INFERENCE_MODEL</strong> — the inference model the server uses for generation.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="5"></i><b>5</b></td>
-<td><strong>OLLAMA_URL</strong> — the in-cluster endpoint of the Ollama inference server.
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>Apply the CR to your project:</p>
-</li>
-</ol>
-</div></td>
-</tr>
-</table>
-</div>
-<div class="listingblock execute">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc apply -f ogxserver.yaml -n abc123-user1</code></pre>
-</div>
-</div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>Watch the server reach the Running phase:</p>
-</li>
-</ol>
-</div>
-<div class="listingblock execute">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get ogxserver ogx-agentic -n abc123-user1 -o jsonpath='{.status.phase}'</code></pre>
-</div>
+<p>The guided path uses the workshop&#8217;s shared OGX server: OGXServer <code>aml-ogx</code> in the
+<code>autorag-ml-demo</code> project, exposed through an HTTPS route. It is already deployed and in the
+<code>Ready</code> phase, so there is no <code>oc apply</code> step in this module — you only verify it and connect.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -713,8 +656,11 @@ evaluation.</td>
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-The first deployment takes several minutes while the operator pulls images and provisions
-the persistent volume. Re-run the command until the phase prints <code>Running</code>.
+<strong>Running your own OGXServer.</strong> Everything in this module works against any reachable
+OGXServer. If you want to stage your own for a self-hosted or air-gapped run, see the optional
+appendix in the feature tree at <code>deploy/README.md</code> ("Running your own OGXServer") for an example
+<code>OGXServer</code> custom resource and its prerequisites. The shared workshop server is used everywhere
+else in this module.
 </td>
 </tr>
 </table>
@@ -722,13 +668,25 @@ the persistent volume. Re-run the command until the phase prints <code>Running</
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>Once the pods are running, list the services the operator created and identify the OGX service:</p>
+<p>Export the workshop OGX route:</p>
 </li>
 </ol>
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get svc -n abc123-user1</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">export OGX_URL="https://aml-ogx-tls-autorag-ml-demo.apps.ocp5-m6wl4-2plgg.sandbox1832.opentlc.com"</code></pre>
+</div>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Check that the server is healthy:</p>
+</li>
+</ol>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">curl -s "$OGX_URL/v1/health"</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -736,34 +694,52 @@ the persistent volume. Re-run the command until the phase prints <code>Running</
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>NAME                        TYPE        CLUSTER-IP       PORT(S)
-ogx-distribution-service    ClusterIP   172.30.145.19    8321/TCP</pre>
+<pre>{"status":"OK"}</pre>
 </div>
 </div>
-<div class="sect2">
-<h3 id="_verify"><a class="anchor" href="#_verify"></a>Verify</h3>
-<div class="ulist">
-<ul>
+<div class="olist arabic">
+<ol class="arabic">
 <li>
-<p><code>oc get ogxserver ogx-agentic -n abc123-user1 -o jsonpath='{.status.phase}'</code> prints <code>Running</code>.</p>
+<p>Check the OGX version:</p>
 </li>
-<li>
-<p><code>oc get svc -n abc123-user1</code> shows a service exposing port <code>8321</code>.</p>
-</li>
-</ul>
+</ol>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">curl -s "$OGX_URL/v1/version"</code></pre>
+</div>
 </div>
 <div class="paragraph">
-<p>With your OGXServer Running, you can now connect a client to its OpenAI-compatible API surface.</p>
+<p>Expected output:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>{"version":"1.4.2+rhaiv.0"}</pre>
 </div>
 </div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>List the models registered on the server:</p>
+</li>
+</ol>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">curl -s "$OGX_URL/v1/models"</code></pre>
 </div>
 </div>
-<div class="sect1">
-<h2 id="_exercise_2_connect_an_openai_sdk_client_and_list_models"><a class="anchor" href="#_exercise_2_connect_an_openai_sdk_client_and_list_models"></a>Exercise 2: Connect an OpenAI SDK client and list models</h2>
-<div class="sectionbody">
 <div class="paragraph">
-<p>The OGX server exposes OpenAI-compatible endpoints on port <code>8321</code>. The <code>base_url</code> must include
-the <code>/v1</code> path suffix so the SDK routes requests to the OpenAI-compatible surface.</p>
+<p>Expected output (abridged):</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>{"object":"list","data":[
+  {"id":"vllm-inference/aml-llama32-3b", ...,
+   "custom_metadata":{"model_type":"llm","provider_id":"vllm-inference",...}},
+  {"id":"vllm-embedding/aml-bge-m3", ...,
+   "custom_metadata":{"model_type":"llm","provider_id":"vllm-embedding",...}}]}</pre>
+</div>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
@@ -780,8 +756,8 @@ the <code>/v1</code> path suffix so the SDK routes requests to the OpenAI-compat
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>Configure a client pointing at your OGX endpoint. Use the service hostname you identified in
-Exercise 1:</p>
+<p>Configure an OpenAI SDK client pointing at the workshop OGX route. The <code>base_url</code> must include
+the <code>/v1</code> path suffix so the SDK routes requests to the OpenAI-compatible surface:</p>
 </li>
 </ol>
 </div>
@@ -790,20 +766,19 @@ Exercise 1:</p>
 <pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">from openai import OpenAI
 import rich
 
-# We'll be using a OGX server deployed in RHOAI.
-# Once all pods associated to the OGXServer are running,
-# create the base_url using the ogx service hostname (with /v1 at the end when using the OpenAI SDK)
-base_url = "http://ogx-distribution-service.abc123-user1.svc.cluster.local:8321/v1"
+# The workshop OGX server exposes an OpenAI-compatible API on its route.
+# The base_url must include the /v1 path suffix when using the OpenAI SDK.
+OGX_URL = "https://aml-ogx-tls-autorag-ml-demo.apps.ocp5-m6wl4-2plgg.sandbox1832.opentlc.com"
 client = OpenAI(
-    api_key="your-ogx-key",
-    base_url=base_url
+    api_key="not-needed",
+    base_url=f"{OGX_URL}/v1"
 )</code></pre>
 </div>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>List the models available in the OGX server and select the first LLM:</p>
+<p>List the models through the SDK and select the first LLM:</p>
 </li>
 </ol>
 </div>
@@ -815,15 +790,39 @@ rich.print(models)
 model_id = next(m for m in models if m.custom_metadata["model_type"] == "llm").id</code></pre>
 </div>
 </div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+On this build both registered models report <code>model_type: "llm"</code> — the embedding model
+<code>vllm-embedding/aml-bge-m3</code> is mis-typed, which is why embeddings are unusable on this server
+(see Module 01). The selection pattern picks the first <code>llm</code>-typed model, which on this server is
+<code>vllm-inference/aml-llama32-3b</code>, the model the workshop uses for generation. If you prefer to be
+explicit, set <code>model_id = "vllm-inference/aml-llama32-3b"</code> directly.
+</td>
+</tr>
+</table>
+</div>
 <div class="sect2">
-<h3 id="_verify_2"><a class="anchor" href="#_verify_2"></a>Verify</h3>
+<h3 id="_verify"><a class="anchor" href="#_verify"></a>Verify</h3>
 <div class="ulist">
 <ul>
 <li>
-<p><code>rich.print(models)</code> returns a paginated list of model resources with <code>custom_metadata</code> fields.</p>
+<p><code>curl -s "$OGX_URL/v1/health"</code> prints <code>{"status":"OK"}</code>.</p>
 </li>
 <li>
-<p><code>model_id</code> is assigned without raising <code>StopIteration</code>, meaning at least one LLM is registered.</p>
+<p><code>curl -s "$OGX_URL/v1/version"</code> prints <code>{"version":"1.4.2+rhaiv.0"}</code>.</p>
+</li>
+<li>
+<p><code>curl -s "$OGX_URL/v1/models"</code> lists <code>vllm-inference/aml-llama32-3b</code> and
+<code>vllm-embedding/aml-bge-m3</code>, both with <code>custom_metadata.model_type</code> of <code>llm</code>.</p>
+</li>
+<li>
+<p><code>model_id</code> is assigned without raising <code>StopIteration</code> and equals
+<code>vllm-inference/aml-llama32-3b</code>.</p>
 </li>
 </ul>
 </div>
@@ -834,11 +833,11 @@ model_id = next(m for m in models if m.custom_metadata["model_type"] == "llm").i
 </div>
 </div>
 <div class="sect1">
-<h2 id="_exercise_3_sanity_check_inference_with_chat_completions"><a class="anchor" href="#_exercise_3_sanity_check_inference_with_chat_completions"></a>Exercise 3: Sanity-check inference with Chat Completions</h2>
+<h2 id="_exercise_2_sanity_check_inference_with_chat_completions"><a class="anchor" href="#_exercise_2_sanity_check_inference_with_chat_completions"></a>Exercise 2: Sanity-check inference with Chat Completions</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>Before using the agentic APIs, confirm the inference path works with a simple Chat Completions
-call.</p>
+call against the shared server.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -857,7 +856,7 @@ rich.print(content)</code></pre>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_verify_3"><a class="anchor" href="#_verify_3"></a>Verify</h3>
+<h3 id="_verify_2"><a class="anchor" href="#_verify_2"></a>Verify</h3>
 <div class="ulist">
 <ul>
 <li>
@@ -876,12 +875,34 @@ server-side state.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_exercise_4_drive_a_multi_turn_chat_with_the_conversations_api"><a class="anchor" href="#_exercise_4_drive_a_multi_turn_chat_with_the_conversations_api"></a>Exercise 4: Drive a multi-turn chat with the Conversations API</h2>
+<h2 id="_exercise_3_build_a_stateful_conversation_with_the_conversations_api"><a class="anchor" href="#_exercise_3_build_a_stateful_conversation_with_the_conversations_api"></a>Exercise 3: Build a stateful conversation with the Conversations API</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>The Conversations API manages server-side conversation state: instead of manually passing
-<code>previous_response_id</code> between Responses API calls, you create a conversation that automatically
-accumulates message history across turns.</p>
+<p>The Conversations API manages server-side conversation state: you create a conversation, store
+messages in it as conversation items, and build multi-turn context from that stored history.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<strong>Responses API: not available on OGX 1.4.2+rhaiv.0.</strong> <code>POST /v1/responses</code> returns 404, and
+enabling <code>apis.responses</code> in the base config crash-loops the server (<code>KeyError: Api.responses</code>).
+Earlier versions of this module drove multi-turn state through the Responses API — that flow
+cannot run on this build. See
+<a href="module-01-concepts.html" class="xref page">Module 01</a> for the build-availability matrix.
+</td>
+</tr>
+</table>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Create a conversation:</p>
+</li>
+</ol>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -890,45 +911,54 @@ conversation = client.conversations.create(
     metadata={"topic": "pet-care", "user": "demo-user"}
 )
 conversation_id = conversation.id
-
-# Step 2: Send messages using the Responses API with conversation_id
-# Turn 1
-response1 = client.responses.create(
-    model=model_id,
-    input="I have a rabbit. What is its living quarters called?",
-    conversation=conversation_id,
-    store=True, # Persist each response as a conversation item
-    instructions="You are a helpful assistant. Keep responses brief.",
-)
-print(response1.output_text)
-
-# Turn 2: The response can use context from Turn 1
-response2 = client.responses.create(
-    model=model_id,
-    input="I also have a dog. What are its living quarters called?",
-    conversation=conversation_id,
-    store=True,
-)
-print(response2.output_text)
-
-# Turn 3: The response can use context from previous turns
-response3 = client.responses.create(
-    model=model_id,
-    input="List the living quarters I need for all my pets.",
-    conversation=conversation_id,
-    store=True,
-)
-print(response3.output_text)</code></pre>
+rich.print(conversation)</code></pre>
 </div>
-</div>
-<div class="paragraph">
-<p>The Responses API accepts the <code>conversation</code> parameter instead of <code>previous_response_id</code>, which
-is what attaches each turn to the server-side history.</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>List all messages stored in the conversation to confirm server-side state:</p>
+<p>Add a conversation item. The body <strong>must</strong> use the OpenAI array-wrapped item shape:</p>
+</li>
+</ol>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python"># Step 2: Store the first user message as a conversation item
+client.conversations.items.create(
+    conversation_id=conversation_id,
+    items=[
+        {
+            "type": "message",
+            "role": "user",
+            "content": [
+                {"type": "input_text",
+                 "text": "I have a rabbit. What is its living quarters called?"}
+            ],
+        }
+    ],
+)</code></pre>
+</div>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+On this build, only the array-wrapped shape shown above persists items. A body with
+<code>items</code> in any other form — a flat <code>{"role": &#8230;&#8203;, "content": &#8230;&#8203;}</code> object, <code>items</code> given as a
+single object instead of an array, or array entries that are not typed message objects — returns
+HTTP 200 with the conversation object while storing <strong>nothing</strong>: a follow-up items list comes back
+empty. The failure is silent, so always list the items back after adding them.
+</td>
+</tr>
+</table>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>List the stored items to confirm they persisted, in ascending order:</p>
 </li>
 </ol>
 </div>
@@ -937,7 +967,102 @@ is what attaches each turn to the server-side history.</p>
 <pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python"># Step 3: List all messages in the conversation
 items = client.conversations.items.list(conversation_id, order="asc")
 for item in items.data:
-    print(f"{item.role}: {item.content}")</code></pre>
+    print(f"{item.role}: {item.content[0].text}")</code></pre>
+</div>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Drive the conversation by passing the stored history explicitly to Chat Completions. Turn 1
+uses the stored rabbit question; turn 2 then relies on that history to answer a follow-up about
+a second pet:</p>
+</li>
+</ol>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python"># Step 4: Multi-turn context via Chat Completions with explicit history
+def history_from(conversation_id):
+    items = client.conversations.items.list(conversation_id, order="asc")
+    messages = [{"role": "system",
+                 "content": "You are a helpful assistant. Keep responses brief."}]
+    messages += [{"role": item.role, "content": item.content[0].text}
+                 for item in items.data]
+    return messages
+
+# Turn 1: the model sees the rabbit question from the stored history
+reply1 = client.chat.completions.create(
+    model=model_id, messages=history_from(conversation_id), temperature=0
+)
+answer1 = reply1.choices[0].message.content
+print(answer1)
+
+# Store the assistant reply so later turns see it too
+client.conversations.items.create(
+    conversation_id=conversation_id,
+    items=[
+        {
+            "type": "message",
+            "role": "assistant",
+            "content": [{"type": "input_text", "text": answer1}],
+        }
+    ],
+)
+
+# Turn 2: store the follow-up, then ask again with the full stored history
+client.conversations.items.create(
+    conversation_id=conversation_id,
+    items=[
+        {
+            "type": "message",
+            "role": "user",
+            "content": [
+                {"type": "input_text",
+                 "text": "I also have a dog. What are its living quarters called?"}
+            ],
+        }
+    ],
+)
+reply2 = client.chat.completions.create(
+    model=model_id, messages=history_from(conversation_id), temperature=0
+)
+print(reply2.choices[0].message.content)</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The Responses-era pattern of passing <code>conversation=&lt;id&gt;</code> to Chat Completions and letting
+the server attach turns to the stored history does <strong>not</strong> work on this build: the raw
+Representational State Transfer (REST) call returns 200 but persists nothing to the conversation,
+and the current OpenAI SDK does not expose the parameter on <code>chat.completions.create</code>. Passing
+the history explicitly, as shown above, is the reliable pattern on OGX 1.4.2+rhaiv.0.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>You can also drive the conversation REST endpoints directly. The Conversations API exposes
+<code>POST /v1/conversations</code>, <code>GET /v1/conversations/{id}</code>, <code>POST /v1/conversations/{id}/items</code>
+(add items), and <code>DELETE /v1/conversations/{id}</code>. A top-level <code>POST /v1/conversations/{id}</code> also
+exists, but on this build it rejects the array-wrapped body with a <code>422</code> demanding a <code>metadata</code>
+field — it is not the items persistence path. Items persist only when POSTed in the array-wrapped
+shape to the <code>/items</code> subpath. The <code>conversation_id</code> variable from the Python cells above lives in
+a different scope from your shell, so export the <code>conv_&#8230;&#8203;</code> id from the Step 1 create response
+first:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash"># paste the conv_... id printed by Step 1's create response
+export CONVERSATION_ID=conv_xxxxxxxxxxxxxxxx
+
+curl -s -X POST "$OGX_URL/v1/conversations/$CONVERSATION_ID/items" \
+  -H "Content-Type: application/json" \
+  -d '{"items":[{"type":"message","role":"user","content":[{"type":"input_text","text":"I have a rabbit. What is its living quarters called?"}]}]}'</code></pre>
 </div>
 </div>
 <div class="admonitionblock warning">
@@ -962,52 +1087,35 @@ undone.
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python"># Step 4: Clean up
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python"># Step 5: Clean up
 client.conversations.delete(conversation_id)</code></pre>
 </div>
 </div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-You can also drive the conversation REST endpoints directly. The Conversations API exposes
-<code>POST /v1/conversations</code>, <code>GET /v1/conversations/{id}</code>, <code>POST /v1/conversations/{id}</code>, and
-<code>DELETE /v1/conversations/{id}</code>, plus <code>/items</code> subpaths for conversation items. For example:
-</td>
-</tr>
-</table>
-</div>
-<div class="listingblock execute">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">export OGX_URL="http://ogx-distribution-service.abc123-user1.svc.cluster.local:8321"
-curl -s -X POST "$OGX_URL/v1/conversations" \
-  -H "Content-Type: application/json" \
-  -d '{"metadata": {"topic": "pet-care"}}'</code></pre>
-</div>
-</div>
 <div class="sect2">
-<h3 id="_verify_4"><a class="anchor" href="#_verify_4"></a>Verify</h3>
+<h3 id="_verify_3"><a class="anchor" href="#_verify_3"></a>Verify</h3>
 <div class="ulist">
 <ul>
 <li>
-<p>Turn 2 answers with a dog&#8217;s living quarters (a kennel) without you repeating the rabbit context.</p>
+<p><code>conversations.items.list(conversation_id, order="asc")</code> returns the messages you added, in
+ascending order, with <code>role</code> and <code>content[0].text</code> populated.</p>
 </li>
 <li>
-<p>Turn 3 lists living quarters for <strong>both</strong> pets, proving the model referenced context from
-previous turns.</p>
+<p>Turn 2 answers with a dog&#8217;s living quarters (for example a kennel) without you repeating the
+rabbit context — the model referenced the history you passed from the stored items.</p>
 </li>
 <li>
-<p><code>conversations.items.list</code> returns the accumulated messages in ascending order before you
-delete the conversation.</p>
+<p>Adding a flat body such as <code>{"metadata": {&#8230;&#8203;}, "role": "user", "content": "&#8230;&#8203;"}</code> to
+<code>POST /v1/conversations/{id}</code> returns HTTP 200 but stores nothing — the items list stays
+empty. This is the silent no-op the WARNING above describes.</p>
+</li>
+<li>
+<p>After <code>client.conversations.delete(conversation_id)</code>, <code>GET /v1/conversations/{id}</code> returns 404.</p>
 </li>
 </ul>
 </div>
 <div class="paragraph">
-<p>You now have a stateful, multi-turn chat working against OGX. In the next module you will ground
-responses in your own documents and explore the advanced APIs.</p>
+<p>You now have a stateful, multi-turn chat working against OGX with the Conversations API. In the
+next module you will survey the advanced APIs and see exactly which of them run on this build.</p>
 </div>
 </div>
 </div>
@@ -1021,13 +1129,19 @@ responses in your own documents and explore the advanced APIs.</p>
 <div class="ulist">
 <ul>
 <li>
-<p>Deployed an OGXServer and verified it reached the Running phase</p>
+<p>Connected an OpenAI SDK client to the shared workshop OGX server and verified it is healthy at
+version 1.4.2+rhaiv.0</p>
 </li>
 <li>
-<p>Connected an OpenAI SDK client to the OGX route and listed models</p>
+<p>Sanity-checked inference with Chat Completions against <code>vllm-inference/aml-llama32-3b</code></p>
 </li>
 <li>
-<p>Built a multi-turn, stateful chat with the Conversations API and the Responses API</p>
+<p>Built a multi-turn, stateful chat: Conversations items persisted in the OpenAI array-wrapped
+shape, with history passed explicitly to Chat Completions</p>
+</li>
+<li>
+<p>Identified what does <strong>not</strong> work on this build: the Responses API, the <code>conversation</code> parameter
+on Chat Completions, and flat conversation-item bodies</p>
 </li>
 </ul>
 </div>
@@ -1040,10 +1154,13 @@ responses in your own documents and explore the advanced APIs.</p>
 <p>The OGX <code>base_url</code> must include the <code>/v1</code> path suffix when using the OpenAI SDK</p>
 </li>
 <li>
-<p>Passing <code>conversation</code> (instead of <code>previous_response_id</code>) to the Responses API attaches turns to server-side history</p>
+<p>Conversation items persist only in the OpenAI array-wrapped shape —
+<code>{"items":[{"type":"message","role":&#8230;&#8203;,"content":[{"type":"input_text","text":&#8230;&#8203;}]}]}</code> —
+while flat single-item bodies return 200 but silently store nothing</p>
 </li>
 <li>
-<p><code>store=True</code> persists each response as a conversation item that you can list and delete</p>
+<p>On OGX 1.4.2+rhaiv.0 you drive multi-turn context by passing conversation history explicitly
+to <code>chat.completions</code>; the Responses API is not available on this build</p>
 </li>
 </ul>
 </div>
@@ -1051,8 +1168,10 @@ responses in your own documents and explore the advanced APIs.</p>
 <p><strong>Next steps:</strong></p>
 </div>
 <div class="paragraph">
-<p>Continue to Module 03, where you combine the Responses API with the <code>file_search</code> tool to ground
-answers in your own documents, and inspect citations and guardrails.</p>
+<p>Continue to Module 03, where you inspect what this OGX build actually exposes — providers, the
+published OpenAPI paths, the connectors registry — practice reading rerank error signatures, and
+see which advanced surfaces (<code>file_search</code>, guardrails, Tool Runtime) are target-state on
+OGX 1.4.2+rhaiv.0.</p>
 </div>
 </div>
 </div>

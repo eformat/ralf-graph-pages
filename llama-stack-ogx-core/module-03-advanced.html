@@ -204,6 +204,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -585,9 +593,13 @@
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p>In this module you will explore advanced configuration for your OGX server: retrieval search
-modes, high availability and autoscaling, external S3-compatible file storage, and OAuth token
-authentication for the OGX API.</p>
+<p>In this module you will go beyond the basic RAG loop from Module 02: compare retrieval search
+modes directly in pgvector, learn the high-availability and autoscaling knobs on the OGXServer
+custom resource, reproduce the whole OGX stack as a second server from the same blueprint,
+understand the MaaS facade pattern that keeps the AutoRAG wizard working, and inspect the
+PostgreSQL storage layer that everything above it depends on. The module closes with two
+forward-looking sections — external S3 file storage and OAuth token authentication — that
+require a newer OGX build than the one running here.</p>
 </div>
 <div class="paragraph">
 <p><strong>Learning objectives:</strong></p>
@@ -595,16 +607,19 @@ authentication for the OGX API.</p>
 <div class="ulist">
 <ul>
 <li>
-<p>Compare keyword, vector, and hybrid search modes for RAG retrieval</p>
+<p>Compare keyword, vector, and hybrid retrieval modes directly against a pgvector table</p>
 </li>
 <li>
-<p>Configure high availability and autoscaling for OGX server pods</p>
+<p>Configure replicas, disruption budgets, topology spread, and autoscaling on the OGXServer CR</p>
 </li>
 <li>
-<p>Offload Files API storage to an external S3-compatible object store</p>
+<p>Reproduce the OGX stack: two Ready servers deployed from one distribution digest</p>
 </li>
 <li>
-<p>Secure the OGX API with OAuth token authentication and role-based access policies</p>
+<p>Explain the MaaS facade pattern and why the AutoRAG wizard needs it</p>
+</li>
+<li>
+<p>Inspect the pgvector storage layer that backs the server</p>
 </li>
 </ul>
 </div>
@@ -614,69 +629,235 @@ authentication for the OGX API.</p>
 <h2 id="_exercise_1_choose_a_retrieval_search_mode"><a class="anchor" href="#_exercise_1_choose_a_retrieval_search_mode"></a>Exercise 1: Choose a retrieval search mode</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>OGX supports keyword, vector, and hybrid search modes for retrieving context in RAG workloads.
-Each mode offers different tradeoffs in precision, recall, semantic depth, and computational cost:</p>
+<p>Retrieval quality depends on <strong>how</strong> you match a question against stored chunks. Three search
+modes offer different tradeoffs in precision, recall, and computational cost:</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
 <p><strong>Keyword search</strong> — lexical matching (TF-IDF, BM25). Effective when precise term-matching is
-required, such as searching for identifiers, names, or regulatory terms.</p>
+required, such as searching for identifiers, names, or regulatory terms. It finds nothing when
+your wording does not overlap the documents.</p>
 </li>
 <li>
 <p><strong>Vector search</strong> — encodes documents and queries as embeddings and measures similarity with
-cosine similarity or inner product. Captures semantic meaning beyond exact word overlap.</p>
+cosine distance. Captures semantic meaning beyond exact word overlap.</p>
 </li>
 <li>
-<p><strong>Hybrid search</strong> — blends lexical and semantic relevance scores to balance exact term matching
-with semantic similarity.</p>
+<p><strong>Hybrid search</strong> — blends lexical and semantic rankings to balance exact term matching with
+semantic similarity.</p>
 </li>
 </ul>
 </div>
 <div class="paragraph">
-<p>Run the same query with each mode against the vector store from Module 02:</p>
+<p>Module 02 ended with a pgvector table you built by hand. You can demonstrate all three modes
+against that same kind of table using plain SQL — which has the bonus that you <strong>see</strong> each
+mode&#8217;s scoring instead of treating retrieval as a black box.</p>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+Every step below uses a throwaway table named <code>ogx_module03_modes</code> that you drop at
+the end — the exercise leaves the shared environment exactly as it found it. Do not create or
+modify any other database objects.
+</td>
+</tr>
+</table>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Reconnect to the MaaS facade from Module 02 (it computes the embeddings for this exercise):</p>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">export FACADE="https://$(oc -n autorag-ml-demo get route aml-maas-facade-tls -o jsonpath='{.spec.host}')"</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Write three small documents with deliberately different vocabularies:</p>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mkdir -p chunks
+cat &gt; chunks/c1.txt &lt;&lt;'EOF'
+OGX servers are configured declaratively: the OGXServer custom resource wires
+vLLM inference providers, a pgvector vector store, and PostgreSQL storage into
+a single workload, and the OGX Operator reconciles it.
+EOF
+cat &gt; chunks/c2.txt &lt;&lt;'EOF'
+RAG — retrieval-augmented generation — reduces hallucinated answers by
+grounding the model in your own documents instead of relying on what the
+model memorized during training.
+EOF
+cat &gt; chunks/c3.txt &lt;&lt;'EOF'
+pgvector adds a vector column type and cosine distance operators to
+PostgreSQL; ivfflat and hnsw indexes keep nearest-neighbour queries fast as
+the corpus grows.
+EOF</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Create the throwaway table and ingest the chunks — embed each through the facade, then
+insert the vector:</p>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">TABLE=ogx_module03_modes
+oc exec aml-pgvector-0 -n autorag-ml-demo -- psql -U ogx -d ogx \
+  -c "CREATE TABLE $TABLE (id text, source text, content text, embedding vector(1024))"
+for f in chunks/c*.txt; do
+  id=$(basename "$f" .txt)
+  vec=$(curl -s "$FACADE/v1/embeddings" -H 'Content-Type: application/json' \
+        -d "$(jq -n --arg t "$(cat "$f")" '{model:"aml-bge-m3", input:$t}')" \
+        | jq -r '.data[0].embedding | join(",")')
+  body=$(sed "s/'/''/g" "$f")
+  oc exec aml-pgvector-0 -n autorag-ml-demo -- psql -U ogx -d ogx \
+    -c "INSERT INTO $TABLE (id, source, content, embedding) VALUES ('$id', '$id.txt', '$body', '[$vec]')"
+done</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Expected output: <code>CREATE TABLE</code>, then three <code>INSERT 0 1</code> lines, one per chunk.</p>
+</div>
+</li>
+<li>
+<p><strong>Keyword mode.</strong> Embed the question, then rank with PostgreSQL full-text search. Only chunks
+that lexically contain the query words score at all:</p>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">QUERY="How does RAG reduce hallucinated answers?"
+oc exec aml-pgvector-0 -n autorag-ml-demo -- psql -U ogx -d ogx -c \
+  "SELECT id, round(ts_rank(to_tsvector('english', content), q.tsq)::numeric, 4) AS keyword_score
+   FROM $TABLE, (SELECT plainto_tsquery('english', '$QUERY') AS tsq) q
+   WHERE to_tsvector('english', content) @@ q.tsq
+   ORDER BY keyword_score DESC"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Expected output — exactly one chunk matches, because it is the only one sharing the query&#8217;s
+vocabulary:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">query_result = client.vector_io.query(
-    vector_store_id=vector_store_id,
-    query="FRBNY",
-    params={
-        "mode": "keyword",
-        "max_chunks": 3,
-        "score_threshold": 0.7,
-    },
-)
-print(query_result)</code></pre>
+<pre> id | keyword_score
+----+---------------
+ c2 |        0.4383
+(1 row)</pre>
 </div>
+</div>
+</li>
+<li>
+<p><strong>Vector mode.</strong> Rank the same table by cosine similarity against the query embedding. Now
+every chunk gets a score, ranked by meaning rather than by shared words:</p>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">VEC=$(curl -s "$FACADE/v1/embeddings" -H 'Content-Type: application/json' \
+      -d "$(jq -n --arg t "$QUERY" '{model:"aml-bge-m3", input:$t}')" \
+      | jq -r '.data[0].embedding | join(",")')
+oc exec aml-pgvector-0 -n autorag-ml-demo -- psql -U ogx -d ogx -c \
+  "SELECT id, round((1 - (embedding <=> '[$VEC]'))::numeric, 4) AS similarity
+   FROM $TABLE ORDER BY embedding <=> '[$VEC]'"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Expected output — the RAG chunk still ranks first, but the semantic neighbours are ranked too:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">query_result = client.vector_io.query(
-    vector_store_id=vector_store_id,
-    query="FRBNY",
-    params={
-        "mode": "vector",
-        "max_chunks": 3,
-        "score_threshold": 0.7,
-    },
-)
-print(query_result)</code></pre>
+<pre> id | similarity
+----+------------
+ c2 |     0.7750
+ c3 |     0.3336
+ c1 |     0.3141
+(3 rows)</pre>
 </div>
+</div>
+</li>
+<li>
+<p><strong>Hybrid mode.</strong> Reciprocal rank fusion (RRF) combines the two rankings: each chunk earns
+<code>1/(k + rank)</code> points from every list it appears on, with <code>k = 60</code> dampening the influence of
+any single list. A chunk ranked first on both lists wins; a chunk first on one list and last
+on the other can lose to a chunk ranked second on both:</p>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc exec aml-pgvector-0 -n autorag-ml-demo -- psql -U ogx -d ogx -c \
+  "WITH s AS (
+     SELECT plainto_tsquery('english', '$QUERY') AS tsq, '[$VEC]'::vector AS vec
+   ),
+   kw AS (
+     SELECT id, row_number() OVER (ORDER BY ts_rank(to_tsvector('english', content), s.tsq) DESC, id) AS keyword_rank
+     FROM $TABLE, s
+   ),
+   ve AS (
+     SELECT id, row_number() OVER (ORDER BY embedding <=> s.vec) AS vector_rank
+     FROM $TABLE, s
+   )
+   SELECT m.id, kw.keyword_rank, ve.vector_rank,
+          round((1.0/(60 + kw.keyword_rank) + 1.0/(60 + ve.vector_rank))::numeric, 5) AS rrf_score
+   FROM $TABLE m
+   JOIN kw ON kw.id = m.id
+   JOIN ve ON ve.id = m.id
+   ORDER BY rrf_score DESC"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Expected output — <code>c2</code> is ranked first by both lists and wins; <code>c1</code> and <code>c3</code> split the second
+place between them, each having traded a better rank on one list for a worse rank on the other:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">query_result = client.vector_io.query(
-    vector_store_id=vector_store_id,
-    query="FRBNY",
-    params={
-        "mode": "hybrid",
-        "max_chunks": 3,
-        "score_threshold": 0.7,
-    },
-)
-print(query_result)</code></pre>
+<pre> id | keyword_rank | vector_rank | rrf_score
+----+--------------+-------------+-----------
+ c2 |            1 |           1 |   0.03279
+ c1 |            2 |           3 |   0.03200
+ c3 |            3 |           2 |   0.03200
+(3 rows)</pre>
 </div>
+</div>
+</li>
+<li>
+<p>Clean up — drop the throwaway table and confirm nothing remains:</p>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc exec aml-pgvector-0 -n autorag-ml-demo -- psql -U ogx -d ogx \
+  -c "DROP TABLE $TABLE"
+oc exec aml-pgvector-0 -n autorag-ml-demo -- psql -U ogx -d ogx \
+  -t -c "SELECT tablename FROM pg_tables WHERE tablename LIKE 'ogx_module03%'"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Expected output: <code>DROP TABLE</code>, then no rows.</p>
+</div>
+</li>
+</ol>
+</div>
+<div class="sect2">
+<h3 id="_verify"><a class="anchor" href="#_verify"></a>Verify</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>The keyword query returns exactly one row: keyword search is precise but blind to synonyms
+and paraphrases.</p>
+</li>
+<li>
+<p>The vector query ranks all three chunks and still puts the RAG chunk first: semantic search
+recalls related material keyword search cannot see.</p>
+</li>
+<li>
+<p>The RRF scores show <strong>why</strong> hybrid search is robust: it fuses two independent opinions about
+relevance instead of trusting either one.</p>
+</li>
+<li>
+<p>Ask the question again in different words. Run the keyword query with
+<code>How do I stop the model from making things up?</code> — it returns <strong>zero rows</strong> (live-verified).
+Re-run the vector step with the new question embedded: <code>c2</code> stays first (similarity <code>0.4594</code>
+in the captured run). That contrast is the whole argument for semantic and hybrid retrieval.</p>
+</li>
+</ul>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -685,75 +866,29 @@ print(query_result)</code></pre>
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-Search mode availability depends on the selected vector store provider and its configured
-capabilities. Not all providers support every search mode — some support vector search only, and
-keyword or hybrid search might return empty results. Always verify the supported modes for your
-chosen provider.
+On this build the OGX-native multi-mode retrieval API
+(<code>client.vector_io.query(&#8230;&#8203;, params={"mode": "keyword|vector|hybrid"})</code>) is not reachable:
+vector stores cannot be created until the server exposes working embedding-typed models, and
+the files API they depend on is absent — see "Looking ahead" at the end of this module. The
+SQL above is the same computation OGX&#8217;s pgvector provider performs for you once that lands.
 </td>
 </tr>
 </table>
 </div>
 <div class="paragraph">
-<p>While you are exploring retrieval, note that the Gen AI Studio playground in the RHOAI dashboard
-can also auto-provision a pgvector-backed RAG store for quick experiments — see the exploration
-step below before moving on.</p>
-</div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>(Optional, explore) If you created a Gen AI Studio playground in this project, inspect the
-auto-provisioned pgvector resources. All of them use the <code>genai-pgvector-</code> naming prefix and carry
-the <code>gen-ai.opendatahub.io/pgvector</code> label:</p>
-<div class="listingblock execute">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get deployment,service,pvc,configmap,secret,networkpolicy -l gen-ai.opendatahub.io/pgvector -n abc123-user1</code></pre>
-</div>
-</div>
-</li>
-</ol>
-</div>
-<div class="paragraph">
-<p>Expected output: a Deployment and Service named <code>genai-pgvector</code> (PostgreSQL 16 with the pgvector
-extension), a PVC named <code>genai-pgvectorstorage</code> (5 GiB), an init ConfigMap, a credentials Secret,
-and a namespace-scoped NetworkPolicy.</p>
-</div>
-<div class="admonitionblock warning">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-warning" title="Warning"></i>
-</td>
-<td class="content">
-The auto-provisioned pgvector instance is intended for development and experimentation
-only, and the auto-provisioned playground vector store is a Technology Preview feature. Deleting
-the playground removes all auto-provisioned resources, and manually deleting or modifying a
-resource means you must delete and recreate the playground to restore it. For production
-workloads, provide your own PostgreSQL instance as in Module 02.
-</td>
-</tr>
-</table>
-</div>
-<div class="sect2">
-<h3 id="_verify"><a class="anchor" href="#_verify"></a>Verify</h3>
-<div class="paragraph">
-<p>Each <code>vector_io.query()</code> call returns chunks from the ingested report: the keyword results match the
-literal term <code>FRBNY</code>, while the vector and hybrid results can also return semantically related
-passages that do not contain the term. Compare which chunks each mode ranks first and articulate the
-precision versus recall tradeoff between the three result sets.</p>
-</div>
-<div class="paragraph">
-<p>With retrieval tuned, configure the OGX server itself to survive failures and scale under load.</p>
+<p>With retrieval understood at the SQL level, look at how the server itself scales.</p>
 </div>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_exercise_2_enable_high_availability_and_autoscaling"><a class="anchor" href="#_exercise_2_enable_high_availability_and_autoscaling"></a>Exercise 2: Enable high availability and autoscaling</h2>
+<h2 id="_exercise_2_configure_high_availability_and_autoscaling"><a class="anchor" href="#_exercise_2_configure_high_availability_and_autoscaling"></a>Exercise 2: Configure high availability and autoscaling</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>You can configure OGX servers to remain available if a pod restarts, an application crashes, or
-node maintenance occurs, and enable autoscaling to adjust capacity automatically based on
-resource usage.</p>
+<p>OGX servers stay available if a pod restarts, an application crashes, or node maintenance
+occurs — and can scale capacity automatically. All of the knobs live on the OGXServer custom
+resource under <code>spec.workload</code>; you declare the intent and the operator manages the resulting
+Deployment, PodDisruptionBudget, and HorizontalPodAutoscaler.</p>
 </div>
 <div class="admonitionblock warning">
 <table>
@@ -763,7 +898,8 @@ resource usage.</p>
 </td>
 <td class="content">
 Changing the replica configuration recreates OGX server pods. Keep a record of the
-values you change so you can restore them.
+values you change so you can restore them. The workshop&#8217;s staged servers are shared — inspect
+them, but apply these settings only on an OGXServer of your own.
 </td>
 </tr>
 </table>
@@ -771,12 +907,12 @@ values you change so you can restore them.
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>To enable high availability, add the following parameters to your OGXServer CR:</p>
+<p>To enable high availability, add the following to your OGXServer CR:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">spec:
-  replicas: 2 <i class="conum" data-value="1"></i><b>(1)</b>
-  server:
+  workload:
+    replicas: 2 <i class="conum" data-value="1"></i><b>(1)</b>
     podDisruptionBudget:
       maxUnavailable: 1 <i class="conum" data-value="2"></i><b>(2)</b>
     topologySpreadConstraints: <i class="conum" data-value="3"></i><b>(3)</b>
@@ -785,7 +921,7 @@ values you change so you can restore them.
         whenUnsatisfiable: ScheduleAnyway
         labelSelector:
           matchLabels:
-            app.kubernetes.io/instance: ogx-rag-server <i class="conum" data-value="5"></i><b>(5)</b></code></pre>
+            app.kubernetes.io/instance: aml-ogx <i class="conum" data-value="5"></i><b>(5)</b></code></pre>
 </div>
 </div>
 </li>
@@ -811,15 +947,15 @@ values you change so you can restore them.
 </tr>
 <tr>
 <td><i class="conum" data-value="5"></i><b>5</b></td>
-<td><strong>labelSelector</strong> — ensures only pods from the same application instance are considered when calculating spread.
+<td><strong>labelSelector</strong> — selects the server&#8217;s own pods; the operator labels them <code>app.kubernetes.io/instance: &lt;server-name&gt;</code> (the staged server&#8217;s pods carry <code>app.kubernetes.io/instance: aml-ogx</code>).
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>To enable autoscaling, add the following parameters to your OGXServer CR:</p>
+<p>To enable autoscaling, add the following to your OGXServer CR:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">spec:
-  server:
+  workload:
     autoscaling: <i class="conum" data-value="1"></i><b>(1)</b>
       minReplicas: 1 <i class="conum" data-value="2"></i><b>(2)</b>
       maxReplicas: 5 <i class="conum" data-value="3"></i><b>(3)</b>
@@ -856,329 +992,401 @@ values you change so you can restore them.
 <div class="sect2">
 <h3 id="_verify_2"><a class="anchor" href="#_verify_2"></a>Verify</h3>
 <div class="paragraph">
-<p>Check that the HPA was created and that replica counts stay within the configured bounds:</p>
+<p>On a server where you applied these settings, check that the HPA was created and that replica
+counts stay within the configured bounds:</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get hpa -n abc123-user1
-oc get pods -n abc123-user1 -l app=ogx</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get hpa -n autorag-ml-demo
+oc get pods -n autorag-ml-demo -l app=ogx</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>Expected output: an HPA targeting your OGX server with <code>TARGETS</code> below the configured CPU and
 memory thresholds, <code>MINPODS</code> 1, <code>MAXPODS</code> 5, and a running pod count within those bounds.</p>
 </div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+On the shared workshop project the <code>oc get pods -l app=ogx</code> check shows the staged
+<code>aml-ogx</code> pod <code>Running</code>, and the field names above are live-verified against the
+<code>ogxservers.ogx.io</code> v1beta1 schema (<code>spec.workload.{replicas, podDisruptionBudget,
+topologySpreadConstraints, autoscaling}</code>). The HPAs you see in this project belong to the
+model predictors, not to the OGX server — the staged servers intentionally run a single
+replica, so exercise the autoscaling knobs on a server of your own.
+</td>
+</tr>
+</table>
+</div>
 <div class="paragraph">
-<p>With availability configured, offload file storage so uploaded documents survive pod restarts and
-rescheduling.</p>
+<p>With the scaling model understood, look at how the same stack is reproduced across projects.</p>
 </div>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_exercise_3_use_external_s3_compatible_storage_for_the_files_api"><a class="anchor" href="#_exercise_3_use_external_s3_compatible_storage_for_the_files_api"></a>Exercise 3: Use external S3-compatible storage for the Files API</h2>
+<h2 id="_exercise_3_reproduce_the_stack_a_second_ogx_server_from_the_same_blueprint"><a class="anchor" href="#_exercise_3_reproduce_the_stack_a_second_ogx_server_from_the_same_blueprint"></a>Exercise 3: Reproduce the stack — a second OGX server from the same blueprint</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>By default, the OGX Files API uses the <code>inline::localfs</code> provider, which stores files on the local
-file system of the OGX pod. The <code>remote::s3</code> provider stores file content in an external
-S3-compatible object storage service — Amazon S3, MinIO, Ceph Object Gateway, or any storage
-system that implements the S3 API — while file metadata stays in the PostgreSQL metadata store.</p>
+<p>An OGXServer custom resource is a <strong>blueprint</strong>: one declarative object that wires a distribution
+image, provider endpoints, and storage into a self-contained server. The proof is that this
+cluster runs the blueprint twice. Project <code>autorag-ml-demo</code> hosts <code>aml-ogx</code> (the server you
+have been using); project <code>autorag-ocr-demo</code> hosts <code>aocr-ogx</code> (a server for a document
+intelligence workshop). Different projects, different names — same stack.</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>Create a secret that contains the S3 credentials, replacing <code>&lt;access_key_id&gt;</code> and <code>&lt;secret_access_key&gt;</code> with your object store credentials:</p>
+<p>List the servers in both projects:</p>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc create secret generic s3-files-credentials \
-  --from-literal=AWS_ACCESS_KEY_ID="<access_key_id>" \
-  --from-literal=AWS_SECRET_ACCESS_KEY="<secret_access_key>" \
-  -n abc123-user1</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get ogxserver -n autorag-ml-demo
+oc get ogxserver -n autorag-ocr-demo</code></pre>
 </div>
-</div>
-</li>
-<li>
-<p>Update your OGXServer CR to enable the <code>remote::s3</code> files provider. Click <strong>Home → Search</strong>, search
-for <code>OGXServer</code> (not the internal <code>OGXOperator</code> resource), select your instance, click the <strong>YAML</strong>
-tab, and add the following environment entries, replacing <code>&lt;bucket_name&gt;</code> and <code>&lt;s3_endpoint_url&gt;</code>
-with your object store values:</p>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">spec:
-  server:
-    containerSpec:
-      env:
-        - name: ENABLE_S3 <1>
-          value: "true"
-        - name: S3_BUCKET_NAME <2>
-          value: "<bucket_name>"
-        - name: AWS_DEFAULT_REGION <3>
-          value: "us-east-1"
-        - name: S3_ENDPOINT_URL <4>
-          value: "<s3_endpoint_url>"
-        - name: S3_AUTO_CREATE_BUCKET <5>
-          value: "false"
-        - name: AWS_ACCESS_KEY_ID
-          valueFrom:
-            secretKeyRef:
-              name: s3-files-credentials
-              key: AWS_ACCESS_KEY_ID
-        - name: AWS_SECRET_ACCESS_KEY
-          valueFrom:
-            secretKeyRef:
-              name: s3-files-credentials
-              key: AWS_SECRET_ACCESS_KEY</code></pre>
-</div>
-</div>
-</li>
-</ol>
-</div>
-<div class="colist arabic">
-<table>
-<tr>
-<td><i class="conum" data-value="1"></i><b>1</b></td>
-<td><strong>ENABLE_S3</strong> — enables the <code>remote::s3</code> files provider.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="2"></i><b>2</b></td>
-<td><strong>S3_BUCKET_NAME</strong> — the S3 bucket where files are stored; bucket names must be globally unique.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="3"></i><b>3</b></td>
-<td><strong>AWS_DEFAULT_REGION</strong> — the region for the bucket; <code>us-east-1</code> is appropriate for many S3-compatible backends, including MinIO.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="4"></i><b>4</b></td>
-<td><strong>S3_ENDPOINT_URL</strong> — optional; required for S3-compatible backends other than AWS S3 (MinIO, Ceph Object Gateway, OCI Object Storage). Omit when using AWS S3.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="5"></i><b>5</b></td>
-<td><strong>S3_AUTO_CREATE_BUCKET</strong> — when <code>"true"</code>, allows the provider to create the bucket if it does not exist; leave <code>"false"</code> in production.</td>
-</tr>
-</table>
-</div>
-<div class="admonitionblock warning">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-warning" title="Warning"></i>
-</td>
-<td class="content">
-If the configured bucket does not exist and <code>S3_AUTO_CREATE_BUCKET</code> is <code>"false"</code>, the
-OGX pod enters <code>CrashLoopBackOff</code> and the logs report
-<code>RuntimeError: S3 bucket '&lt;bucket_name&gt;' does not exist</code>. Either create the bucket manually or
-set auto-create to <code>"true"</code> in development environments.
-</td>
-</tr>
-</table>
-</div>
-<div class="sect2">
-<h3 id="_verify_3"><a class="anchor" href="#_verify_3"></a>Verify</h3>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>Confirm the OGX pod restarts and reaches the <code>Running</code> state, then check that the S3 provider
-registered by querying the OGX providers endpoint:</p>
-<div class="listingblock execute">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">export OGX_URL="http://ogx-custom-server-service.abc123-user1.svc.cluster.local:8321"
-curl -s "${OGX_URL}/v1/providers" | jq .</code></pre>
-</div>
-</div>
-</li>
-</ol>
 </div>
 <div class="paragraph">
-<p>Expected output: the provider list contains an entry with <code>"api": "files"</code>, <code>"provider_id": "s3"</code>,
-and <code>"provider_type": "remote::s3"</code>. The pod logs also show the resolved OGX configuration with
-the same Files provider entry.</p>
+<p>Expected output: both servers listed with <code>PHASE</code> <code>Ready</code> and <code>PROVIDERS</code> <code>3</code> (the two vLLM
+inference providers plus the pgvector vector store).</p>
 </div>
-<div class="olist arabic">
-<ol class="arabic">
+</li>
 <li>
-<p>Upload a file through the OpenAI-compatible <code>/v1/files</code> endpoint:</p>
+<p>Compare the wiring. Same distribution, same provider IDs, in each project:</p>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">echo "workshop test file" > test.txt
-curl -X POST "${OGX_URL}/v1/files" \
-  -F purpose="assistants" \
-  -F file="@test.txt"</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc -n autorag-ml-demo get ogxserver aml-ogx -o json \
+  | jq -c '{distro:.spec.distribution.name, vllm:[.spec.providers.inference.remote.vllm[].id]}'
+oc -n autorag-ocr-demo get ogxserver aocr-ogx -o json \
+  | jq -c '{distro:.spec.distribution.name, vllm:[.spec.providers.inference.remote.vllm[].id]}'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Expected output — identical wiring, declared twice:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>{"distro":"rh-dev","vllm":["vllm-inference","vllm-embedding"]}
+{"distro":"rh-dev","vllm":["vllm-inference","vllm-embedding"]}</pre>
 </div>
 </div>
 </li>
-</ol>
+<li>
+<p>Prove the servers run the <strong>same build</strong>. Resolve each Deployment&#8217;s container image and compare
+the digests:</p>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">IMG1=$(oc -n autorag-ml-demo get deploy aml-ogx -o jsonpath='{.spec.template.spec.containers[0].image}')
+IMG2=$(oc -n autorag-ocr-demo get deploy aocr-ogx -o jsonpath='{.spec.template.spec.containers[0].image}')
+echo "$IMG1"
+echo "$IMG2"
+[ "$IMG1" = "$IMG2" ] && echo "IDENTICAL distro digest"</code></pre>
+</div>
 </div>
 <div class="paragraph">
 <p>Expected output:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>{
-  "object": "file",
-  "id": "file-53b3fd75ca2c421c9a292ac63ff924ce",
-  "bytes": 19,
-  "created_at": 1778608944,
-  "expires_at": null,
-  "filename": "test.txt",
-  "purpose": "assistants"
-}</pre>
+<pre>registry.redhat.io/rhoai/odh-ogx-core-rhel9@sha256:73880c133bd337c7d264331b776c9c9b7099f172a5cd79783fc022fc99955eab
+registry.redhat.io/rhoai/odh-ogx-core-rhel9@sha256:73880c133bd337c7d264331b776c9c9b7099f172a5cd79783fc022fc99955eab
+IDENTICAL distro digest</pre>
 </div>
+</div>
+</li>
+</ol>
+</div>
+<div class="sect2">
+<h3 id="_verify_3"><a class="anchor" href="#_verify_3"></a>Verify</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Both servers report <code>PHASE</code> <code>Ready</code> with <code>PROVIDERS</code> <code>3</code>, each backed by its own pgvector
+instance in its own project (<code>aml-pgvector</code> in <code>autorag-ml-demo</code>, <code>aocr-pgvector</code> in
+<code>autorag-ocr-demo</code>) — the blueprint carries its storage with it.</p>
+</li>
+<li>
+<p>The image digests match exactly: both servers run <code>odh-ogx-core-rhel9</code> at
+<code>sha256:73880c13&#8230;&#8203;</code>. Reproducibility means the same digest, the same wiring, and the same API
+surface — deploy the blueprint into a new project and you get the same server.</p>
+</li>
+<li>
+<p>What differs is only the per-instance naming (<code>aml-<strong></code> versus <code>aocr-</strong></code>): project, server name,
+model endpoints, and routes. That is the pattern to copy when you stage your own environment.</p>
+</li>
+</ul>
 </div>
 <div class="paragraph">
-<p>The <code>id</code> field is the identifier for subsequent operations, and the file content is stored in
-your S3 bucket while its metadata is stored in PostgreSQL.</p>
-</div>
-<div class="paragraph">
-<p>With storage offloaded, lock down the OGX API itself with OAuth token authentication.</p>
+<p>The same blueprint-backing philosophy explains the facade you met in Module 02.</p>
 </div>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_exercise_4_secure_the_ogx_api_with_oauth_token_authentication"><a class="anchor" href="#_exercise_4_secure_the_ogx_api_with_oauth_token_authentication"></a>Exercise 4: Secure the OGX API with OAuth token authentication</h2>
+<h2 id="_exercise_4_serve_models_through_the_maas_facade_pattern"><a class="anchor" href="#_exercise_4_serve_models_through_the_maas_facade_pattern"></a>Exercise 4: Serve models through the MaaS facade pattern</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Every request you have made to the OGX API in this lab has been unauthenticated. That is the
-documented default: authentication is disabled unless <code>AUTH_ISSUER</code> is set. For any server exposed
-beyond your project, enable OAuth token authentication. The <code>oauth2_token</code> authentication provider
-validates the <code>Authorization: Bearer</code> token on each request against the issuer&#8217;s JWKS endpoint —
-using asymmetric signature algorithms only — and extracts user principals and role claims straight
-from the JWT.</p>
-</div>
-<div class="admonitionblock warning">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-warning" title="Warning"></i>
-</td>
-<td class="content">
-This exercise requires an OIDC issuer, for example a Keycloak instance, reachable from
-your cluster. A workshop cluster might not provide one; if it does not, read along or ask your
-facilitator before continuing, because tokens cannot be issued without it.
-</td>
-</tr>
-</table>
+<p>In Module 02 you computed embeddings through the MaaS facade instead of the OGX-native
+<code>/v1/embeddings</code> endpoint. The facade is worth understanding as a <strong>pattern</strong>, because it is what
+keeps the AutoRAG wizard working on this build.</p>
 </div>
 <div class="paragraph">
-<p>The documented example configuration uses a Keycloak realm <code>ogx-demo</code> with a client <code>ogx</code> (direct
-access grants enabled), a role <code>inference_max</code>, a protocol mapper that adds realm roles to the
-access token under the <code>ogx_roles</code> claim, and two test users: <code>user1</code> with no assigned roles and
-<code>user2</code> assigned the <code>inference_max</code> role.</p>
+<p>The problem: the AutoRAG wizard probes a model service with OpenAI-compatible requests before
+it lets you use it. This OGX build exposes only the <code>inference</code>, <code>models</code>, and <code>vector_io</code> APIs
+— the endpoint the wizard probes is absent, so every model reports <code>ready: false</code> and the
+wizard&#8217;s model-selection checkboxes render disabled.</p>
+</div>
+<div class="paragraph">
+<p>The fix: a small OpenAI-compatible facade service sits in front of the two model-serving
+services, which <strong>do</strong> serve the endpoints the wizard probes. The wizard sees <code>ready: true</code>; your
+code gets a clean OpenAI API; the OGX server is left untouched.</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>Request an access token for the non-privileged user with an OAuth password grant, replacing
-<code>&lt;client_secret&gt;</code> and <code>&lt;user1-password&gt;</code> with your Keycloak values:</p>
+<p>Reconnect to the facade and read its model catalog:</p>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">curl -d client_id=ogx \
-  -d client_secret="<client_secret>" \
-  -d username=user1 \
-  -d password="<user1-password>" \
-  -d grant_type=password \
-  "https://keycloak.abc123-user1.svc.cluster.local/realms/ogx-demo/protocol/openid-connect/token" \
-  | jq -r .access_token > user1.token</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">export FACADE="https://$(oc -n autorag-ml-demo get route aml-maas-facade-tls -o jsonpath='{.spec.host}')"
+curl -s "$FACADE/v1/models" | jq '{object, models: [.data[] | {id, ready, owned_by}]}'</code></pre>
 </div>
-</div>
-</li>
-<li>
-<p>Request a token for the privileged user, replacing <code>&lt;client_secret&gt;</code> and <code>&lt;user2-password&gt;</code> with
-your Keycloak values, and inspect the token claims:</p>
-<div class="listingblock execute">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">curl -d client_id=ogx \
-  -d client_secret="<client_secret>" \
-  -d username=user2 \
-  -d password="<user2-password>" \
-  -d grant_type=password \
-  "https://keycloak.abc123-user1.svc.cluster.local/realms/ogx-demo/protocol/openid-connect/token" \
-  | jq -r .access_token > user2.token
-cat user2.token | cut -d . -f 2 | base64 -d 2>/dev/null | jq .</code></pre>
-</div>
-</div>
-</li>
-</ol>
 </div>
 <div class="paragraph">
-<p>Expected output: the decoded JWT payload, including the issuer (<code>iss</code>), the subject (<code>sub</code>), the
-username (<code>preferred_username</code>), and the role claim:</p>
+<p>Expected output — both models ready, with plain (non-provider-qualified) IDs:</p>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre>{
-  "iss": "https://&lt;keycloak-host&gt;/realms/ogx-demo",
-  "sub": "761cdc99-80e5-4506-9b9e-26a67a8566f7",
-  "preferred_username": "user2",
-  "ogx_roles": [
-    "inference_max"
+  "object": "list",
+  "models": [
+    {
+      "id": "aml-llama32-3b",
+      "ready": true,
+      "owned_by": "vllm"
+    },
+    {
+      "id": "aml-bge-m3",
+      "ready": true,
+      "owned_by": "vllm"
+    }
   ]
 }</pre>
 </div>
 </div>
-<div class="olist arabic">
-<ol class="arabic">
+</li>
 <li>
-<p>Save the following as <code>run.yaml</code> to enable the <code>oauth2_token</code> provider and add role-based access
-policies for model access:</p>
+<p>Confirm the facade proxies real work, not just readiness: request an embedding:</p>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">curl -s "$FACADE/v1/embeddings" -H 'Content-Type: application/json' \
+  -d '{"model":"aml-bge-m3","input":"facade pattern check"}' \
+  | jq '{id, model, dims: (.data[0].embedding | length)}'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Expected output — a real embedding (the <code>id</code> varies per request):</p>
+</div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">server:
-  port: 8321
-  auth:
-    provider_config:
-      type: "oauth2_token" <1>
-      jwks:
-        uri: "https://keycloak.abc123-user1.svc.cluster.local/realms/ogx-demo/protocol/openid-connect/certs" <2>
-        key_recheck_period: 3600
-      issuer: "https://keycloak.abc123-user1.svc.cluster.local/realms/ogx-demo" <3>
-      audience: "account"
-      verify_tls: true
-      claims_mapping:
-        ogx_roles: "roles" <4>
-    access_policy:
-      - permit:
-          actions: [read]
-          resource: model::vllm-inference/llama-3-2-3b
-          description: Allow all authenticated users to access the Llama 3.2 model
-      - permit:
-          actions: [read]
-          resource: model::openai/gpt-4o-mini
-          when: user with inference_max in roles <5>
-          description: Allow only users with the inference_max role to access OpenAI models</code></pre>
+<pre>{
+  "id": "embd-bfebdf9283b451f0",
+  "model": "aml-bge-m3",
+  "dims": 1024
+}</pre>
 </div>
 </div>
 </li>
 </ol>
 </div>
-<div class="colist arabic">
-<table>
-<tr>
-<td><i class="conum" data-value="1"></i><b>1</b></td>
-<td><strong>type</strong> — enables the <code>oauth2_token</code> authentication provider, which validates Bearer tokens by
-JWKS or RFC 7662 introspection.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="2"></i><b>2</b></td>
-<td><strong>jwks.uri</strong> — the JWKS endpoint of your OIDC issuer, polled every <code>key_recheck_period</code> seconds to
-pick up rotated keys.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="3"></i><b>3</b></td>
-<td><strong>issuer</strong> — the OIDC issuer URL of the realm that issued the tokens; when <code>AUTH_ISSUER</code> is unset,
-authentication remains disabled.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="4"></i><b>4</b></td>
-<td><strong>claims_mapping</strong> — maps the <code>ogx_roles</code> claim from the token to the <code>roles</code> field used by the
-access policy conditions.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="5"></i><b>5</b></td>
-<td><strong>when</strong> — an access policy condition; <code>user with inference_max in roles</code> restricts the resource
-to tokens carrying the <code>inference_max</code> role.</td>
-</tr>
-</table>
+<div class="sect2">
+<h3 id="_verify_4"><a class="anchor" href="#_verify_4"></a>Verify</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><code>GET /v1/models</code> returns <code>ready: true</code> for both models — this is exactly what the AutoRAG
+wizard&#8217;s readiness probe consumes.</p>
+</li>
+<li>
+<p>The facade speaks OpenAI: <code>{"object": "list", "data": [&#8230;&#8203;]}</code> with per-model <code>ready</code> flags.
+Compare with the OGX server&#8217;s own <code>/v1/models</code> from Module 02, whose IDs are
+provider-qualified (<code>vllm-inference/aml-llama32-3b</code>) and which carries no <code>ready</code> flag.</p>
+</li>
+<li>
+<p>The embeddings request returns <code>1024</code> dimensions — the facade forwards to the real
+model service. The OGX-native endpoint still refuses the same request (<code>400</code>: the model is
+registered as type <code>llm</code>, not <code>embedding</code>) — the facade is the documented workaround until an
+operator fix or a newer build renders the static model registration.</p>
+</li>
+<li>
+<p>Facade IDs are <strong>plain</strong> (<code>aml-bge-m3</code>); OGX IDs are <strong>provider-qualified</strong>
+(<code>vllm-embedding/aml-bge-m3</code>). When you write clients, check which surface you are talking to.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>With the patterns covered, go one layer deeper: the database the whole stack stands on.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_exercise_5_inspect_the_pgvector_storage_layer"><a class="anchor" href="#_exercise_5_inspect_the_pgvector_storage_layer"></a>Exercise 5: Inspect the pgvector storage layer</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Every exercise so far has touched PostgreSQL: Module 02&#8217;s RAG tables, Module 03&#8217;s retrieval
+experiments, and the server&#8217;s own state. Time to look inside. The staged <code>aml-pgvector</code>
+instance hosts <strong>two databases</strong> with two distinct jobs:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>ogx_metadata</code> — the OGX server&#8217;s control plane: conversations, prompts, jobs, connectors,
+and the inference store behind the OpenAI-compatible APIs.</p>
+</li>
+<li>
+<p><code>ogx</code> — the vector database: the pgvector extension lives here, and your retrieval tables
+(from Module 02 and Exercise 1) are created here.</p>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Check which extensions are installed in the vector database:</p>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc exec aml-pgvector-0 -n autorag-ml-demo -- psql -U ogx -d ogx -c '\dx'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Expected output — the pgvector extension, version 0.8.7, with both index access methods:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>                                        List of installed extensions
+        Name        | Version |   Schema   |                              Description
+--------------------+---------+------------+------------------------------------------------------------------------
+ pg_stat_statements | 1.10    | public     | track planning and execution statistics of all SQL statements executed
+ plpgsql            | 1.0     | pg_catalog | PL/pgSQL procedural language
+ vector             | 0.8.7   | public     | vector data type and ivfflat and hnsw access methods
+(3 rows)</pre>
+</div>
+</div>
+</li>
+<li>
+<p>List the control-plane tables the OGX server maintains in <code>ogx_metadata</code>:</p>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc exec aml-pgvector-0 -n autorag-ml-demo -- psql -U ogx -d ogx_metadata -c '\dt'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Expected output:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>               List of relations
+ Schema |         Name         | Type  | Owner
+--------+----------------------+-------+-------
+ public | connectors           | table | ogx
+ public | conversation_items   | table | ogx
+ public | inference_store      | table | ogx
+ public | jobs                 | table | ogx
+ public | openai_conversations | table | ogx
+ public | prompts              | table | ogx
+(6 rows)</pre>
+</div>
+</div>
+</li>
+<li>
+<p>List the vector database&#8217;s tables:</p>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc exec aml-pgvector-0 -n autorag-ml-demo -- psql -U ogx -d ogx -c '\dt'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Expected output — the server&#8217;s key-value store, plus any vector tables you created and dropped
+along the way:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>            List of relations
+ Schema |      Name      | Type  | Owner
+--------+----------------+-------+-------
+ public | metadata_store | table | ogx
+(1 row)</pre>
+</div>
+</div>
+</li>
+<li>
+<p>Peek inside one control-plane table to see what the OpenAI-compatible conversations API
+persists:</p>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc exec aml-pgvector-0 -n autorag-ml-demo -- psql -U ogx -d ogx_metadata -c '\d openai_conversations'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Expected output:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>                  Table "public.openai_conversations"
+      Column       |       Type        | Collation | Nullable | Default
+-------------------+-------------------+-----------+----------+---------
+ id                | character varying |           | not null |
+ created_at        | integer           |           |          |
+ items             | json              |           |          |
+ metadata          | json              |           |          |
+ access_attributes | json              |           |          |
+ owner_principal   | character varying |           |          |
+Indexes:
+    "openai_conversations_pkey" PRIMARY KEY, btree (id)</pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="_verify_5"><a class="anchor" href="#_verify_5"></a>Verify</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>The <code>vector</code> extension reports version <strong>0.8.7</strong> and its description names both index access
+methods — <code>ivfflat</code> and <code>hnsw</code> — the two index types you can build on embedding columns.</p>
+</li>
+<li>
+<p>The database split is real: <code>ogx_metadata</code> holds six control-plane tables (note the OpenAI
+API vocabulary: <code>openai_conversations</code>, <code>conversation_items</code>, <code>prompts</code>, <code>jobs</code>,
+<code>connectors</code>), while <code>ogx</code> holds the server&#8217;s <code>metadata_store</code> key-value table and is where
+your vector tables live.</p>
+</li>
+<li>
+<p><code>openai_conversations</code> stores conversation items as JSON with an <code>owner_principal</code> column —
+multi-user state, ready for the server&#8217;s OpenAI-compatible conversations API.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>You now know the stack from the API down to the rows. The last stop is honest: the two
+capabilities this build does not ship yet.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_looking_ahead_what_a_newer_ogx_build_adds"><a class="anchor" href="#_looking_ahead_what_a_newer_ogx_build_adds"></a>Looking ahead: what a newer OGX build adds</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The build running here (<code>odh-ogx-core-rhel9</code> at digest <code>sha256:73880c13&#8230;&#8203;</code>) implements the
+<code>inference</code>, <code>models</code>, and <code>vector_io</code> APIs only — verified against the live server: <code>GET
+/v1/files</code> returns <code>404</code>, and the rendered runtime config lists exactly those three APIs, with
+no <code>oauth2_token</code> authentication provider. The two exercises below are kept from the full OGX
+curriculum because the <strong>content</strong> is what you will need the day your cluster runs a newer
+build. They are marked clearly so nobody wastes an afternoon trying them here.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -1187,172 +1395,92 @@ to tokens carrying the <code>inference_max</code> role.</td>
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-The <code>oauth2_token</code> provider uses a static allowlist of asymmetric-only algorithms — RS256,
-RS384, RS512, PS256, PS384, PS512, ES256, ES384, and ES512. Symmetric algorithms such as HS256 are
-explicitly excluded to prevent algorithm confusion attacks.
-</td>
-</tr>
-</table>
+<div class="paragraph">
+<p><strong>Requires a newer OGX build.</strong> Neither exercise below runs on this cluster. The retry
+condition is a newer <code>odh-ogx-core</code> image that (a) exposes the <code>files</code> and <code>responses</code> APIs —
+gate: <code>GET /v1/files</code> returns <code>200</code> instead of the <code>404</code> captured on this build — and (b)
+ships the <code>oauth2_token</code> authentication provider — gate: <code>oauth2_token</code> appears in the
+server&#8217;s provider surface. Re-run these exercises when your build meets both conditions.</p>
 </div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>Create a ConfigMap from the configuration file:</p>
-<div class="listingblock execute">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc create configmap ogx-auth-config --from-file=run.yaml=run.yaml -n abc123-user1</code></pre>
-</div>
-</div>
-</li>
-<li>
-<p>Create an <code>ogxserver.yaml</code> file that mounts the custom configuration on a dedicated server
-instance, keeping the Module 02 RAG server untouched. Reuse the provider environment from Module 02
-so the server reaches the same vLLM inference service, PostgreSQL metadata store, and pgvector
-instance:</p>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: ogx.io/v1beta1
-kind: OGXServer
-metadata:
-  name: ogx-auth-server
-  namespace: abc123-user1
-spec:
-  distribution:
-    name: rh-dev
-  workload:
-    replicas: 1
-  overrides:
-    env:
-      # provider env from Module 02: VLLM_*, POSTGRES_*, PGVECTOR_*
-  userConfig:
-    configMapName: ogx-auth-config <1>
-    configMapNamespace: abc123-user1 <2></code></pre>
-</div>
-</div>
-</li>
-</ol>
-</div>
-<div class="colist arabic">
-<table>
-<tr>
-<td><i class="conum" data-value="1"></i><b>1</b></td>
-<td><strong>userConfig.configMapName</strong> — the ConfigMap containing your custom <code>run.yaml</code>; its <code>auth</code> and
-<code>access_policy</code> sections override the distribution defaults.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="2"></i><b>2</b></td>
-<td><strong>userConfig.configMapNamespace</strong> — the namespace of the ConfigMap; use the same project as the
-OGXServer.
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>Apply the CR and wait for the server to become ready:</p>
-<div class="listingblock execute">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc apply -f ogxserver.yaml -n abc123-user1
-oc wait --for=jsonpath='{.status.phase}'=Ready ogxserver/ogx-auth-server -n abc123-user1 --timeout=300s</code></pre>
-</div>
-</div>
-</li>
-</ol>
-</div></td>
-</tr>
-</table>
-</div>
-<div class="admonitionblock important">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-important" title="Important"></i>
-</td>
-<td class="content">
-When you access OGX APIs, the required base URL depends on the client that you use.
-For OpenAI-compatible clients or raw HTTP requests, include the <code>/v1</code> path suffix in the base URL,
-for example <code><a href="http://ogx-auth-server-service:8321/v1" class="bare">http://ogx-auth-server-service:8321/v1</a></code>. For the OGXClient SDK, do not include the
-<code>/v1</code> path suffix. If you use an incorrect base URL, requests fail.
 </td>
 </tr>
 </table>
 </div>
 <div class="sect2">
-<h3 id="_verify_4"><a class="anchor" href="#_verify_4"></a>Verify</h3>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>Requests without a Bearer token are denied:</p>
-<div class="listingblock execute">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">export OGX_URL="http://ogx-auth-server-service.abc123-user1.svc.cluster.local:8321"
-curl -s -o /dev/null -w "%{http_code}\n" \
-  -X POST "${OGX_URL}/v1/openai/chat/completions" \
-  -H "Content-Type: application/json" \
-  -d '{"model":"vllm-inference/llama-3-2-3b","messages":[{"role":"user","content":"Hello!"}],"max_tokens":50}'</code></pre>
-</div>
-</div>
-</li>
-</ol>
+<h3 id="_external_s3_compatible_storage_for_the_files_api"><a class="anchor" href="#_external_s3_compatible_storage_for_the_files_api"></a>External S3-compatible storage for the Files API</h3>
+<div class="paragraph">
+<p>The OGX Files API uses the <code>inline::localfs</code> provider by default, storing files on the local
+file system of the OGX pod. The <code>remote::s3</code> provider stores file content in an external
+S3-compatible object store — Amazon S3, MinIO, Ceph Object Gateway, or any storage system that
+implements the S3 API — while file metadata stays in the PostgreSQL metadata store.</p>
 </div>
 <div class="paragraph">
-<p>Expected output: <code>401</code>.</p>
+<p>The shape of the exercise, for when your build supports it:</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>An authenticated request with a valid token reaches the permitted model. The model identifier is
-<code>&lt;provider_id&gt;/&lt;model&gt;</code> as listed by <code>client.models.list()</code> in Module 02:</p>
-<div class="listingblock execute">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">USER1_TOKEN=$(cat user1.token)
-curl -s -o /dev/null -w "%{http_code}\n" \
-  -X POST "${OGX_URL}/v1/openai/chat/completions" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer ${USER1_TOKEN}" \
-  -d '{"model":"vllm-inference/llama-3-2-3b","messages":[{"role":"user","content":"Hello!"}],"max_tokens":50}'</code></pre>
-</div>
-</div>
+<p>Create a secret with the object store credentials:
+<code>oc create secret generic s3-files-credentials --from-literal=AWS_ACCESS_KEY_ID=&#8230;&#8203; --from-literal=AWS_SECRET_ACCESS_KEY=&#8230;&#8203;</code>.</p>
+</li>
+<li>
+<p>Add the <code>remote::s3</code> wiring to your OGXServer CR under <code>spec.workload.overrides.env</code>:
+<code>ENABLE_S3=true</code>, <code>S3_BUCKET_NAME=&lt;bucket&gt;</code>, <code>AWS_DEFAULT_REGION=us-east-1</code>, and
+<code>S3_ENDPOINT_URL=&lt;endpoint&gt;</code> for non-AWS backends (omit for AWS S3), with the two credentials
+pulled from the secret via <code>secretKeyRef</code>.</p>
+</li>
+<li>
+<p>Watch for the documented gotcha: if the bucket does not exist and <code>S3_AUTO_CREATE_BUCKET</code>
+is <code>"false"</code>, the OGX pod enters <code>CrashLoopBackOff</code> with
+<code>RuntimeError: S3 bucket '&lt;bucket_name&gt;' does not exist</code> — create the bucket, or set
+auto-create to <code>"true"</code> in development.</p>
+</li>
+<li>
+<p>Verify by uploading through <code>POST /v1/files</code> (multipart form with <code>purpose=assistants</code> and
+the file), then <code>GET /v1/providers</code> should list an entry with <code>"api": "files"</code>,
+<code>"provider_id": "s3"</code>, <code>"provider_type": "remote::s3"</code>. The file id returned by the upload is
+the handle for later operations; content lands in your bucket, metadata in PostgreSQL.</p>
 </li>
 </ol>
 </div>
+</div>
+<div class="sect2">
+<h3 id="_secure_the_api_with_oauth_token_authentication"><a class="anchor" href="#_secure_the_api_with_oauth_token_authentication"></a>Secure the API with OAuth token authentication</h3>
 <div class="paragraph">
-<p>Expected output: <code>200</code>. The same request with <code>user2.token</code> also returns <code>200</code> because the first
-policy rule permits all authenticated users.</p>
+<p>Every request this workshop has made to the OGX API was unauthenticated — that is the
+documented default: authentication is disabled unless <code>AUTH_ISSUER</code> is set. For any server
+exposed beyond your project, enable OAuth token authentication. The <code>oauth2_token</code> provider
+validates the <code>Authorization: Bearer</code> token on each request against the issuer&#8217;s JWKS endpoint
+— using asymmetric signature algorithms only (RS256, RS384, RS512, PS256, PS384, PS512, ES256,
+ES384, ES512; symmetric algorithms such as HS256 are excluded to prevent algorithm confusion
+attacks) — and extracts user principals and role claims straight from the JWT.</p>
+</div>
+<div class="paragraph">
+<p>The shape of the exercise, for when your build supports it:</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>The restricted model denies tokens without the required role:</p>
-<div class="listingblock execute">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">curl -s -o /dev/null -w "%{http_code}\n" \
-  -X POST "${OGX_URL}/v1/openai/chat/completions" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer ${USER1_TOKEN}" \
-  -d '{"model":"openai/gpt-4o-mini","messages":[{"role":"user","content":"Hello!"}],"max_tokens":50}'</code></pre>
-</div>
-</div>
+<p>Stand up an OIDC issuer (for example Keycloak) with a realm, a client with direct access
+grants enabled, a role such as <code>inference_max</code>, a protocol mapper adding realm roles to the
+access token, and two test users — one without roles, one with the role.</p>
+</li>
+<li>
+<p>Request access tokens with the OAuth password grant against the realm&#8217;s token endpoint, and
+inspect the claims: <code>iss</code>, <code>sub</code>, <code>preferred_username</code>, and the role claim.</p>
+</li>
+<li>
+<p>Enable the provider in the server config under <code>server.auth</code>: <code>type: "oauth2_token"</code> with
+the JWKS <code>uri</code>, <code>issuer</code>, <code>audience</code>, and a <code>claims_mapping</code> from your role claim to <code>roles</code>,
+then declare <code>access_policy</code> rules — for example <code>permit: actions: [read], resource:
+model::&lt;model-id&gt;</code> for everyone, and a second rule with <code>when: user with inference_max in
+roles</code> for restricted models.</p>
+</li>
+<li>
+<p>Verify the three responses: <code>401</code> without a token, <code>200</code> with a valid token for a permitted
+model, and <code>403</code> for a token lacking the required role on a restricted model.</p>
 </li>
 </ol>
-</div>
-<div class="paragraph">
-<p>Expected output: <code>403</code>.</p>
-</div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-The restricted-model check follows the documented example, which assumes an OpenAI provider
-configured with <code>OPENAI_API_KEY</code> on the server. If your cluster has no OpenAI provider, skip this
-check — the <code>401</code> and <code>200</code> results above already demonstrate token authentication.
-</td>
-</tr>
-</table>
-</div>
-<div class="paragraph">
-<p>You have completed the OGX feature tour. Head to the conclusion for the full documentation
-references and next steps on your RAG journey.</p>
 </div>
 </div>
 </div>
@@ -1366,16 +1494,28 @@ references and next steps on your RAG journey.</p>
 <div class="ulist">
 <ul>
 <li>
-<p>Compared keyword, vector, and hybrid search modes against your ingested corpus</p>
+<p>Compared keyword, vector, and hybrid retrieval in pgvector — including the paraphrase case
+where keyword search returns nothing and vector search still ranks the right chunk first</p>
 </li>
 <li>
-<p>Configured high availability with replicas, pod disruption budgets, and topology spread, plus autoscaling targets</p>
+<p>Learned the OGXServer availability and autoscaling knobs, verified against the live CRD
+schema (<code>spec.workload.*</code>)</p>
 </li>
 <li>
-<p>Offloaded Files API storage to an external S3-compatible provider and verified file upload</p>
+<p>Reproduced the OGX stack across two projects and proved both servers run the identical
+distribution digest</p>
 </li>
 <li>
-<p>Secured the OGX API with the <code>oauth2_token</code> provider and verified 401, 200, and 403 responses for unauthenticated, permitted, and restricted requests</p>
+<p>Understood the MaaS facade pattern: why the AutoRAG wizard needs it, and what
+<code>ready: true</code> means on an OpenAI-compatible model catalog</p>
+</li>
+<li>
+<p>Inspected the storage layer: pgvector 0.8.7 with ivfflat and hnsw, the control-plane tables
+in <code>ogx_metadata</code>, and the vector tables in <code>ogx</code></p>
+</li>
+<li>
+<p>Read the forward-looking sections on S3 file storage and OAuth authentication, with the
+retry conditions for a newer OGX build</p>
 </li>
 </ul>
 </div>
@@ -1385,16 +1525,28 @@ references and next steps on your RAG journey.</p>
 <div class="ulist">
 <ul>
 <li>
-<p>Search mode support varies by vector store provider, so verify capabilities before committing to a retrieval strategy</p>
+<p>Search mode support varies by vector store provider, so verify capabilities before committing
+to a retrieval strategy — and know how to run the comparison yourself in SQL</p>
 </li>
 <li>
-<p>HA and autoscaling are declared on the OGXServer CR, not managed as separate HPA objects you create by hand</p>
+<p>HA and autoscaling are declared on the OGXServer CR under <code>spec.workload</code>, not managed as
+separate HPA objects you create by hand</p>
 </li>
 <li>
-<p>The <code>remote::s3</code> provider decouples file content from the OGX pod lifecycle while metadata remains in PostgreSQL</p>
+<p>An OGXServer is a reproducible blueprint: same digest, same wiring, self-contained storage,
+independent per project</p>
 </li>
 <li>
-<p>Authentication is disabled until <code>AUTH_ISSUER</code> is set; the <code>oauth2_token</code> provider validates Bearer tokens against the issuer&#8217;s JWKS endpoint using asymmetric algorithms only</p>
+<p>The MaaS facade decouples consumers from provider specifics — OpenAI-compatible endpoints,
+plain model IDs, <code>ready</code> flags — which is exactly the contract integration points like the
+AutoRAG wizard code against</p>
+</li>
+<li>
+<p>The storage layer splits cleanly: control-plane state in <code>ogx_metadata</code>, vectors in <code>ogx</code></p>
+</li>
+<li>
+<p>The <code>remote::s3</code> provider and the <code>oauth2_token</code> provider are the two big capabilities to
+retry on a newer build — both gates are one command each</p>
 </li>
 </ul>
 </div>

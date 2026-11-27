@@ -203,6 +203,14 @@
         </li>
       </ul>
     </li>
+    <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
     <li class="component is-current">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
@@ -617,9 +625,9 @@ also try the Ray compute engine for distributed feature pipelines.</p>
 <div class="paragraph">
 <p>The online store is the single largest factor in <code>get_online_features()</code> latency. SQLite, the
 default for the local provider, does not support concurrent access and is unsuitable for
-production. For production on OpenShift, use Redis when your p99 latency budget is under 10 ms,
-or PostgreSQL with connection pooling when you need transactional consistency or already run
-PostgreSQL infrastructure.</p>
+production. For production on OpenShift, use Redis when your p99 (99th percentile) latency
+budget is under 10 ms, or PostgreSQL with connection pooling when you need transactional
+consistency or already run PostgreSQL infrastructure.</p>
 </div>
 <div class="paragraph">
 <p>The following example shows a PostgreSQL online store configuration with connection pooling:</p>
@@ -645,7 +653,7 @@ PostgreSQL infrastructure.</p>
 <tr>
 <td><i class="conum" data-value="1"></i><b>1</b></td>
 <td><strong>conn_type: pool</strong> — enables connection pooling. Without it, each request opens and closes
-a new TCP connection, which increases latency.</td>
+a new TCP (Transmission Control Protocol) connection, which increases latency.</td>
 </tr>
 <tr>
 <td><i class="conum" data-value="2"></i><b>2</b></td>
@@ -659,29 +667,96 @@ closed by firewalls or load balancers.</td>
 </tr>
 <tr>
 <td><i class="conum" data-value="4"></i><b>4</b></td>
-<td><strong>sslmode: require</strong> — mandates TLS encryption; required for production deployments.</td>
+<td><strong>sslmode: require</strong> — mandates TLS (Transport Layer Security) encryption; required for production deployments.</td>
 </tr>
 </table>
 </div>
 <div class="paragraph">
-<p>You can also tune the feature server itself with Gunicorn worker settings under
-<code>services.onlineStore.server.workerConfigs</code> in the FeatureStore CR:</p>
+<p>In an operator deployment you do not edit <code>feature_store.yaml</code> by hand. The operator reads the
+store configuration from Kubernetes Secrets in the same namespace as the FeatureStore CR and
+writes it into the deployment&#8217;s <code>feature_store.yaml</code>. Each Secret key is named after a store type
+— <code>postgres</code> for the PostgreSQL stores, <code>sql</code> for the registry — and its value is the YAML you
+would place under that section of <code>feature_store.yaml</code>, without the <code>type:</code> key (the operator
+injects it from the CR).</p>
 </div>
-<div class="listingblock">
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Save the data-store Secret to <code>feast-data-stores.yaml</code> and apply it in your working project:</p>
+</li>
+</ol>
+</div>
+<div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: feast.dev/v1
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">cat > feast-data-stores.yaml <<'EOF'
+apiVersion: v1
+kind: Secret
+metadata:
+  name: feast-data-stores
+stringData:
+  postgres: |
+    host: <DB_HOST>
+    port: 5432
+    database: feast
+    db_schema: public
+    user: <DB_USERNAME>
+    password: <DB_PASSWORD>
+    sslmode: require
+  sql: |
+    path: postgresql+psycopg://<DB_USERNAME>:<DB_PASSWORD>@<DB_HOST>:5432/feast
+    cache_ttl_seconds: 60
+    sqlalchemy_config_kwargs:
+      echo: false
+      pool_pre_ping: true
+EOF
+oc apply -f feast-data-stores.yaml -n abc123-user1</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><strong>postgres</strong> — connection parameters for the PostgreSQL online and offline stores. Both services
+reference this key because both use <code>type: postgres</code>.
+<strong>sql</strong> — the SQLAlchemy URL and pool settings for the DB-backed registry.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Save the FeatureStore manifest to <code>production-feature-store.yaml</code> and apply it. This is the
+instance you tune here and scale for high availability in Exercise 2:</p>
+</li>
+</ol>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">cat > production-feature-store.yaml <<'EOF'
+apiVersion: feast.dev/v1
 kind: FeatureStore
 metadata:
   name: production-feature-store
-  labels:
-    feature-store-ui: enabled
 spec:
   feastProject: my_project
   services:
+    registry:
+      local:
+        persistence:
+          store:
+            type: sql
+            secretRef:
+              name: feast-data-stores
+    offlineStore:
+      persistence:
+        store:
+          type: postgres
+          secretRef:
+            name: feast-data-stores
     onlineStore:
+      persistence:
+        store:
+          type: postgres
+          secretRef:
+            name: feast-data-stores
       server:
-        workerConfigs: <1>
-          workers: 4 <2>
+        workerConfigs:
+          workers: 4
           workerConnections: 2000
           maxRequests: 5000
           maxRequestsJitter: 500
@@ -693,23 +768,32 @@ spec:
             memory: 2Gi
           limits:
             cpu: "4"
-            memory: 4Gi <3></code></pre>
+            memory: 4Gi
+EOF
+oc apply -f production-feature-store.yaml -n abc123-user1</code></pre>
 </div>
 </div>
-<div class="colist arabic">
+<div class="paragraph">
+<p><strong>persistence.store</strong> — DB-backed persistence: <code>type</code> selects the store and <code>secretRef</code> points
+at the Secret whose key matches the type; the registry uses the SQLAlchemy URL under the <code>sql</code>
+key. DB-backed persistence on every enabled service is a prerequisite for scaling in Exercise 2.
+<strong>workerConfigs</strong> — Gunicorn worker tuning for the online feature server.
+<strong>workers</strong> — number of worker processes; balance against your connection budget when
+scaling horizontally.
+<strong>resources</strong> — CPU and memory requests and limits for the feature server pod.</p>
+</div>
+<div class="admonitionblock note">
 <table>
 <tr>
-<td><i class="conum" data-value="1"></i><b>1</b></td>
-<td><strong>workerConfigs</strong> — Gunicorn worker tuning for the online feature server.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="2"></i><b>2</b></td>
-<td><strong>workers</strong> — number of worker processes; balance against your connection budget when
-scaling horizontally.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="3"></i><b>3</b></td>
-<td><strong>resources</strong> — CPU and memory requests and limits for the feature server pod.</td>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>The production instance does not carry the <code>feature-store-ui: enabled</code> label — your Module 02
+instance keeps it, and only one Feature Store instance may carry that label.</p>
+</div>
+</td>
 </tr>
 </table>
 </div>
@@ -731,8 +815,9 @@ FeatureStore CR and watch the feature server pods roll out with <code>oc get pod
 <div class="sect2">
 <h3 id="_verify"><a class="anchor" href="#_verify"></a>Verify</h3>
 <div class="paragraph">
-<p>After applying the updated CR, the feature server deployment picks up the new worker settings.
-Confirm the FeatureStore reconciles to a ready state:</p>
+<p>After applying the Secret and the CR, the operator deploys the Feature Store and writes the store
+configuration from the Secret into its <code>feature_store.yaml</code>. Confirm the FeatureStore reconciles
+to a ready state:</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
@@ -740,7 +825,19 @@ Confirm the FeatureStore reconciles to a ready state:</p>
 </div>
 </div>
 <div class="paragraph">
-<p>The STATUS column shows <code>Ready</code> once the operator has reconciled the change.</p>
+<p>The STATUS column shows <code>Ready</code> once the operator has reconciled the change. The operator creates
+a single deployment named <code>feast-production-feature-store</code> for the CR — one container per enabled
+service server; with this CR that is the online feature server, which reads the PostgreSQL stores
+and the SQL registry through its <code>feature_store.yaml</code>:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get deployments</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You should see <code>feast-production-feature-store</code> among the deployments. The Kubernetes services in
+front of the deployment follow the <code>feast-&lt;CR-name&gt;-&lt;service-type&gt;</code> naming convention.</p>
 </div>
 <div class="paragraph">
 <p>With the configuration tuned, you now scale the instance for high availability.</p>
@@ -767,22 +864,47 @@ availability, predictable footprint) or horizontal pod autoscaling (variable tra
 <p>To scale horizontally, use database-backed persistence for all enabled services — online store,
 offline store, and registry. Do not use file-based persistence such as SQLite, DuckDB, or
 <code>registry.db</code> with multiple replicas; those backends do not support concurrent access from
-multiple pods.</p>
+multiple pods. The operator enforces this at the CRD level: it rejects <code>replicas &gt; 1</code> (and
+autoscaling) until every enabled service carries DB-backed persistence — <code>persistence.store</code> for
+the online and offline stores, and a DB-backed or remote registry. The <code>production-feature-store</code>
+CR you created in Exercise 1 already meets the requirement.</p>
 </div>
 </td>
 </tr>
 </table>
 </div>
-<div class="paragraph">
+<div class="olist arabic">
+<ol class="arabic">
+<li>
 <p>Scale to three static replicas with <code>oc scale</code>:</p>
+</li>
+</ol>
 </div>
 <div class="listingblock execute">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc scale featurestore/production-feature-store --replicas=3</code></pre>
 </div>
 </div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>The operator scales the <code>feast-production-feature-store</code> deployment and rolls out the
+additional feature server pods. Confirm that three pods are running:</p>
+</li>
+</ol>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get pods</code></pre>
+</div>
+</div>
 <div class="paragraph">
-<p>Alternatively, set <code>replicas</code> in the FeatureStore CR. The operator automatically switches the
+<p>You should see three <code>feast-production-feature-store-&lt;hash&gt;</code> pods in the <code>Running</code> state (for
+example, <code>feast-production-feature-store-5d8f7c6b5-2xk9p</code>), all sharing the PostgreSQL online
+store, the PostgreSQL offline store, and the SQL registry you configured in Exercise 1.</p>
+</div>
+<div class="paragraph">
+<p>Alternatively, set <code>spec.replicas</code> in the FeatureStore CR. The operator automatically switches the
 deployment strategy to <code>RollingUpdate</code> and injects soft pod anti-affinity (node-level) and
 topology spread (zone-level) constraints.</p>
 </div>
@@ -805,8 +927,8 @@ topology spread (zone-level) constraints.</p>
               target:
                 type: Utilization
                 averageUtilization: 70 <4>
-        podDisruptionBudgets:
-          maxUnavailable: 1 <5></code></pre>
+    podDisruptionBudgets:
+      maxUnavailable: 1 <5></code></pre>
 </div>
 </div>
 <div class="colist arabic">
@@ -829,7 +951,8 @@ topology spread (zone-level) constraints.</p>
 </tr>
 <tr>
 <td><i class="conum" data-value="5"></i><b>5</b></td>
-<td><strong>podDisruptionBudgets</strong> — maximum pods allowed unavailable during disruptions.</td>
+<td><strong>podDisruptionBudgets</strong> — maximum pods allowed unavailable during disruptions; the key lives
+at the <code>services</code> level as a sibling of <code>scaling</code>, not inside <code>autoscaling</code>.</td>
 </tr>
 </table>
 </div>
@@ -862,15 +985,16 @@ topology spread (zone-level) constraints.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>NAME                          REFERENCE                                 TARGETS      MINPODS   MAXPODS   REPLICAS   AGE
-feastautoscaledfeaturestore   Deployment/feastautoscaledfeaturestore    cpu: 1%/70%  2         10        2          8m37s</pre>
+<pre>NAME                             REFERENCE                                   TARGETS       MINPODS   MAXPODS   REPLICAS   AGE
+feast-production-feature-store   Deployment/feast-production-feature-store   cpu: 1%/70%   2         10        2          8m37s</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>The HPA is named <code>feast-&lt;featurestore-name&gt;</code> (dashes stripped), references the feature server
-deployment, and shows the configured MINPODS/MAXPODS bounds. The TARGETS column initially
-displays <code>cpu: &lt;unknown&gt;/70%</code> for a minute while the metrics server begins scraping, then
-resolves to a live value.</p>
+<p>The HPA is named <code>feast-&lt;CR-name&gt;</code> — the CR name is preserved as written, dashes included (for
+the <code>production-feature-store</code> CR, the HPA and the feature server deployment are both named
+<code>feast-production-feature-store</code>). The output shows the configured MINPODS/MAXPODS bounds. The
+TARGETS column initially displays <code>cpu: &lt;unknown&gt;/70%</code> for a minute while the metrics server
+begins scraping, then resolves to a live value.</p>
 </div>
 <div class="paragraph">
 <p>With scaling in place, the last step is choosing how clients reach the feature server.</p>
@@ -907,7 +1031,14 @@ connection load. Restrict it to development.</p>
 <p>For large feature pipelines, you can offload transformations, aggregations, joins, and
 materializations to the Ray compute engine, which executes feature computation as distributed
 directed acyclic graphs (DAGs) with point-in-time joins, broadcast join selection, and lazy
-evaluation. Enable it in <code>feature_store.yaml</code>:</p>
+evaluation.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Enable the Ray compute engine in <code>feature_store.yaml</code>:</p>
+</li>
+</ol>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -939,13 +1070,17 @@ batch_engine:
 </tr>
 <tr>
 <td><i class="conum" data-value="4"></i><b>4</b></td>
-<td><strong>ray_address</strong> — address of a running Ray cluster.</td>
+<td><strong>ray_address</strong> — address of a running Ray cluster.
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Try the retrieval-augmented generation (RAG) template, which parallelizes embedding
+generation across workers:</p>
+</li>
+</ol>
+</div></td>
 </tr>
 </table>
-</div>
-<div class="paragraph">
-<p>The quickest way to try Ray is the retrieval-augmented generation (RAG) template, which
-parallelizes embedding generation across workers:</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
@@ -972,24 +1107,77 @@ batch engine settings you applied.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_explore_production_topologies_and_oidc_authentication"><a class="anchor" href="#_explore_production_topologies_and_oidc_authentication"></a>Explore: Production topologies and OIDC authentication</h2>
+<h2 id="_explore_production_topologies_and_authentication"><a class="anchor" href="#_explore_production_topologies_and_authentication"></a>Explore: Production topologies and authentication</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>The FeatureStore CR you tuned in Exercise 1 maps to one of three documented
-production topologies: <strong>minimal production</strong> (single namespace, no high
-availability, TLS, or RBAC — small teams only), <strong>standard production</strong> (the
-recommended topology: HA registry, HPA autoscaling, TLS via OpenShift route,
-Kubernetes RBAC), and <strong>enterprise production</strong> (namespace-per-team isolation,
-OIDC and Feast permissions, Prometheus metrics with distributed tracing). For
-enterprise multitenant environments, you can enable OpenID Connect (OIDC)
-authentication by adding <code>authz: { oidc: {} }</code> to the FeatureStore CR — or
-<code>authz.oidc.issuerUrl</code> when the identity provider (e.g. Keycloak) is not
-integrated through the Gateway API. Feast extracts groups and namespaces from
-the OIDC token to enforce group-based, namespace-based, or combined RBAC
-policies.</p>
+production topologies:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Minimal production</strong> — single namespace, no high availability, TLS, or
+role-based access control (RBAC); small teams only.</p>
+</li>
+<li>
+<p><strong>Standard production</strong> — the recommended topology: high availability (HA)
+registry, HPA autoscaling, TLS via OpenShift route, Kubernetes RBAC.</p>
+</li>
+<li>
+<p><strong>Enterprise production</strong> — namespace-per-team isolation, OpenID Connect
+(OIDC) and Feast permissions, Prometheus metrics with distributed tracing.</p>
+</li>
+</ul>
 </div>
 <div class="paragraph">
-<p>Verify that the operator installed OIDC authorization:</p>
+<p>For enterprise multitenant environments, the operator can authenticate and
+authorize requests against an OIDC identity provider such as Keycloak or Dex.
+Selecting OIDC alone is not enough: <code>authz: { oidc: {} }</code>
+passes CRD validation, but without provider settings the operator has nothing
+usable to configure the feature server with. Point <code>spec.authz.oidc</code> at a
+Secret in the FeatureStore&#8217;s namespace that carries the provider settings:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: v1
+kind: Secret
+metadata:
+  name: feast-oidc
+stringData:
+  auth_discovery_url: https://keycloak.example.com/realms/feast/.well-known/openid-configuration
+  client_id: feast
+  client_secret: &lt;CLIENT_SECRET&gt;
+---
+apiVersion: feast.dev/v1
+kind: FeatureStore
+metadata:
+  name: production-feature-store
+spec:
+  authz:
+    oidc:
+      secretRef:
+        name: feast-oidc</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The Secret keys are the OIDC properties themselves: <code>auth_discovery_url</code> (the
+provider&#8217;s discovery endpoint), <code>client_id</code>, and <code>client_secret</code> — plus
+<code>username</code> and <code>password</code> when the server needs the client-credentials flow.
+Alternatively, set <code>spec.authz.oidc.issuerUrl</code> directly and the operator derives
+the discovery endpoint by appending <code>/.well-known/openid-configuration</code>;
+<code>issuerUrl</code> takes precedence over the Secret&#8217;s <code>auth_discovery_url</code>.</p>
+</div>
+<div class="paragraph">
+<p>By default — when the CR has no <code>authz</code> section — the operator configures
+Kubernetes authentication on every deployed service, which is what your workshop
+instance uses. With OIDC enabled, Feast validates incoming bearer tokens against
+the provider&#8217;s published keys and maps token claims — username, roles, groups —
+onto Feast permission policies; tokens carrying a Kubernetes claim are validated
+through TokenReview, which also enables namespace-based policies.</p>
+</div>
+<div class="paragraph">
+<p>If you enable OIDC on an instance, verify that the operator applied the
+authorization configuration:</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
@@ -1011,7 +1199,10 @@ policies.</p>
 <div class="ulist">
 <ul>
 <li>
-<p>Tuned the online store (PostgreSQL connection pooling) and feature server workers</p>
+<p>Tuned the online store (PostgreSQL) and feature server workers</p>
+</li>
+<li>
+<p>Wired DB-backed persistence for the online store, offline store, and registry through a Secret</p>
 </li>
 <li>
 <p>Scaled the Feature Store with static replicas and a horizontal pod autoscaler</p>
@@ -1030,7 +1221,12 @@ policies.</p>
 <p>The online store dominates <code>get_online_features()</code> latency; pool connections and use TLS</p>
 </li>
 <li>
-<p>Never scale file-based persistence beyond one replica</p>
+<p>Store configuration travels in Secrets whose keys match the store type — <code>postgres</code>, <code>sql</code> —
+referenced from <code>persistence.store</code> in the CR</p>
+</li>
+<li>
+<p>DB-backed persistence on every enabled service is a prerequisite for scaling; the operator
+rejects <code>replicas &gt; 1</code> and autoscaling for file-based backends</p>
 </li>
 <li>
 <p>Prefer the direct REST API for production inference and the SDK remote store for Python</p>
@@ -1040,9 +1236,18 @@ policies.</p>
 <div class="paragraph">
 <p><strong>Next steps:</strong></p>
 </div>
-<div class="paragraph">
-<p>Continue to the conclusion for a recap and pointers to the RHOAI documentation chapters that
-this workshop was built from.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Continue to the conclusion for a recap of the workshop arc</p>
+</li>
+<li>
+<p>Follow the links to the RHOAI documentation chapters this workshop was built from</p>
+</li>
+<li>
+<p>Apply the production topologies and persistence patterns to your own feature repositories</p>
+</li>
+</ul>
 </div>
 </div>
 </div>

@@ -201,6 +201,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -682,9 +690,14 @@ returns 404 and the wizard shows "Failed to load MaaS models".</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">Name:          aml-fr-autorag-01
-Description:   Optimize RAG for the French banking-policy corpus (DORA/MiFID II/CSRD/ACPR)
+<pre class="highlightjs highlight"><code class="language-text hljs" data-lang="text">Name:          aml-fr-autorag-01
+Description:   French (multilingual) AutoRAG optimization run — fed-aura-fr regulatory corpus, bge-m3 + llama-3.2-3b via OGX
 Connection:    aml-maas-models</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<a class="image" href="_images/02-wizard-step1.png" target="blank"><img src="_images/02-wizard-step1.png" alt="Step 1 of the Create AutoRAG optimization run wizard with the run name and the aml-maas-models MaaS connection selected" width="700"></a>
 </div>
 </div>
 <div class="olist arabic">
@@ -697,32 +710,32 @@ Connection:    aml-maas-models</code></pre>
 <p>Select the aml-s3-connection S3 connection and browse the bucket for the
 <code>fed-aura-fr</code> folder — the wizard shows a single folder containing
 <code>banque-aura-politique-reglementaire.md</code>, the French regulatory compendium.</p>
-</li>
-</ol>
+<div class="imageblock">
+<div class="content">
+<a class="image" href="_images/02-bucket-browser.png" target="blank"><img src="_images/02-bucket-browser.png" alt="The Select file or folder browser showing the fed-aura-fr folder in the aml-s3-connection bucket" width="700"></a>
+</div>
 </div>
 </li>
-</ol>
-</div>
-<div class="olist loweralpha">
-<ol class="loweralpha" type="a">
 <li>
 <p>Select <strong>pgvector (remote)</strong> from the <strong>Vector I/O provider</strong> list — the
 provider OGX exposes under its <code>vector_io</code> APIs.</p>
-</li>
-</ol>
+<div class="imageblock">
+<div class="content">
+<a class="image" href="_images/02-vector-io-provider.png" target="blank"><img src="_images/02-vector-io-provider.png" alt="The Configure details panel with the database connection dropdown open listing the aml-pgvector-connection (PGVector) vector I/O provider option" width="700"></a>
 </div>
-<div class="olist loweralpha">
-<ol class="loweralpha" type="a">
+</div>
+</li>
 <li>
 <p>Add the evaluation data set by browsing the bucket for
 <code>eval-dataset-fr.json</code> — ten French question/answer pairs in
 <code>[{"question", "correct_answers", "correct_answer_document_keys"}]</code> format, all
 referencing <code>banque-aura-politique-reglementaire.md</code> as the source document.</p>
-</li>
-</ol>
+<div class="imageblock">
+<div class="content">
+<a class="image" href="_images/02-eval-dataset.png" target="blank"><img src="_images/02-eval-dataset.png" alt="The Configure details panel showing the fed-aura-fr/eval-dataset-fr.json evaluation dataset selected and the Faithfulness (Unitxt) optimization metric chosen" width="700"></a>
 </div>
-<div class="olist loweralpha">
-<ol class="loweralpha" type="a">
+</div>
+</li>
 <li>
 <p>Select an optimization metric from the <strong>Optimization metric</strong> list. With
 the <strong>Faster</strong> preset the wizard offers exactly three metrics (captured from the
@@ -814,13 +827,17 @@ connection — the facade&#8217;s <code>/v1/models</code> lists the tool-calling
 model (<code>aml-llama32-3b</code>) and the multilingual embedding model (<code>aml-bge-m3</code>,
 1024-dim) — and both stay selected. Point the connection at an endpoint that
 does not list both model types and the models dialog stays empty.</p>
-<div class="olist arabic">
-<ol class="arabic">
+</li>
+</ol>
+</div>
+</li>
 <li>
 <p>Click <strong>Create run</strong>. AutoRAG begins testing RAG configurations against the
 French corpus; you can monitor the status on the AutoRAG page.</p>
-</li>
-</ol>
+<div class="imageblock">
+<div class="content">
+<a class="image" href="_images/02-run-created.png" target="blank"><img src="_images/02-run-created.png" alt="The aml-fr-autorag-01 results page after creating the run with the AutoRAG pipeline run badge showing Running and the 13-stage pipeline DAG in progress" width="700"></a>
+</div>
 </div>
 </li>
 </ol>

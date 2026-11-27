@@ -201,6 +201,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -584,8 +592,9 @@
 <div class="paragraph">
 <p>In this module you will work through the LoRA-aware routing tour end to end:
 you will inspect the routing layer that makes adapter-aware placement
-possible, walk the advanced routing workflow of the model deployment wizard,
-and observe the request metrics that reveal adapter-targeted routing.</p>
+possible, verify the routing substrate behind a deployed llm-d model with
+<code>oc</code>, locate the platform&#8217;s LoRA routing strategy knob, and observe the
+request metrics that reveal how the scheduler places requests.</p>
 </div>
 <div class="paragraph">
 <p><strong>Learning objectives:</strong></p>
@@ -596,10 +605,10 @@ and observe the request metrics that reveal adapter-targeted routing.</p>
 <p>Recognize the routing-layer components and metrics that carry adapter identity</p>
 </li>
 <li>
-<p>Walk the advanced routing section of the model deployment wizard and verify the result</p>
+<p>Verify the routing substrate of a deployed llm-d model — workload conditions, <code>baseRefs</code>, InferencePool, and gateway-accepted HTTPRoute</p>
 </li>
 <li>
-<p>Observe request routing metrics for adapter-targeted requests and fallback behavior</p>
+<p>Locate the <code>loraModelRoutingStrategy</code> knob and determine which routing strategy your deployment&#8217;s route carries</p>
 </li>
 </ul>
 </div>
@@ -674,102 +683,189 @@ metric that should drop for adapter-loaded pods, and the condition the
 controller sets when group members serve different adapter sets.</p>
 </div>
 <div class="paragraph">
-<p>Now that you know which metrics carry adapter identity, you will walk the
-advanced routing workflow to deploy a model and verify its routing references.</p>
+<p>Now that you know which metrics carry adapter identity, you will verify the
+routing substrate behind the workshop&#8217;s deployed llm-d model and locate the
+platform knob that shapes how adapter identities are routed.</p>
 </div>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_exercise_2_walk_the_advanced_routing_deployment_workflow"><a class="anchor" href="#_exercise_2_walk_the_advanced_routing_deployment_workflow"></a>Exercise 2: Walk the advanced routing deployment workflow</h2>
+<h2 id="_exercise_2_verify_the_routing_substrate_behind_a_deployed_llm_d_model"><a class="anchor" href="#_exercise_2_verify_the_routing_substrate_behind_a_deployed_llm_d_model"></a>Exercise 2: Verify the routing substrate behind a deployed llm-d model</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Router configurations are the operator-facing surface for advanced routing in
-the deployment wizard. You apply them while deploying a model; LoRA-aware
-placement extends the same routing layer these configurations shape.</p>
+<p>The llm-d deployment method in the model deployment wizard generates the
+whole routing substrate for you: an <code>LLMInferenceService</code> whose workload
+conditions tell you the stack is assembled, <code>baseRefs</code> that name the presets
+the service expands into, an <code>InferencePool</code> that groups the serving pods, an
+HTTPRoute published through the cluster gateway, and an Endpoint Picker (EPP)
+scheduler that owns placement decisions. In this exercise you inspect each
+layer with <code>oc</code> — the same substrate a LoRA-aware routing rollout extends.</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>In the dashboard, navigate to <strong>Data Science Projects</strong>, select your project,
-and click <strong>Deploy model</strong>. Select <strong>Generative AI</strong> or <strong>Distributed inference
-with llm-d</strong> as the model framework.</p>
-</li>
-<li>
-<p>Select a deployment topology appropriate for your model size and hardware
-constraints, then configure model storage.</p>
-</li>
-<li>
-<p>Click <strong>Advanced routing</strong> to expand the routing options. By default,
-<strong>Default optimized routing</strong> is pre-selected, which means the LLM-D controller
-uses built-in defaults.</p>
-</li>
-<li>
-<p>Review the list of available router configurations. The dashboard displays
-only router configurations where the <code>opendatahub.io/supported-topologies</code>
-annotation includes your selected topology type — this prevents incompatible
-router configurations from appearing in the wizard.</p>
-</li>
-<li>
-<p>Keep the default <strong>Default optimized routing</strong> selection unless your
-workshop facilitator points you at a router configuration, then click
-<strong>Create</strong> and wait for the deployment to reach <strong>Ready</strong> status on the <strong>Models</strong>
-tab of your project.</p>
-</li>
-<li>
-<p>Verify the routing configuration attached to the deployment. On the model
-details page, check the YAML representation of the generated
-<code>LLMInferenceService</code> resource:</p>
+<p>Reuse the workshop&#8217;s deployed llm-d model rather than deploying a second
+one: the cluster&#8217;s three worker nodes are already close to CPU capacity, and
+several other model deployments in the project sit <code>Failed</code> with
+<code>Insufficient cpu</code>. Start from the workload conditions of the
+<code>LLMInferenceService</code>:</p>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get llmisvc -n abc123-user1 -o yaml | grep -A 6 baseRefs</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get llminferenceservice maas-llmd-demo -n abc123-user1 -o jsonpath='{range .status.conditions[*]}{.type}={.status}{"\n"}{end}'</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Expected output shows the routing configuration references — the topology
-preset first, then any selected router configuration:</p>
+<p>Expected output shows the three workload conditions that matter for serving —
+<code>RouterReady</code>, <code>SchedulerWorkloadReady</code>, and <code>MainWorkloadReady</code> — alongside
+<code>HTTPRoutesReady</code>, <code>InferencePoolReady</code>, and <code>WorkloadsReady</code>, all <code>True</code>.
+The top-level <code>Ready</code> condition can read <code>Unknown</code> while platform validation
+settles (the live cluster reads <code>Ready=Unknown</code>, reason
+<code>ValidationUnavailable</code>, even though the serving path works — module 01
+verified the API). The workload conditions are the signal to watch.</p>
+</div>
+</li>
+<li>
+<p>Inspect how the service is wired into the routing layer. The <code>baseRefs</code>
+entries name the <code>LLMInferenceServiceConfig</code> presets the service expands
+into:</p>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get llminferenceservice maas-llmd-demo -n abc123-user1 -o yaml | grep -A 4 baseRefs</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Expected output shows the single preset reference behind this deployment —
+the CPU workload template from the platform preset list you saw in module 01:</p>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre>spec:
   baseRefs:
-  - name: config-llm-template
-    namespace: kserve-system
-  - name: kv-cache-router-config</pre>
+  - name: v3-6-0-kserve-config-llm-template-cpu</pre>
 </div>
+</div>
+<div class="paragraph">
+<p>The <code>model</code> section of the same output shows where the weights come from:
+this deployment references a ModelCar OCI URI directly
+(<code>oci://quay.io/redhat-ai-services/modelcar-catalog:qwen2.5-0.5b-instruct</code>).</p>
+</div>
+</li>
+<li>
+<p>Verify the route that publishes the service. The generated <code>HTTPRoute</code>
+attaches to the cluster gateway and sends traffic to the inference pool:</p>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get httproute maas-llmd-demo-kserve-route -n abc123-user1 -o jsonpath='{range .status.parents[*]}{.parentRef.name}{"\t"}{range .conditions[*]}{.type}={.status}{" "}{end}{"\n"}{end}'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Expected output shows the <code>maas-default-gateway</code> parent with <code>Accepted=True</code>
+and <code>ResolvedRefs=True</code>, plus Kuadrant auth and rate-limit policy conditions
+on the same parent. Now check what the route matches on and where it sends
+traffic, and how the pool connects the route to the scheduler:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get httproute maas-llmd-demo-kserve-route -n abc123-user1 -o jsonpath='{.spec.rules[0].matches}{"\n"}{.spec.rules[0].backendRefs}{"\n"}'
+oc get inferencepool maas-llmd-demo-inference-pool -n abc123-user1 -o jsonpath='{.spec.endpointPickerRef}{"\n"}{.spec.targetPorts}{"\n"}'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Expected output: the route&#8217;s only match is a path prefix
+(<code>/abc123-user1/maas-llmd-demo/v1</code>) and its backend is
+<code>InferencePool maas-llmd-demo-inference-pool</code> on port 8000; the pool points
+at the Endpoint Picker service (<code>maas-llmd-demo-epp-service</code>, port 9002,
+failure mode <code>FailOpen</code>) and targets the model servers on port 8000.</p>
+</div>
+</li>
+<li>
+<p>Inspect the scheduler that owns placement. The service carries the
+Endpoint Picker configuration inline, and the deployed scheduler process adds
+a metrics source to it:</p>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get llminferenceservice maas-llmd-demo -n abc123-user1 -o jsonpath='{.spec.router.scheduler.config.inline}'
+oc get deploy maas-llmd-demo-kserve-router-scheduler -n abc123-user1 -o jsonpath='{.spec.template.spec.containers[0].args[1]}'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Expected output: an <code>EndpointPickerConfig</code> (apiVersion <code>llm-d.ai/v1alpha1</code>)
+with the <code>flowControl</code> feature gate, a <code>utilization-detector</code> plugin
+(<code>kvCacheUtilThreshold: 0.8</code>, <code>queueDepthThreshold: 5</code>,
+<code>metricsStalenessThreshold: 200ms</code>) wired as the saturation detector, and —
+in the deployed scheduler&#8217;s <code>--config-text</code> — a <code>metrics-data-source</code> plugin
+fetching pod metrics over https. There is no adapter-aware plugin in the
+default preset: the placement signals are cache utilization, queue depth, and
+metrics freshness.</p>
+</div>
+</li>
+<li>
+<p>Locate the platform&#8217;s LoRA-aware routing knob. The KServe
+<code>inferenceservice-config</code> configmap documents <code>loraModelRoutingStrategy</code> —
+the setting that selects how <code>LLMInferenceService</code> LoRA adapter expansion
+represents model identities in generated HTTPRoutes:</p>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get cm inferenceservice-config -n redhat-ods-applications -o yaml | grep -B4 -A12 loraModelRoutingStrategy</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Expected output shows the strategy documentation: the default <code>exact</code>
+generates one <code>Exact</code> header match per adapter identity; <code>regex</code> collapses
+the base model and all adapters into a single anchored <code>RegularExpression</code>
+header match. A service pins its own value with the annotation
+<code>serving.kserve.io/lora-model-routing-strategy</code>; without the pin, a change
+reaches every LoRA service on its next reconcile. The documentation also
+names the practical ceilings: Envoy binds at the 4096-character header value
+limit (roughly 70 adapters), Istio allows a 32768 program size, and a
+rejected pattern surfaces as an xDS NACK in the gateway controller&#8217;s logs —
+not on the HTTPRoute.</p>
+</div>
+</li>
+<li>
+<p>Determine which strategy your deployment&#8217;s route actually carries. This
+cluster&#8217;s active generated ingress configuration renders
+<code>loraModelRoutingStrategy: regex</code>, so a LoRA-enabled service here would
+expand base model plus adapters into one anchored <code>RegularExpression</code> header
+match. The workshop&#8217;s model serves the base model only — no adapters are
+deployed — so its route carries no header matches at all: routing is by path
+prefix, which you saw in step 3. Confirm that honestly:</p>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get httproute maas-llmd-demo-kserve-route -n abc123-user1 -o jsonpath='{.spec.rules[0].matches}{"\n"}'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Expected output: a single <code>PathPrefix</code> match — no <code>Exact</code> and no
+<code>RegularExpression</code> header matches, because a base-model route has nothing to
+expand. The strategy choice becomes visible in the route only once adapters
+exist; that expansion is what the knob documents and what this workshop does
+not exercise.</p>
 </div>
 </li>
 </ol>
 </div>
-<div class="admonitionblock note">
+<div class="admonitionblock important">
 <table>
 <tr>
 <td class="icon">
-<i class="fa icon-note" title="Note"></i>
+<i class="fa icon-important" title="Important"></i>
 </td>
 <td class="content">
 <div class="paragraph">
-<p><code>kv-cache-router-config</code> is the documentation&#8217;s example name. Router
-configurations are provisioned by the administrator as
-<code>LLMInferenceServiceConfig</code> resources — the actual names in <code>spec.baseRefs</code>
-depend on the router configs your administrator created for your topology.</p>
-</div>
-</td>
-</tr>
-</table>
-</div>
-<div class="admonitionblock tip">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-tip" title="Tip"></i>
-</td>
-<td class="content">
-<div class="paragraph">
-<p>If no router configuration appears in the advanced routing section, your
-administrator has not created router <code>LLMInferenceServiceConfig</code> resources
-compatible with your topology — ask your facilitator rather than editing
-cluster configuration on your own.</p>
+<p><strong>Advanced: enabling LoRA on vLLM — not exercised in this environment.</strong> The
+steps above inspect the routing substrate and the strategy knob; they do not
+enable adapters. An operator with cluster capacity would add <code>--enable-lora</code>
+and <code>--lora-modules</code> to the vLLM runtime through the <code>VLLM_ADDITIONAL_ARGS</code>
+environment variable; each adapter identity then expands into the generated
+HTTPRoute according to the active <code>loraModelRoutingStrategy</code> — one <code>Exact</code>
+header match per identity under <code>exact</code>, one anchored regex under <code>regex</code>.
+This workshop does not exercise that path: the cluster&#8217;s three worker nodes
+are already saturated (several model deployments sit <code>Failed</code> with
+<code>Insufficient cpu</code>), and patching adapter flags onto the serving stack risks
+the one healthy serving path this workshop uses. Treat the knob inspection as
+the hands-on surface for this Developer Preview feature.</p>
 </div>
 </td>
 </tr>
@@ -777,13 +873,33 @@ cluster configuration on your own.</p>
 </div>
 <div class="sect2">
 <h3 id="_verify_2"><a class="anchor" href="#_verify_2"></a>Verify</h3>
-<div class="paragraph">
-<p>Your deployed model reached <strong>Ready</strong> status, and its <code>LLMInferenceService</code>
-resource lists the routing configuration references in <code>spec.baseRefs</code>.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>The <code>LLMInferenceService</code> workload conditions (<code>RouterReady</code>,
+<code>SchedulerWorkloadReady</code>, <code>MainWorkloadReady</code>) read <code>True</code>, and <code>baseRefs</code>
+names the preset the service expands into.</p>
+</li>
+<li>
+<p>The generated HTTPRoute is accepted by <code>maas-default-gateway</code>, its only
+backend is the inference pool, and the pool points at the Endpoint Picker
+service.</p>
+</li>
+<li>
+<p>You located <code>loraModelRoutingStrategy</code> in the <code>inferenceservice-config</code>
+configmap, can state the difference between <code>exact</code> and <code>regex</code>, and
+verified the workshop&#8217;s route carries a plain path-prefix match because no
+adapters are deployed.</p>
+</li>
+<li>
+<p>You read the <strong>not exercised here</strong> callout and can describe how an operator
+with capacity would enable adapters on vLLM.</p>
+</li>
+</ul>
 </div>
 <div class="paragraph">
-<p>Now that your deployment is Ready with verified routing references, you will
-send inference requests and observe the routing metrics.</p>
+<p>Now that the substrate is verified, you will send inference requests and
+observe the routing metrics.</p>
 </div>
 </div>
 </div>
@@ -793,24 +909,29 @@ send inference requests and observe the routing metrics.</p>
 <div class="sectionbody">
 <div class="paragraph">
 <p>With a deployed model serving requests, the EPP request metrics let you see
-LoRA-aware routing behavior — even in a workshop without multiple adapters,
-the same metrics show how the scheduler places requests and how warm pods
-answer faster.</p>
+how the scheduler places requests — even in a workshop without multiple
+adapters, the same metrics show how requests flow and how warm pods answer
+faster.</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
 <p>Send the same conversational request several times so the base model warms
 up on a pod. Copy the <strong>Inference endpoint</strong> URL from your model details page,
-then send the request — with an Authorization header if your deployment has
-authentication enabled, as described in the <strong>Make authenticated inference
-requests</strong> chapter of the llm-d documentation:</p>
+then send the request. The workshop&#8217;s MaaS gateway enforces Kuadrant
+authentication, so every request must carry a Bearer token — paste your
+gateway API key into the <code>TOKEN</code> placeholder below; unauthenticated requests
+are rejected with HTTP 401 before they reach the model. The <strong>Make
+authenticated inference requests</strong> chapter of the llm-d documentation describes
+the same Authorization-header pattern:</p>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">INFER_URL=$(oc get llmisvc -n abc123-user1 -o jsonpath='{.items[0].status.url}')
-MODEL_NAME=RedHatAI/Qwen3-8B-FP8-dynamic
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">INFER_URL=$(oc get llminferenceservice maas-llmd-demo -n abc123-user1 -o jsonpath='{.status.url}')
+MODEL_NAME=maas-llmd-demo
+TOKEN=<paste-your-gateway-api-key>
 curl -k $INFER_URL/v1/chat/completions \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN" \
   -d '{
     "model": "'"$MODEL_NAME"'",
     "messages": [{
@@ -822,18 +943,28 @@ curl -k $INFER_URL/v1/chat/completions \
 </div>
 <div class="paragraph">
 <p>The <code>INFER_URL</code> capture resolves to the same <strong>Inference endpoint</strong> URL shown on
-your model details page — the first <code>LLMInferenceService</code> in your working
-project. A successful response returns HTTP 200 with a JSON body containing a
-<code>choices</code> array whose entries carry the generated <code>message.content</code> reply and a
-<code>model</code> field echoing the deployed model name. <code>MODEL_NAME</code> defaults to
-<code>RedHatAI/Qwen3-8B-FP8-dynamic</code> — change it if you deployed a different model in
-Exercise 2. Repeat the request three or four times without changing the message.</p>
+your model details page — the workshop&#8217;s <code>maas-llmd-demo</code> deployment. A
+successful response returns HTTP 200 with a JSON body containing a <code>choices</code>
+array whose entries carry the generated <code>message.content</code> reply and a <code>model</code>
+field echoing the deployed model name. <code>MODEL_NAME</code> is set to the name the
+workshop&#8217;s deployed model serves — <code>maas-llmd-demo</code> (the deployment also
+answers to <code>publishers/abc123-user1/models/maas-llmd-demo</code>). A <code>model</code> value
+that is not a served name, such as the upstream repository id, fails with HTTP
+404 <code>NotFoundError</code>, and a request with a missing or invalid token is rejected
+by the gateway with HTTP 401 before it reaches the model. Repeat the request
+three or four times without changing the message.</p>
 </div>
 </li>
 <li>
-<p>Observe the request metrics while the requests are processed. Query the EPP
-metrics endpoint, or view the metrics through your cluster&#8217;s monitoring stack,
-and look for <code>llm_d_epp_request_ttft_seconds</code> and <code>llm_d_epp_request_total</code>.</p>
+<p>Observe the request metrics while the requests are processed. The EPP
+publishes its metrics on a token-protected https endpoint; in this cluster
+the scheduler&#8217;s <code>ServiceMonitor</code> scrapes it into user-workload monitoring and
+prefixes every metric name with <code>kserve_</code> (adding <code>exported_namespace</code>,
+<code>llm_isvc_name</code>, and <code>llm_isvc_component</code> labels on the way). In the console,
+open <strong>Observe &gt; Metrics</strong> and query <code>{<em>name</em>=~"kserve_llm_d_epp.*"}</code> — look
+for <code>kserve_llm_d_epp_request_ttft_seconds</code> and
+<code>kserve_llm_d_epp_request_total</code> (the same series carry the <code>llm_d_epp_</code>
+prefix at the source).</p>
 </li>
 <li>
 <p>Interpret what you see: the first requests after a cold start pay warm-up
@@ -871,9 +1002,11 @@ tune the behavior.</p>
 <td class="content">
 <div class="paragraph">
 <p>Which metrics are scraped into your cluster&#8217;s monitoring stack depends on your
-workshop configuration. If the metrics are not visible in the console&#8217;s
-<strong>Observe</strong> section, ask your facilitator how to reach the EPP metrics service in
-your environment.</p>
+workshop configuration. In this environment the
+<code>maas-llmd-demo-kserve-llm-isvc-scheduler</code> ServiceMonitor handles the scrape —
+query the <code>kserve_</code>-prefixed series in the console&#8217;s <strong>Observe</strong> section. If
+they are not visible, ask your facilitator how to reach the EPP metrics
+service in your environment.</p>
 </div>
 </td>
 </tr>
@@ -883,8 +1016,9 @@ your environment.</p>
 <h3 id="_verify_3"><a class="anchor" href="#_verify_3"></a>Verify</h3>
 <div class="paragraph">
 <p>You sent repeated requests and observed at least one of the <code>llm_d_epp_</code>
-request metrics — total request counts and the TTFT distribution are the two
-that respond immediately.</p>
+request metrics (or its <code>kserve_</code>-prefixed series in the monitoring stack) —
+total request counts and the TTFT distribution are the two that respond
+immediately.</p>
 </div>
 </div>
 </div>
@@ -901,10 +1035,10 @@ that respond immediately.</p>
 <p>Inspected the EPP request metrics that carry <code>model_name</code> and <code>target_model_name</code> adapter identity</p>
 </li>
 <li>
-<p>Walked the advanced routing workflow of the deployment wizard and verified the routing references in <code>baseRefs</code></p>
+<p>Verified the routing substrate behind a deployed llm-d model — workload conditions, <code>baseRefs</code>, gateway-accepted HTTPRoute, inference pool, and the inline Endpoint Picker configuration</p>
 </li>
 <li>
-<p>Observed request routing metrics during inference and interpreted warm-up and fallback behavior</p>
+<p>Located the <code>loraModelRoutingStrategy</code> knob and determined that the workshop&#8217;s base-model route carries a plain path-prefix match</p>
 </li>
 </ul>
 </div>
@@ -917,10 +1051,10 @@ that respond immediately.</p>
 <p><code>target_model_name</code> is the label that exposes adapter-targeted routing in the request metrics</p>
 </li>
 <li>
-<p>LoRA-aware routing changes placement, not availability — fallback keeps requests completing</p>
+<p><code>loraModelRoutingStrategy</code> — <code>exact</code> versus <code>regex</code> — is a platform-level knob; a service pins its own value with the <code>serving.kserve.io/lora-model-routing-strategy</code> annotation</p>
 </li>
 <li>
-<p>TTFT is the clearest end-user signal of adapter cold-load latency avoided</p>
+<p>LoRA-aware routing changes placement, not availability — fallback keeps requests completing</p>
 </li>
 </ul>
 </div>
@@ -929,7 +1063,7 @@ that respond immediately.</p>
 </div>
 <div class="paragraph">
 <p>Head to the conclusion for the resources that go deeper, including the
-advanced routing and EPP metrics chapters of the llm-d documentation.</p>
+routing configuration and EPP metrics chapters of the llm-d documentation.</p>
 </div>
 </div>
 </div>

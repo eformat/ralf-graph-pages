@@ -204,6 +204,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -586,8 +594,9 @@
 <div class="sectionbody">
 <div class="paragraph">
 <p>In this module you will explore advanced Connectivity Link capabilities: rate-limit headers
-on API responses, token-based rate limiting for LLM inference APIs, OIDC/JWT authentication
-with a real identity provider, and observability for your gateways, policies, and requests.</p>
+on API responses, token-based rate limiting for LLM inference APIs, OpenID Connect (OIDC)
+and JSON Web Token (JWT) authentication with a real identity provider, and observability
+for your gateways, policies, and requests.</p>
 </div>
 <div class="paragraph">
 <p><strong>Learning objectives:</strong></p>
@@ -619,8 +628,10 @@ export KUADRANT_DEVELOPER_NS=abc123-user1
 export KUADRANT_ZONE_ROOT_DOMAIN=example.com
 export KUADRANT_SYSTEM_NS=$(oc get kuadrant -A -o jsonpath="{.items[0].metadata.namespace}")
 # --resolve needs an IP: on clusters where the gateway status address is a
-# hostname (no LoadBalancer provider), use the gateway Service ClusterIP
-export GATEWAY_ADDRESS=$(oc get svc ${KUADRANT_GATEWAY_NAME}-openshift-default -n ${KUADRANT_GATEWAY_NS} -o jsonpath='{.spec.clusterIP}')</code></pre>
+# hostname (no LoadBalancer provider), use the gateway Service ClusterIP.
+# The Service name follows <gateway-name>-<gatewayClassName>; with the
+# data-science-gateway-class from Module 02's no-LoadBalancer NOTE that is:
+export GATEWAY_ADDRESS=$(oc get svc ${KUADRANT_GATEWAY_NAME}-data-science-gateway-class -n ${KUADRANT_GATEWAY_NS} -o jsonpath='{.spec.clusterIP}')</code></pre>
 </div>
 </div>
 </div>
@@ -1045,8 +1056,9 @@ Kuadrant CR to point at your OTLP collector.</p>
 <i class="fa icon-warning" title="Warning"></i>
 </td>
 <td class="content">
-GRPCRoute policy attachment is a Technology Preview feature in Connectivity Link
-1.4. AuthPolicy and RateLimitPolicy CRs can target GRPCRoute resources, with
+GRPCRoute policy attachment may be a Technology Preview feature in your
+Connectivity Link release; check your RHCL release notes for its current support status.
+AuthPolicy and RateLimitPolicy CRs can target GRPCRoute resources, with
 <code>request.grpc.service</code> and <code>request.grpc.method</code> available for predicate expressions, but
 TokenRateLimitPolicy does not support GRPCRoute targets. The API might change between
 releases.

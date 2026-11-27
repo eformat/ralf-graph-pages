@@ -200,6 +200,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -600,7 +608,24 @@
 <li>
 <p>How to validate priority differentiation, rejection behavior, and flow control metrics under load</p>
 </li>
+<li>
+<p>How the Endpoint Picker exposes the <code>llm_d_epp_flow_control_pool_saturation</code> metric and how the Red Hat OpenShift AI monitoring stack makes it queryable from <strong>Observe</strong> &gt; <strong>Metrics</strong></p>
+</li>
 </ul>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>The demo environment is CPU-only and the model workload intentionally stays down (<code>MainWorkloadReady=False</code>); the load-generation exercises are validated against the Endpoint Picker&#8217;s documented rejection path (<code>503 rejected-no-endpoints</code>) rather than a serving model.</p>
+</div>
+</td>
+</tr>
+</table>
 </div>
 </div>
 </div>
@@ -610,16 +635,13 @@
 <div class="ulist">
 <ul>
 <li>
-<p>RHOAI operator installed</p>
+<p>An OpenShift cluster with Red Hat OpenShift AI (RHOAI) 3.6 installed (the operator and the model-serving platform)</p>
 </li>
 <li>
-<p>Distributed Inference with llm-d deployed</p>
+<p>Distributed Inference with llm-d deployed (an <code>LLMInferenceService</code> backed by the Endpoint Picker)</p>
 </li>
 <li>
-<p>An OpenShift cluster with RHOAI 3.5 installed</p>
-</li>
-<li>
-<p>Recommended prerequisite: complete the <a href="../llmd-core/index.html" class="xref page">Distributed Inference with llm-d (core)</a> workshop first</p>
+<p>Recommended: complete the <a href="../llmd-core/index.html" class="xref page">Distributed Inference with llm-d (core)</a> workshop first</p>
 </li>
 </ul>
 </div>

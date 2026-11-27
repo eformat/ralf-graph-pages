@@ -210,6 +210,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -606,7 +614,8 @@ route:</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">export EVALHUB_URL=https://$(oc get routes evalhub -o jsonpath='{.spec.host}' -n abc123-evalhub)</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">export EVALHUB_URL=https://$(oc get routes evalhub -o jsonpath='{.spec.host}' -n abc123-evalhub)
+export TOKEN=$(oc whoami -t)</code></pre>
 </div>
 </div>
 </div>
@@ -616,7 +625,7 @@ route:</p>
 <div class="sectionbody">
 <div class="paragraph">
 <p>EvalHub is multi-tenant. Every request except <code>GET /api/v1/health</code> must carry
-two headers:</p>
+two headers, plus an optional third for owner attribution:</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
@@ -643,6 +652,11 @@ automation. Tokens are validated with the Kubernetes TokenReview API.</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Target namespace, e.g. <code>abc123-user1</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">The namespace registered as an EvalHub tenant. Jobs, providers, and
 collections are scoped to it.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>X-User</code> (optional)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Caller identity, e.g. your username</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Attribution only: the submitted job records the value as <code>resource.owner</code>.</p></td>
 </tr>
 </tbody>
 </table>
@@ -781,6 +795,22 @@ exclusive with <code>collection</code>.</td>
 <tr>
 <td><i class="conum" data-value="4"></i><b>4</b></td>
 <td><strong>experiment</strong> — optional MLflow experiment the results log into.</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>The optional <code>experiment</code> field requires a reachable MLflow instance: job
+validation fails with <code>400 mlflow_request_failed</code> on instances without one.
+Omit the field when MLflow is not configured for your EvalHub deployment.</p>
+</div>
+</td>
 </tr>
 </table>
 </div>

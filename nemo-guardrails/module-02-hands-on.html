@@ -204,6 +204,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -991,7 +999,7 @@ response before it is returned.</p>
 <p>This exercise requires a model deployed on the model-serving platform whose
 predictor URL ends in <code>/v1</code>, for example
 <code><a href="https://phi3predictor.model-namespace.svc.cluster.local:8443/v1" class="bare">https://phi3predictor.model-namespace.svc.cluster.local:8443/v1</a></code>. The
-exercises use the <code>granite-vllm</code> model served at <code><a href="http://granite-vllm-predictor:8080/v1" class="bare">http://granite-vllm-predictor:8080/v1</a></code> —
+exercises use the <code>granite-asset-demo</code> model served at <code><a href="http://granite-asset-demo-predictor:8080/v1" class="bare">http://granite-asset-demo-predictor:8080/v1</a></code> —
 substitute your deployed model&#8217;s predictor URL and name if different.</p>
 </div>
 </td>
@@ -1003,9 +1011,10 @@ substitute your deployed model&#8217;s predictor URL and name if different.</p>
 <li>
 <p>Create the authentication assets for the NeMo Guardrails pod. Create a file
 named <code>nemo-auth.yaml</code> with a ServiceAccount and a RoleBinding:</p>
-<div class="listingblock">
+<div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: v1
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">cat &gt; nemo-auth.yaml &lt;&lt;'EOF'
+apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: nemo-guardrails-service-account
@@ -1020,7 +1029,8 @@ subjects:
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: view</code></pre>
+  name: view
+EOF</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1059,8 +1069,8 @@ data:
     - type: main
       engine: openai
       parameters:
-        base_url: "http://granite-vllm-predictor:8080/v1"
-        model_name: "granite-vllm"
+        base_url: "http://granite-asset-demo-predictor:8080/v1"
+        model_name: "granite-asset-demo"
     rails:
       config:
         sensitive_data_detection:
@@ -1088,8 +1098,9 @@ EOF</code></pre>
 <div class="paragraph">
 <p><code>models.engine</code> — set to <code>openai</code> when serving via vLLM; <code>base_url</code> is
 the internal predictor service URL and must end in <code>/v1</code> (here, the
-<code>granite-vllm</code> predictor from the vLLM ServingRuntime workshop — on a GPU
-cluster, substitute your deployed model&#8217;s predictor service and name).
+<code>granite-asset-demo</code> predictor deployed in this project by the AI assets
+workshop — with a different model, substitute your deployed model&#8217;s
+predictor service and name).
 <code>output.entities</code> — Presidio entities checked on model output; here, person
 names are stripped from responses. <code>rails.input.flows</code> and
 <code>rails.output.flows</code> — the flows executed on user input and model output
@@ -1125,7 +1136,7 @@ EOF</code></pre>
 <div class="paragraph">
 <p><code>secretKeyRef</code> references a secret key for sensitive values — use it instead
 of <code>value</code> for credentials and tokens (here the internal detectors need no
-real key, so a placeholder works).</p>
+real key, so a dummy value works).</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
@@ -1150,7 +1161,7 @@ oc get nemoguardrails nemo-simple -n abc123-user1 -w</code></pre>
 curl -k -X POST $NEMO_SIMPLE_ROUTE/v1/chat/completions \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $(oc whoami -t)" \
-  -d '{"model": "granite-vllm", "messages":[{"role":"user","content":"What is the capital of France?"}]}'</code></pre>
+  -d '{"model": "granite-asset-demo", "messages":[{"role":"user","content":"What is the capital of France?"}]}'</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1164,7 +1175,7 @@ curl -k -X POST $NEMO_SIMPLE_ROUTE/v1/chat/completions \
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">curl -k -X POST $NEMO_SIMPLE_ROUTE/v1/chat/completions \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $(oc whoami -t)" \
-  -d '{"model": "granite-vllm", "messages":[{"role":"user","content":"My email is user@example.com"}]}'</code></pre>
+  -d '{"model": "granite-asset-demo", "messages":[{"role":"user","content":"My email is user@example.com"}]}'</code></pre>
 </div>
 </div>
 <div class="paragraph">

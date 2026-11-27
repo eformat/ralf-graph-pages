@@ -203,6 +203,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -609,16 +617,17 @@ not be functionally complete.
 <p>What the OGX agentic API surface is: native OGX APIs (Tool Runtime) versus the OpenAI-compatible surface (Responses, Conversations)</p>
 </li>
 <li>
-<p>Deploy an OGXServer and verify it reaches the Running phase</p>
+<p>Connect to the shared workshop OGX server and verify it reports the Ready phase</p>
 </li>
 <li>
-<p>Connect an OpenAI SDK client to the OGX route and drive multi-turn, stateful chats with the Conversations API</p>
+<p>Connect an OpenAI software development kit (SDK) client to the OGX route and drive multi-turn,
+stateful chats with the Conversations API</p>
 </li>
 <li>
-<p>Ground answers in your documents with the <code>file_search</code> tool and inspect <code>file_citation</code> annotations</p>
+<p>Read the build-availability matrix for OGX 1.4.2+rhaiv.0 — what runs today (chat completions, Conversations) and what is gated on this Technology Preview build (Responses, Files, <code>file_search</code>, Tool Runtime)</p>
 </li>
 <li>
-<p>Opt into Responses API guardrails and survey the Tool Runtime API support level</p>
+<p>Inspect what the build actually exposes — models, providers, routes, connectors — and read error signatures from gated APIs</p>
 </li>
 </ul>
 </div>
@@ -630,15 +639,35 @@ not be functionally complete.
 <div class="ulist">
 <ul>
 <li>
-<p>RHOAI operator installed</p>
+<p>Red Hat OpenShift AI (RHOAI) operator installed</p>
 </li>
 <li>
 <p>OGX enabled</p>
 </li>
 <li>
-<p>An OpenShift cluster with RHOAI 3.5 installed</p>
+<p>An OpenShift cluster with RHOAI 3.6 installed</p>
 </li>
 </ul>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>The hands-on modules use the shared workshop OGX server: OGXServer <code>aml-ogx</code> in the
+<code>autorag-ml-demo</code> project (phase <code>Ready</code>, OGX version <code>1.4.2+rhaiv.0</code>), exposed at
+<code><a href="https://aml-ogx-tls-autorag-ml-demo.apps.ocp5-m6wl4-2plgg.sandbox1832.opentlc.com" class="bare">https://aml-ogx-tls-autorag-ml-demo.apps.ocp5-m6wl4-2plgg.sandbox1832.opentlc.com</a></code>, with models
+<code>vllm-inference/aml-llama32-3b</code> (chat) and <code>vllm-embedding/aml-bge-m3</code> (an embedding model whose
+metadata this build mis-types as <code>llm</code> — see Module 01). The guided path
+makes no changes to the cluster. If you prefer to run your own server instead, see the optional
+self-staging appendix in the feature tree at <code>deploy/README.md</code> ("Running your own OGXServer").</p>
+</div>
+</td>
+</tr>
+</table>
 </div>
 </div>
 </div>
@@ -665,7 +694,7 @@ not be functionally complete.
 <p><a href="module-02-hands-on.html" class="xref page">Module 02: Responses and Conversations hands-on</a></p>
 </li>
 <li>
-<p><a href="module-03-advanced.html" class="xref page">Module 03: RAG, citations, and advanced APIs</a></p>
+<p><a href="module-03-advanced.html" class="xref page">Module 03: Advanced APIs — what runs on this build</a></p>
 </li>
 <li>
 <p><a href="conclusion.html" class="xref page">Conclusion</a></p>

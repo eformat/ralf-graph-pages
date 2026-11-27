@@ -204,6 +204,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -586,8 +594,9 @@
 <div class="sectionbody">
 <div class="paragraph">
 <p>In this module you will explore advanced configuration for Distributed Inference with llm-d:
-applying router configurations for KV cache-aware scheduling, and creating and managing the
-topology and router configuration templates that administrators publish to self-service users.</p>
+deploying with the llm-d deployment method and an accelerator configuration, creating custom
+configurations for KV cache-aware scheduling, and enabling the feature and managing the
+configuration templates that administrators publish for self-service users.</p>
 </div>
 <div class="paragraph">
 <p><strong>Learning objectives:</strong></p>
@@ -595,39 +604,47 @@ topology and router configuration templates that administrators publish to self-
 <div class="ulist">
 <ul>
 <li>
-<p>Apply a router configuration to a deployment and verify it in the generated
-<code>LLMInferenceService</code></p>
+<p>Deploy with the <strong>LLM inference service with llm-d</strong> deployment method and an accelerator
+configuration, and verify the preset in the generated <code>LLMInferenceService</code></p>
 </li>
 <li>
-<p>Create a router <code>LLMInferenceServiceConfig</code> template with KV cache-aware scheduling</p>
+<p>Create a custom <code>LLMInferenceServiceConfig</code> template with KV cache-aware scheduling</p>
 </li>
 <li>
-<p>Create and manage topology configuration templates from the dashboard admin settings</p>
+<p>Enable distributed inference with llm-d in the dashboard&#8217;s Model deployment settings and
+manage <code>LLMInferenceServiceConfig</code> templates cluster-side</p>
 </li>
 </ul>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_exercise_1_apply_advanced_routing_to_a_deployment"><a class="anchor" href="#_exercise_1_apply_advanced_routing_to_a_deployment"></a>Exercise 1: Apply advanced routing to a deployment</h2>
+<h2 id="_exercise_1_deploy_with_the_llm_d_deployment_method_and_an_accelerator_configuration"><a class="anchor" href="#_exercise_1_deploy_with_the_llm_d_deployment_method_and_an_accelerator_configuration"></a>Exercise 1: Deploy with the llm-d deployment method and an accelerator configuration</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Router configurations are optional <code>LLMInferenceServiceConfig</code> templates that enable
-KV cache-aware scheduling, intelligent request gateway routing, and other production
-optimizations. The dashboard displays only router configurations whose
-<code>opendatahub.io/supported-topologies</code> annotation includes your selected topology.</p>
+<p>In RHOAI 3.6 the deployment wizard creates an <code>LLMInferenceService</code> when you select the
+<strong>LLM inference service with llm-d</strong> deployment method. The accelerator configuration you
+choose — a pre-installed <code>LLMInferenceServiceConfig</code> preset or a custom one your
+administrator published — is attached to the deployment through <code>spec.baseRefs</code> and supplies
+the serving runtime, scheduler, and routing defaults. There is no routing section to
+configure in the wizard: routing and scheduling behavior comes from the selected
+configuration&#8217;s <code>spec.router</code> block, which you can extend with your own templates in
+Exercise 2.</p>
 </div>
 <div class="ulist">
 <div class="title">Prerequisites</div>
 <ul>
 <li>
-<p>You started the model deployment workflow and selected a deployment topology (from
-Module 02)</p>
+<p>You completed the Module 02 walkthrough of <strong>AI hub &gt; Models &gt; Deployments</strong> and its
+<strong>Deploy model</strong> wizard tour</p>
 </li>
 <li>
-<p>An administrator created one or more router <code>LLMInferenceServiceConfig</code> resources
-compatible with your topology — if none exist yet, complete Exercise 2 first and then return
-here</p>
+<p>Distributed inference with llm-d is enabled for the cluster (Exercise 2 covers the
+administrator toggle)</p>
+</li>
+<li>
+<p>An accelerator configuration matches your hardware — on a CPU-only cluster the
+pre-installed <strong>vLLM CPU LLMInferenceServiceConfig</strong> presets work out of the box</p>
 </li>
 </ul>
 </div>
@@ -635,30 +652,24 @@ here</p>
 <div class="title">Procedure</div>
 <ol class="arabic">
 <li>
-<p>In the model deployment wizard, after selecting your topology and configuring model
-storage, expand the <strong>Advanced routing</strong> section. By default, <strong>Default optimized routing</strong> is
-pre-selected, which means the llm-d controller uses built-in defaults.</p>
+<p>Click <strong>Deploy model</strong> from <strong>AI hub &gt; Models &gt; Deployments</strong>, select your project, and
+complete the <strong>Model details</strong> step: set <strong>Model type</strong> to <strong>Generative AI model</strong> and point the
+wizard at your model location.</p>
 </li>
 <li>
-<p>Review the list of available router configurations. To pick one for your workload:</p>
-<div class="olist loweralpha">
-<ol class="loweralpha" type="a">
-<li>
-<p>For KV cache-aware scheduling that reduces redundant computation for similar prompts,
-select a router config with <code>kvCacheAware: true</code>.</p>
+<p>In the <strong>Model deployment</strong> step, select the <strong>LLM inference service with llm-d</strong> deployment
+method — its description promises distributed serving with advanced routing techniques such
+as cache-aware routing and disaggregated prefill and decode.</p>
 </li>
 <li>
-<p>For intelligent load balancing across model replicas, select a router config with a
-scheduling policy such as least-loaded or round-robin.</p>
+<p>Still in the <strong>Model deployment</strong> step, find <strong>Accelerator configuration</strong> and choose <strong>Manual
+selection</strong>. The list shows the built-in, global-scoped accelerator configurations that the
+administrator enabled — for example the vLLM CPU presets. Select the configuration that
+matches your hardware, then set the <strong>Hardware profile</strong> and <strong>Replica count</strong>.</p>
 </li>
 <li>
-<p>If you do not need advanced routing, keep <strong>Default optimized routing</strong>.</p>
-</li>
-</ol>
-</div>
-</li>
-<li>
-<p>Continue the deployment by clicking <strong>Create</strong>.</p>
+<p>Step through <strong>Advanced settings</strong> — token authentication, gateways, and model capabilities
+are all optional — and continue to the <strong>Review</strong> step to finalize the deployment.</p>
 </li>
 </ol>
 </div>
@@ -667,85 +678,71 @@ scheduling policy such as least-loaded or round-robin.</p>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>On the <strong>Models</strong> tab of your project, click your deployed model name to view details and
-check the YAML representation of the generated <code>LLMInferenceService</code>.</p>
-</li>
-<li>
-<p>Confirm that the <code>spec.baseRefs</code> array includes the topology preset config followed by
-your selected router:</p>
+<p>Read the <code>spec.baseRefs</code> of the generated <code>LLMInferenceService</code> from the CLI. The
+accelerator configuration is attached by bare name:</p>
 </li>
 </ol>
 </div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get llmisvc cpu-demo-llm -n abc123-user1 \
+  -o jsonpath='{.spec.baseRefs}'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Expected output (plain <code>----</code> block):</p>
+</div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">spec:
-  baseRefs:
-  - name: config-llm-template
-    namespace: kserve-system
-  - name: kv-cache-router-config
-    namespace: default</code></pre>
+<pre>[{"name":"v3-6-0-kserve-config-llm-template-cpu"}]</pre>
 </div>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p><code>config-llm-template</code> <strong>— the topology preset</strong>. The wizard adds the topology configuration
-template first.</p>
-</li>
-<li>
-<p><code>kv-cache-router-config</code> <strong>— your selected router</strong>. The router template you chose in the
-<strong>Advanced routing</strong> section is appended after the topology preset, so your settings override
-preset defaults.</p>
+<p><code>v3-6-0-kserve-config-llm-template-cpu</code> <strong>— the accelerator preset the wizard attached</strong>.
+Presets ship in the <code>redhat-ods-applications</code> namespace and are referenced by bare name,
+without a namespace qualifier.</p>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>Send test inference requests to verify that the router functions correctly:</p>
+<p>Return to <strong>AI hub &gt; Models &gt; Deployments</strong> and click the chevron at the start of your
+deployment&#8217;s row — llm-d deployments have no detail page; the expanded row panel is the only
+detail view. Confirm that <strong>Model server replicas</strong> and <strong>Model server size</strong> match what you
+configured in the wizard.</p>
+</li>
+<li>
+<p>Send a test inference request to the deployment&#8217;s internal endpoint to confirm the stack
+serves — Module 02 Exercise 3 covers the endpoint URL, the <code>:8000</code> port suffix, and the
+request format.</p>
 </li>
 </ol>
 </div>
 </li>
 </ul>
 </div>
-<div class="listingblock execute">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">curl -v $ROUTE_URL/v1/chat/completions \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $TOKEN" \
-  -d '{
-    "model": "'"$MODEL_NAME"'",
-    "messages": [{
-      "role": "user",
-      "content": "What is machine learning?"
-    }]
-  }'</code></pre>
-</div>
-</div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>Monitor the model server logs to observe router behavior, such as request routing
-decisions or KV cache utilization.</p>
-</li>
-</ol>
+<div class="paragraph">
+<p>If the <strong>Accelerator configuration</strong> list is empty under <strong>Manual selection</strong>, ask your
+administrator to enable accelerator configurations under <strong>Settings &gt; Model resources and
+operations &gt; Model deployment settings &gt; LLM accelerator configurations</strong> (Exercise 2).</p>
 </div>
 <div class="paragraph">
-<p>If no router configurations appear in the <strong>Advanced routing</strong> section, verify that your
-administrator created router templates with the <code>opendatahub.io/config-type: router</code> label
-and that at least one includes your topology type in its <code>supported-topologies</code> annotation.</p>
-</div>
-<div class="paragraph">
-<p>Router configurations only appear in the wizard if an administrator publishes them. Next you
-create those templates yourself.</p>
+<p>Accelerator presets surface in the wizard only when an administrator enables them. Next you
+enable them and create custom configurations yourself.</p>
 </div>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_exercise_2_manage_topology_and_router_configuration_templates"><a class="anchor" href="#_exercise_2_manage_topology_and_router_configuration_templates"></a>Exercise 2: Manage topology and router configuration templates</h2>
+<h2 id="_exercise_2_enable_distributed_inference_and_manage_configuration_templates"><a class="anchor" href="#_exercise_2_enable_distributed_inference_and_manage_configuration_templates"></a>Exercise 2: Enable distributed inference and manage configuration templates</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>As a platform administrator you create the <code>LLMInferenceServiceConfig</code> templates that define
-deployment patterns and routing behavior. Users can then select them in the wizard.</p>
+<p>As a platform administrator you enable distributed inference with llm-d for the cluster and
+manage the <code>LLMInferenceServiceConfig</code> templates that define deployment patterns and
+routing behavior. In RHOAI 3.6 the enablement controls and the pre-installed accelerator
+configuration presets live in the dashboard&#8217;s Model deployment settings; all other
+per-config templates are cluster-side Kubernetes objects that you create and manage with
+<code>oc</code> — the dashboard has no template editor for them.</p>
 </div>
 <div class="ulist">
 <div class="title">Prerequisites</div>
@@ -762,81 +759,85 @@ deployment patterns and routing behavior. Users can then select them in the wiza
 <div class="title">Procedure</div>
 <ol class="arabic">
 <li>
-<p>Create a topology configuration template:</p>
+<p>Enable distributed inference with llm-d in the dashboard:</p>
 <div class="olist loweralpha">
 <ol class="loweralpha" type="a">
 <li>
 <p>In the RHOAI dashboard, click <strong>Settings</strong>.</p>
 </li>
 <li>
-<p>Click <strong>llm-d topology configurations</strong>. The page displays a table with <strong>Name</strong>,
-<strong>Topology type</strong>, <strong>Enabled</strong>, <strong>Pre-installed</strong>, and <strong>Actions</strong> columns. In the workshop
-cluster no topology templates exist yet, so the table is empty.</p>
+<p>Click <strong>Model resources and operations</strong>, then <strong>Model deployment settings</strong>. The <strong>General
+settings</strong> tab opens.</p>
+</li>
+<li>
+<p>In the <strong>Distributed inferencing</strong> section, enable the toggles for the behavior you want:</p>
+<div class="olist lowerroman">
+<ol class="lowerroman" type="i">
+<li>
+<p><strong>Enable distributed inference with llm-d</strong> — the master switch for llm-d distributed
+inferencing on the cluster.</p>
+</li>
+<li>
+<p><strong>Use distributed inference with llm-d by default when deploying generative models</strong> —
+new generative model deployments then use the llm-d deployment resource unless a user opts
+out.</p>
 <div class="imageblock">
 <div class="content">
-<a class="image" href="_images/03-llmd-topology-configurations.png" target="blank"><img src="_images/03-llmd-topology-configurations.png" alt="The Settings &gt; llm-d topology configurations page in its empty state" width="700"></a>
+<a class="image" href="_images/03-llmd-topology-configurations.png" target="blank"><img src="_images/03-llmd-topology-configurations.png" alt="The Model deployment settings General settings tab showing the Distributed inferencing section with the llm-d enablement toggle" width="700" height="and the Default deployment strategy options"></a>
 </div>
 </div>
-</li>
-<li>
-<p>Click <strong>Add</strong>.</p>
-</li>
-<li>
-<p>From the <strong>Topology type</strong> list, select the deployment pattern to configure — for example
-<strong>Multi-node data-parallel</strong> for request-level parallelism across workers.</p>
-</li>
-<li>
-<p>Select a source: <strong>Start from sample</strong> (pre-populated template with sensible defaults),
-<strong>Upload file</strong>, or <strong>Start from scratch</strong>.</p>
-</li>
-<li>
-<p>Provide a name and optional description, review the YAML, and click <strong>Create</strong>.</p>
 </li>
 </ol>
 </div>
 </li>
 <li>
-<p>When editing the YAML, verify these settings:</p>
+<p>Choose the <strong>Default deployment strategy</strong>:</p>
+<div class="olist lowerroman">
+<ol class="lowerroman" type="i">
+<li>
+<p><strong>Rolling update</strong> — existing inference service pods are terminated <strong>after</strong> new ones are
+started. This ensures zero downtime and continuous availability.</p>
+</li>
+<li>
+<p><strong>Recreate</strong> — all existing inference service pods are terminated <strong>before</strong> any new ones
+are started. This saves resources but guarantees a period of downtime.</p>
 </li>
 </ol>
 </div>
-<div class="listingblock">
+</li>
+<li>
+<p>Click <strong>Save changes</strong>.</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p>Review the accelerator configurations that ship with the product:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha" type="a">
+<li>
+<p>On the same page, click the <strong>LLM accelerator configurations</strong> tab. The page explains:
+"Manage accelerator configurations for LLM inference service deployments. Enabled
+configurations are available in the deployment wizard."</p>
+</li>
+<li>
+<p>Confirm the pre-installed presets for your hardware — for example <strong>vLLM CPU
+LLMInferenceServiceConfig</strong> <code>0.31.0+rhaiv.2.cpu</code> and <code>0.28.0+rhaiv.5</code> on CPU-only clusters,
+plus presets for AMD ROCm GPUs, NVIDIA CUDA GPUs (including Prefill/Decode split), IBM
+Spyre, and Intel Gaudi. Each preset is a cluster-side <code>LLMInferenceServiceConfig</code> labeled
+<code>opendatahub.io/config-type: accelerator</code> and annotated with the workload topologies it
+supports. List them from the cluster:</p>
+<div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">metadata:
-  name: multi-node-dp-config
-  labels:
-    opendatahub.io/config-type: workload-multi-node-data-parallel
-spec:
-  container:
-    resources:
-      limits:
-        nvidia.com/gpu: "8"
-  workers:
-    replicas: 4</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get llminferenceserviceconfig -n redhat-ods-applications \
+  -l 'opendatahub.io/config-type=accelerator'</code></pre>
 </div>
 </div>
-<div class="ulist">
-<ul>
-<li>
-<p><code>opendatahub.io/config-type</code> <strong>— the topology category</strong>. This label must match the
-selected topology type: <code>workload-single-node</code>, <code>workload-multi-node-data-parallel</code>,
-<code>workload-single-node-pd</code>, or <code>workload-multi-node-data-parallel-pd</code>. The wizard uses it to
-discover and filter configurations.</p>
 </li>
 <li>
-<p><code>spec.container.resources</code> <strong>— the resource envelope</strong>. Adjust requests and limits to match
-your available GPU and memory capacity.</p>
-</li>
-<li>
-<p><code>spec.workers</code> <strong>— the worker pool</strong> (multi-node topologies only). Defines the number of
-worker replicas and their resource allocation.</p>
-</li>
-<li>
-<p>For prefill/decode disaggregate topologies, set <code>spec.scheduler.replicas</code> to <code>1</code> or
-greater — the scheduler component is required for KV cache-aware request routing.</p>
-</li>
-</ul>
-</div>
+<p>To publish an additional accelerator preset, click <strong>Add LLM accelerator configuration</strong>
+on that tab. Once enabled, it appears in the deployment wizard&#8217;s deployment-resource
+options.</p>
 <div class="admonitionblock note">
 <table>
 <tr>
@@ -845,73 +846,85 @@ greater — the scheduler component is required for KV cache-aware request routi
 </td>
 <td class="content">
 <div class="paragraph">
-<p>Common KServe webhook validation errors: <code>baseRefs field is forbidden in
-LLMInferenceServiceConfig</code> (remove the <code>spec.baseRefs</code> field — only
-<code>LLMInferenceService</code> resources may include it) and <code>scheduler replicas must be greater
-than 0</code> (set <code>spec.scheduler.replicas</code> to at least 1 for P/D topologies).</p>
+<p>RHOAI 3.6 has no dashboard page for managing llm-d topology or router templates — the
+per-topology configurations page from earlier releases is gone, not moved. Topology and
+routing templates are cluster-side <code>LLMInferenceServiceConfig</code> objects that you manage
+with <code>oc</code>, as in the next step.</p>
 </div>
 </td>
 </tr>
 </table>
 </div>
-<div class="olist arabic">
-<ol class="arabic">
+</li>
+</ol>
+</div>
+</li>
 <li>
-<p>Create a router configuration template with KV cache-aware scheduling:</p>
+<p>Create a custom configuration with KV cache-aware scheduling as a cluster-side
+<code>LLMInferenceServiceConfig</code> object:</p>
 <div class="olist loweralpha">
 <ol class="loweralpha" type="a">
 <li>
-<p>In the RHOAI dashboard, click <strong>Settings</strong>.</p>
-</li>
-<li>
-<p>Click <strong>llm-d routing configurations</strong>.</p>
-</li>
-<li>
-<p>Click <strong>Add</strong>, select the topology type this router should support, choose a source,
-provide a name, and edit the YAML:</p>
-</li>
-</ol>
-</div>
-</li>
-</ol>
-</div>
+<p>Create a file named <code>kv-cache-scheduler-config.yaml</code>:</p>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">metadata:
-  name: kv-cache-router-single-node
-  labels:
-    opendatahub.io/config-type: router
-  annotations:
-    opendatahub.io/supported-topologies: '["workload-single-node", "workload-multi-node-data-parallel"]'
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: serving.kserve.io/v1alpha2
+kind: LLMInferenceServiceConfig
+metadata:
+  name: kv-cache-scheduler-config
 spec:
   router:
     scheduler:
-      replicas: 1
       config:
-        inline: |
+        inline:
+          apiVersion: llm-d.ai/v1
+          kind: EndpointPickerConfig
           plugins:
-          - name: prefix-cache-scorer
-            weight: 100
-          - name: queue-scorer
-            weight: 50
-    route: {}
-    gateway: {}</code></pre>
+          - type: prefix-cache-affinity-filter
+          - type: token-load-scorer
+          schedulingProfiles:
+          - name: default
+            plugins:
+            - pluginRef: prefix-cache-affinity-filter
+            - pluginRef: token-load-scorer</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Apply it to the project namespace that holds your <code>LLMInferenceService</code> resources:</p>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc apply -f kv-cache-scheduler-config.yaml -n abc123-user1</code></pre>
 </div>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p><code>opendatahub.io/config-type: router</code> <strong>— marks this as a router template</strong>. Router
-templates appear in the wizard&#8217;s <strong>Advanced routing</strong> list rather than the topology list.</p>
+<p><code>prefix-cache-affinity-filter</code> <strong>— prefers endpoints that already hold the KV cache
+blocks for the prompt prefix</strong>. This reduces redundant computation for similar prompts.</p>
 </li>
 <li>
-<p><code>opendatahub.io/supported-topologies</code> <strong>— topology compatibility</strong>. The value must be a
-JSON array of topology type strings; the wizard filters router options by it.</p>
+<p><code>token-load-scorer</code> <strong>— scores endpoints by token load</strong>. This spreads requests across
+model replicas.</p>
 </li>
 <li>
-<p><code>scheduler.config.inline</code> <strong>— the endpoint-picker plugin chain</strong>. The <code>prefix-cache-scorer</code>
-scores endpoints by KV cache overlap and <code>queue-scorer</code> by queue depth; weights set their
-relative influence.</p>
+<p>The plugin chain is an <code>llm-d.ai/v1</code> <code>EndpointPickerConfig</code> — the same format the
+pre-installed <code>kserve-config-llm-scheduler-eppconfig-default</code> template ships.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Reference the custom config from your <code>LLMInferenceService</code> by appending it to
+<code>spec.baseRefs</code> <strong>after</strong> the accelerator preset, so your settings override preset defaults:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">spec:
+  baseRefs:
+  - name: v3-6-0-kserve-config-llm-template-cpu
+  - name: kv-cache-scheduler-config</code></pre>
+</div>
+</div>
 <div class="admonitionblock note">
 <table>
 <tr>
@@ -920,54 +933,82 @@ relative influence.</p>
 </td>
 <td class="content">
 <div class="paragraph">
-<p>The topology type form field only allows one selection. To publish a router that supports
-multiple topologies, edit the <code>opendatahub.io/supported-topologies</code> annotation directly in
-the YAML editor. The form fields above the YAML editor overwrite the corresponding YAML
-values when you save.</p>
+<p><code>spec.baseRefs</code> is only valid on <code>LLMInferenceService</code> resources — the Kubernetes webhook
+rejects an <code>LLMInferenceServiceConfig</code> template that includes it.</p>
 </div>
 </td>
 </tr>
 </table>
 </div>
 </li>
-</ul>
+</ol>
+</div>
+</li>
+</ol>
 </div>
 <div class="sect2">
 <h3 id="_verify_2"><a class="anchor" href="#_verify_2"></a>Verify</h3>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>On the <strong>llm-d topology configurations</strong> page, verify that your new configuration appears
-in the list.</p>
+<p>Return to <strong>Settings &gt; Model resources and operations &gt; Model deployment settings</strong> and
+confirm that the <strong>Distributed inferencing</strong> section reflects your saved selection.</p>
 </li>
 <li>
-<p>Navigate to <strong>Data Science Projects</strong>, select a project, click <strong>Deploy model</strong>, and select
-<strong>Distributed inference with llm-d</strong>. Verify that the topology matching your new template is
-now enabled and selectable in the wizard.</p>
+<p>On the <strong>LLM accelerator configurations</strong> tab, confirm the pre-installed presets are
+listed and enabled.</p>
 </li>
 <li>
-<p>For the router template, expand the <strong>Advanced routing</strong> section for a compatible topology
-and verify that your router appears in the <strong>Router configuration</strong> list. Select a topology
-that is not in the <code>supported-topologies</code> annotation and verify that your router does not
-appear.</p>
-</li>
-<li>
-<p>Manage existing templates with the action menu (the three-dot menu) on either page:</p>
-<div class="olist loweralpha">
-<ol class="loweralpha" type="a">
-<li>
-<p><strong>Edit</strong> — modify the YAML and click <strong>Save</strong>.</p>
-</li>
-<li>
-<p><strong>Duplicate</strong> — copy a template and edit <code>metadata.name</code> to a unique value.</p>
-</li>
-<li>
-<p><strong>Delete</strong> — remove the template and confirm in the dialog.</p>
+<p>Confirm your custom configuration exists cluster-side:</p>
 </li>
 </ol>
 </div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get llminferenceserviceconfig -n abc123-user1</code></pre>
+</div>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Confirm the user-facing result: navigate to <strong>AI hub &gt; Models &gt; Deployments</strong>.
+Deployments that use llm-d show <strong>Distributed inference with llm-d</strong> in the <strong>Deployment
+resource</strong> column.</p>
+</li>
+<li>
+<p>Verify the baseRefs chain of the generated <code>LLMInferenceService</code> — the accelerator
+preset first, then your custom configuration:</p>
 </li>
 </ol>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get llmisvc cpu-demo-llm -n abc123-user1 -o jsonpath='{.spec.baseRefs}'</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_managing_existing_templates"><a class="anchor" href="#_managing_existing_templates"></a>Managing existing templates</h3>
+<div class="paragraph">
+<p>Manage your custom <code>LLMInferenceServiceConfig</code> templates cluster-side with <code>oc</code>:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>oc edit llminferenceserviceconfig &lt;name&gt; -n abc123-user1</code> — modify the template.</p>
+</li>
+<li>
+<p><code>oc get llminferenceserviceconfig &lt;name&gt; -n abc123-user1 -o yaml</code> — review the template
+before or after an edit.</p>
+</li>
+<li>
+<p><code>oc delete llminferenceserviceconfig &lt;name&gt; -n abc123-user1</code> — remove the template.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Pre-installed presets (names prefixed <code>v3-6-0-</code>) are managed by the platform operator —
+do not edit them; create your own configuration instead.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -977,9 +1018,9 @@ appear.</p>
 </td>
 <td class="content">
 <div class="paragraph">
-<p>Deleting a topology or router configuration does not affect existing deployed models that
-reference it. However, users will no longer be able to select that configuration when
-deploying new models.</p>
+<p>Deleting a custom <code>LLMInferenceServiceConfig</code> does not affect existing deployed models
+that already reference it. However, new deployments can no longer resolve the deleted
+template, so remove one only after no new deployment needs it.</p>
 </div>
 </td>
 </tr>
@@ -989,37 +1030,42 @@ deploying new models.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_explore_wva_autoscaling"><a class="anchor" href="#_explore_wva_autoscaling"></a>Explore: WVA autoscaling</h2>
+<h2 id="_explore_the_built_in_endpoint_picker_scheduler"><a class="anchor" href="#_explore_the_built_in_endpoint_picker_scheduler"></a>Explore: the built-in endpoint picker scheduler</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>The <code>workload-variant-autoscaler</code> pod you saw in the Module 01 verify step is the
-<em>workload variant autoscaler</em> (WVA), a Kubernetes controller that provides inference-aware
-autoscaling for llm-d deployments. Instead of generic CPU or memory metrics, the WVA derives
-scaling decisions from vLLM signals — KV cache utilization (<code>vllm:kv_cache_usage_perc</code>) and
-queue length (<code>vllm:num_requests_waiting</code>) — using a saturation-based spare capacity model,
-and emits the desired replica count for KEDA or an HPA to act on. The WVA is a
-<a href="https://access.redhat.com/support/offerings/techpreview">Technology Preview</a> feature that
-must be enabled in the <code>DataScienceCluster</code> custom resource (<code>spec.components.wva.managementState: "Managed"</code>).</p>
+<p>The full distributed llm-d topology routes requests through an inference scheduler — the
+llm-d <strong>endpoint picker</strong> (EPP) — before they reach the model workloads. The logic that drives
+it is not hidden inside a controller image: it ships as a declarative <code>llm-d.ai/v1</code>
+<code>EndpointPickerConfig</code> inside the pre-installed
+<code>v3-6-0-kserve-config-llm-scheduler-eppconfig-default</code> template. The workshop&#8217;s CPU demo
+deployment runs the single-node serving path without an EPP scheduler pod, but the full
+distributed topology adds one — Module 02&#8217;s second llm-d deployment reports a
+<code>SchedulerWorkloadReady</code> condition for exactly that workload.</p>
 </div>
 <div class="paragraph">
-<p>Observe the controller and its default scaling thresholds:</p>
+<p>Print the config kind and the plugin chain from the template:</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get pods -n redhat-ods-applications \
-  -l 'app.kubernetes.io/name in (workload-variant-autoscaler)'</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get llminferenceserviceconfig v3-6-0-kserve-config-llm-scheduler-eppconfig-default \
+  -n redhat-ods-applications \
+  -o jsonpath='{.spec.router.scheduler.config.inline.kind}'</code></pre>
 </div>
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get cm workload-variant-autoscaler-saturation-scaling-config \
-  -n redhat-ods-applications -o jsonpath='{.data.default}'</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get llminferenceserviceconfig v3-6-0-kserve-config-llm-scheduler-eppconfig-default \
+  -n redhat-ods-applications \
+  -o jsonpath='{.spec.router.scheduler.config.inline.plugins[*].type}'</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>The ConfigMap shows the default thresholds the WVA uses to decide when to scale up or down:
-<code>kvCacheThreshold: 0.80</code>, <code>queueLengthThreshold: 5</code>, <code>kvSpareTrigger: 0.1</code>,
-<code>queueSpareTrigger: 3</code>.</p>
+<p>The template ships four plugins — <code>approx-prefix-cache-producer</code>,
+<code>inflight-load-producer</code>, <code>prefix-cache-affinity-filter</code>, and <code>token-load-scorer</code> — and a
+<code>default</code> scheduling profile that chains <code>prefix-cache-affinity-filter</code> and
+<code>token-load-scorer</code>. This is the same <code>EndpointPickerConfig</code> format the custom
+<code>kv-cache-scheduler-config.yaml</code> in Exercise 2 uses: one declarative format, applied both
+in the platform&#8217;s own presets and in templates you write yourself.</p>
 </div>
 </div>
 </div>
@@ -1032,16 +1078,16 @@ must be enabled in the <code>DataScienceCluster</code> custom resource (<code>sp
 <div class="ulist">
 <ul>
 <li>
-<p>Applied a router configuration to a deployment and verified it in the generated
-<code>LLMInferenceService</code> baseRefs</p>
+<p>Deployed with the <strong>LLM inference service with llm-d</strong> deployment method and verified the
+attached accelerator preset in the generated <code>LLMInferenceService</code> baseRefs</p>
 </li>
 <li>
-<p>Created a router <code>LLMInferenceServiceConfig</code> template with a KV cache-aware scheduler
+<p>Created a custom <code>LLMInferenceServiceConfig</code> template with a KV cache-aware scheduler
 plugin chain</p>
 </li>
 <li>
-<p>Created, verified, and managed topology configuration templates from the dashboard admin
-settings</p>
+<p>Enabled distributed inference with llm-d in Model deployment settings and created,
+verified, and managed configuration templates cluster-side</p>
 </li>
 </ul>
 </div>
@@ -1051,12 +1097,13 @@ settings</p>
 <div class="ulist">
 <ul>
 <li>
-<p>Router templates are filtered into the wizard by the <code>opendatahub.io/supported-topologies</code>
-annotation and merge into <code>spec.baseRefs</code> after the topology preset</p>
+<p>Custom <code>LLMInferenceServiceConfig</code> templates merge into <code>spec.baseRefs</code> after the
+pre-installed accelerator preset; enabled accelerator presets surface in the wizard&#8217;s
+<strong>Accelerator configuration</strong> list</p>
 </li>
 <li>
-<p>The <code>opendatahub.io/config-type</code> label determines whether a template appears as a
-topology option or a router option</p>
+<p>Pre-installed accelerator presets carry the <code>opendatahub.io/config-type: accelerator</code>
+label; other templates are plain cluster-side objects that you manage with <code>oc</code></p>
 </li>
 <li>
 <p>Template deletion never breaks running deployments — it only removes the option for new

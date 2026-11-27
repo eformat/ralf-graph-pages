@@ -210,6 +210,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -687,12 +695,14 @@ covers granting access.</p>
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">evalhub health</code></pre>
 </div>
 </div>
+<div class="paragraph">
+<p>Sample output (your timestamp will differ):</p>
+</div>
 <div class="listingblock">
 <div class="content">
 <pre>{
   "status": "healthy",
-  "timestamp": "2026-06-03T10:00:00Z",
-  "version": "0.3.0"
+  "timestamp": "2026-11-27T18:45:12Z"
 }</pre>
 </div>
 </div>
@@ -702,7 +712,7 @@ covers granting access.</p>
 <div class="sect2">
 <h3 id="_verify"><a class="anchor" href="#_verify"></a>Verify</h3>
 <div class="paragraph">
-<p><code>evalhub health</code> returns <code>"status": "healthy"</code> with a version string.</p>
+<p><code>evalhub health</code> returns <code>"status": "healthy"</code> with a timestamp.</p>
 </div>
 <div class="paragraph">
 <p>The CLI is connected. Before submitting a job, see which benchmarks are
@@ -723,6 +733,9 @@ available.</p>
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">evalhub providers list</code></pre>
 </div>
 </div>
+<div class="paragraph">
+<p>Sample output:</p>
+</div>
 <div class="listingblock">
 <div class="content">
 <pre>ID                     NAME                    DESCRIPTION                                    BENCHMARKS
@@ -738,6 +751,9 @@ guidellm               GuideLLM                Performance benchmarking         
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">evalhub providers describe lm_evaluation_harness</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>Sample output (truncated):</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -895,6 +911,22 @@ the ID from the <code>202 Accepted</code> response:</p>
 <p>+
 The job status transitions from <code>pending</code> to <code>running</code> to <code>completed</code>.</p>
 </div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>On capacity-constrained clusters, benchmark pods may stay pending with
+<code>FailedScheduling</code> (<code>Insufficient cpu</code>); the job remains in <code>pending</code> until
+nodes free up.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
 <div class="paragraph">
 <p>Your first job is submitted. Next, watch it to completion and read the
 results.</p>
@@ -924,11 +956,14 @@ displays benchmark progress until the job reaches a terminal state, replacing
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">evalhub eval results &lt;job_id&gt; --format table</code></pre>
 </div>
 </div>
+<div class="paragraph">
+<p>Sample output:</p>
+</div>
 <div class="listingblock">
 <div class="content">
 <pre>BENCHMARK   PROVIDER               METRIC     VALUE
-mmlu        lm_evaluation_harness  acc        0.65
-mmlu        lm_evaluation_harness  acc_norm   0.68
+arc_easy    lm_evaluation_harness  acc        0.65
+arc_easy    lm_evaluation_harness  acc_norm   0.68
 hellaswag   lm_evaluation_harness  acc        0.72
 hellaswag   lm_evaluation_harness  acc_norm   0.75</pre>
 </div>
@@ -938,7 +973,7 @@ hellaswag   lm_evaluation_harness  acc_norm   0.75</pre>
 </div>
 </li>
 <li>
-<p>Optionally, list all your jobs filtered by status:</p>
+<p>Optionally, discover the job status filter options:</p>
 <div class="listingblock execute">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">evalhub eval status --help</code></pre>
@@ -1071,7 +1106,8 @@ workloads may consume.</td>
 <td><i class="conum" data-value="4"></i><b>4</b></td>
 <td><strong>GPU quota</strong>&#8201;&#8212;&#8201;4 NVIDIA GPUs for GPU-backed evaluation jobs.
 <div class="paragraph">
-<p>Apply it:</p>
+<p>Save the YAML to a file named <code>evaluation-workloads-clusterqueue.yaml</code>, then
+apply it:</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
@@ -1107,7 +1143,8 @@ spec:
 <p>The LocalQueue must live in the tenant namespace so EvalHub jobs can
 reference it.</p>
 <div class="paragraph">
-<p>Apply it:</p>
+<p>Save the YAML to a file named <code>evaluation-queue-localqueue.yaml</code>, then apply
+it:</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
@@ -1280,9 +1317,19 @@ and the namespace labels.</p>
 <div class="paragraph">
 <p><strong>Next steps:</strong></p>
 </div>
-<div class="paragraph">
-<p>Continue to the advanced module to work with collections, MLflow tracking, the
-dashboard, and tenant access control.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Continue to <a href="module-03-advanced.html" class="xref page">Module 03: Advanced Usage</a></p>
+</li>
+<li>
+<p>Run evaluations from the dashboard <strong>Evaluations</strong> page and work with
+collections</p>
+</li>
+<li>
+<p>Track results in MLflow and grant tenant access control</p>
+</li>
+</ul>
 </div>
 </div>
 </div>

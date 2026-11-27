@@ -204,6 +204,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -951,12 +959,12 @@ Kubeflow Pipelines with the KFP Python SDK.</p>
 script:</p>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get routes ds-pipeline-dspa -n abc123-user1 -o jsonpath='{.spec.host}'</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get routes ds-pipeline-data-science-pipelines -n abc123-user1 -o jsonpath='{.spec.host}'</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>Expected output: the route host, such as
-<code>ds-pipeline-dspa-abc123-user1.apps.cluster.example.com</code>.</p>
+<code>ds-pipeline-data-science-pipelines-abc123-user1.apps.cluster.example.com</code>.</p>
 </div>
 </li>
 <li>
@@ -972,7 +980,7 @@ script:</p>
 )
 
 runner = PipelineRunner(KubeflowConfig( <1>
-    pipelines_endpoint="https://ds-pipeline-dspa-abc123-user1.apps.cluster.example.com",
+    pipelines_endpoint="https://ds-pipeline-data-science-pipelines-abc123-user1.apps.cluster.example.com",
     namespace="abc123-user1",
     s3_credentials_secret_name="aws-connection-mlpipeline",
 ))

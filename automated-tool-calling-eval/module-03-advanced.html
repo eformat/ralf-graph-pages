@@ -204,6 +204,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -648,9 +656,23 @@ export EVALHUB_TOKEN="$(oc whoami -t)"
 export EVALHUB_TENANT="abc123-evalhub"</code></pre>
 </div>
 </div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
 <div class="paragraph">
-<p>To skip TLS verification for clusters with self-signed certificates, also set
-<code>EVALHUB_INSECURE=true</code>.</p>
+<p>Only set <code>EVALHUB_INSECURE=true</code> in lab or development environments where the
+cluster uses self-signed certificates — it disables TLS certificate verification
+for every EvalHub API call the skills plugin makes. Never use it against
+production or shared clusters: keep verification enabled and install the
+cluster&#8217;s CA certificate in your workstation trust store instead.</p>
+</div>
+</td>
+</tr>
+</table>
 </div>
 </li>
 </ol>

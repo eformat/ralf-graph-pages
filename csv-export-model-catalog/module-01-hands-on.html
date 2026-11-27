@@ -198,6 +198,14 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Feature Store (Feast-based)</span>
       <ul class="versions">
         <li class="version">
@@ -580,7 +588,7 @@
 <div class="sectionbody">
 <div class="paragraph">
 <p>In this module you will take a guided tour of <strong>CSV export for Model Catalog data</strong>, a Developer
-Preview capability in Red Hat OpenShift AI 3.5. You can export model catalog metadata to CSV
+Preview capability in Red Hat OpenShift AI 3.6. You can export model catalog metadata to CSV
 format by using a standalone Python CLI script. The script queries the Model Catalog REST API,
 paginates through the full result set, and produces an RFC 4180-compliant CSV file that includes
 all model metadata and custom properties.</p>
@@ -595,8 +603,8 @@ all model metadata and custom properties.</p>
 This is a guided tour of a Developer Preview feature, so the module is descriptive: you
 observe the data the export reads, run the documented export script, and inspect the resulting CSV.
 The script installation, authentication, and full usage reference are covered in the <strong>CSV Exporter
-for Model Catalog</strong> guide linked from the
-<a href="https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/3.5/html/release_notes/index">RHOAI 3.5 release notes</a>.
+for Model Catalog</strong> guide linked from the release notes in the
+<a href="https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed">RHOAI documentation</a>.
 </td>
 </tr>
 </table>
@@ -648,8 +656,8 @@ also show performance benchmark data.</p>
 </div>
 </li>
 <li>
-<p>In the menu bar, browse the model categories: <strong>All models</strong>, <strong>Red Hat AI models</strong>,
-<strong>Red Hat AI validated models</strong>, and any custom categories your administrator configured.</p>
+<p>In the menu bar, browse the model categories: <strong>All models</strong>, <strong>Red Hat Validated Models</strong>,
+<strong>Workshop private models</strong>, <strong>Other Models</strong>, and any custom categories your administrator configured.</p>
 </li>
 <li>
 <p>Use the search bar to find a model by name, description, or provider, and use the filter menu to
@@ -816,12 +824,21 @@ echo "$CATALOG_URL"</code></pre>
 </div>
 <div class="paragraph">
 <p>The script paginates through the catalog result set — 100 models per page by default — so large
-catalogs need no extra options. First list the catalog sources the API exposes, then restrict the
-export to one of them:</p>
+catalogs need no extra options. Wait for the script to finish; it reports the row and column count
+on stderr:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>Exported 10 models (55 columns) to catalog-export.csv</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>First list the catalog sources the API exposes, then restrict the export to one of them. The API
+authenticates every request, so pass the same authorization header:</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">python3 model_catalog_export.py --url "$CATALOG_URL" --list-sources</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">python3 model_catalog_export.py --url "$CATALOG_URL" --list-sources --header "Authorization: Bearer $(oc whoami -t)"</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -829,17 +846,20 @@ export to one of them:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>ID                NAME              STATUS
-community         Community         available
-validated_models   Validated Models  available</pre>
+<pre>ID                          NAME                      STATUS
+other_models                Other Models              available
+private_hf_models           Workshop Private Models   available
+redhat_ai_validated_models  Red Hat Validated Models  available</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>The exact source IDs come from the API. Restrict the export to a single source with <code>--source</code>:</p>
+<p>The exact source IDs come from the API. Restrict the export to a single source with <code>--source</code>
+(keep the authorization header — the API rejects unauthenticated requests with an HTTP 401), and
+write the restricted export to its own file so the 10-model CSV stays untouched for Exercise 3:</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">python3 model_catalog_export.py --url "$CATALOG_URL" --source community --output catalog-export.csv</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">python3 model_catalog_export.py --url "$CATALOG_URL" --source redhat_ai_validated_models --header "Authorization: Bearer $(oc whoami -t)" --output catalog-export-validated.csv</code></pre>
 </div>
 </div>
 </li>
@@ -847,8 +867,13 @@ validated_models   Validated Models  available</pre>
 <p>Wait for the script to finish. It reports the row and column count on stderr:</p>
 <div class="listingblock">
 <div class="content">
-<pre>Exported 10 models (18 columns) to catalog-export.csv</pre>
+<pre>Exported 90 models (111 columns) to catalog-export-validated.csv</pre>
 </div>
+</div>
+<div class="paragraph">
+<p>This second file holds only models from the <code>redhat_ai_validated_models</code> source — 90 models whose
+custom properties add up to 111 columns. The column count grows with the set of custom properties
+carried by the models you export, so your numbers may differ.</p>
 </div>
 </li>
 </ol>
@@ -900,9 +925,9 @@ validated_models   Validated Models  available</pre>
 <h3 id="_verify_2"><a class="anchor" href="#_verify_2"></a>Verify</h3>
 <div class="paragraph">
 <p>The script exits without errors and reports <code>Exported N models (M columns) to &lt;output&gt;</code> on stderr,
-where the row count matches the <code>--limit</code> value you set or the full catalog result set when no
-limit was given. If the run fails mid-export, no partial CSV file is left behind: the script writes
-atomically and only publishes the file once the full result set has been fetched.</p>
+where the row count matches the <code>--limit</code> value you set, or the full result set of the selected
+sources when no limit was given. If the run fails mid-export, no partial CSV file is left behind:
+the script writes atomically and only publishes the file once the full result set has been fetched.</p>
 </div>
 <div class="paragraph">
 <p>With a CSV in hand, validate what the export actually produced.</p>
@@ -932,13 +957,14 @@ properties from the catalog.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>id,name,description,provider,maturity,license,licenseLink,libraryName,source_id,externalId,createTimeSinceEpoch,lastUpdateTimeSinceEpoch,language,tasks,validatedTasks,&lt;custom-properties&gt;</pre>
+<pre>id,name,description,provider,license,licenseLink,source_id,externalId,createTimeSinceEpoch,lastUpdateTimeSinceEpoch,language,tasks,validatedTasks,CultureGuard,Nemotron,chart,code,content moderation,docling,document-parse,documents,endpoints_compatible,extraction,formula,gemma4,granite,hf_access_type,hf_gated,hf_model_type,hf_private,hf_tags,hf_url,last_synced,layout,llm safety,math,min_vram_gb,mistral-common,model_type,modelcar_image_size,molmo,molmo2,multilingual content safety,multilingual guard model,multimodal,ocr,olmo,safetensors,size,table,tensor_type,text-generation,toxicity detection,transformers,vllm</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>The header covers the standard model metadata columns followed by one column per custom property
-(<code>&lt;custom-properties&gt;</code> above). The file starts with a UTF-8 BOM that is invisible in terminal
-output, and rows are quoted per RFC 4180.</p>
+<p>The header covers the standard model metadata columns (<code>id</code> through <code>validatedTasks</code>) followed by
+one column per custom property observed across the exported models — 55 columns in total for this
+10-model export. The file starts with a UTF-8 BOM that is invisible in terminal output, and rows
+are quoted per RFC 4180.</p>
 </div>
 </li>
 <li>
@@ -950,6 +976,14 @@ or the full result set when no limit was given:</p>
 </div>
 </div>
 <div class="paragraph">
+<p>Expected output:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>10</pre>
+</div>
+</div>
+<div class="paragraph">
 <p>Open the file in a spreadsheet application or CSV viewer and confirm:
 * Every row is a model from the catalog result set.
 * Each row includes the model metadata you saw on the model details page in Exercise 1, such as
@@ -958,8 +992,9 @@ name, description, provider, and labels.
 </div>
 </li>
 <li>
-<p>Optional: Re-run the export with <code>--source</code> restricted to a single catalog source and confirm
-that the output only contains models from that source.</p>
+<p>Optional: Check the source-restricted export you ran in Exercise 2 — every row in
+<code>catalog-export-validated.csv</code> carries <code>source_id</code> <code>redhat_ai_validated_models</code>, confirming that
+<code>--source</code> filtered the result set.</p>
 </li>
 </ol>
 </div>
