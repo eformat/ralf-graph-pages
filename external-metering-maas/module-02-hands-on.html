@@ -719,14 +719,14 @@ oc get tokenratelimitpolicy -n abc123-user1</code></pre>
 is deployed. If your facilitator pre-created the demo model in a different namespace,
 substitute the NAMESPACE value from the <code>maasmodelref</code> listing above. Each published
 model should have a <code>TokenRateLimitPolicy</code> carrying its token limits, created by the
-controller. In OpenShift AI 3.5 the controller aggregates authentication into a single
+controller. In OpenShift AI 3.6 the controller aggregates authentication into a single
 gateway-scoped <code>AuthPolicy</code> (<code>maas-gateway-auth</code>) per gateway rather than one policy per
 model, so the policy list may show the aggregated resource instead of per-model entries.
 If these policies are missing, check the MaaS controller logs for errors:</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc logs -n redhat-ai-gateway-infra -l app=maas-controller --tail=50</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc logs -n redhat-ods-applications -l app=maas-controller --tail=50</code></pre>
 </div>
 </div>
 <div class="sect2">

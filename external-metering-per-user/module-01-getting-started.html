@@ -592,7 +592,7 @@
 <div class="paragraph">
 <p>In this module you will learn what <strong>External metering: per-user token usage and
 cost</strong> does, observe the MaaS environment it meters in your workshop cluster,
-and walk the metering data path end to end.</p>
+and walk the usage-logging data path end to end.</p>
 </div>
 <div class="paragraph">
 <p><strong>Learning objectives:</strong></p>
@@ -600,13 +600,13 @@ and walk the metering data path end to end.</p>
 <div class="ulist">
 <ul>
 <li>
-<p>Explain the role of the external-metering IPP plugin and the standalone metering service in RHOAI 3.5</p>
+<p>Explain how MaaS turns inference traffic into per-user usage records and where each pipeline component runs</p>
 </li>
 <li>
-<p>Verify that the MaaS custom resources that external metering depends on are present in the cluster</p>
+<p>Verify that the MaaS custom resources that usage logging depends on are present and healthy in the cluster</p>
 </li>
 <li>
-<p>Describe how a request&#8217;s token usage becomes a cost-attributed metering event</p>
+<p>Describe how a request&#8217;s token usage becomes a user-attributed usage record, and which dashboards surface it</p>
 </li>
 </ul>
 </div>
@@ -620,10 +620,10 @@ and walk the metering data path end to end.</p>
 External metering for per-user token usage and cost tracking is a
 <strong>Developer Preview</strong> feature. Developer Preview features are not supported by
 Red Hat in any way, might not have any documentation, are subject to change or
-removal at any time, and have received limited testing. In RHOAI 3.5 the
-feature is described in the release notes; step-by-step installation and
-configuration procedures for the plugin and the metering service are not yet
-part of the product documentation.
+removal at any time, and have received limited testing. In RHOAI
+3.6 the feature appears in the release notes; procedures for
+forwarding usage records to external metering backends are configured through
+the <code>DSCInitialization</code> resource and may change between releases.
 </td>
 </tr>
 </table>
@@ -631,12 +631,12 @@ part of the product documentation.
 </div>
 </div>
 <div class="sect1">
-<h2 id="_exercise_1_observe_the_maas_environment_that_external_metering_meters"><a class="anchor" href="#_exercise_1_observe_the_maas_environment_that_external_metering_meters"></a>Exercise 1: Observe the MaaS environment that external metering meters</h2>
+<h2 id="_exercise_1_observe_the_maas_environment_that_usage_logging_meters"><a class="anchor" href="#_exercise_1_observe_the_maas_environment_that_usage_logging_meters"></a>Exercise 1: Observe the MaaS environment that usage logging meters</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>The external-metering plugin meters inference requests that pass through the
-AI Inference Gateway — the MaaS gateway. Before looking at metering itself,
-observe the MaaS foundations in your cluster.</p>
+<p>The usage-logging pipeline meters inference requests that pass through the
+MaaS gateway. Before looking at metering itself, observe the MaaS foundations
+in your cluster.</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
@@ -652,8 +652,37 @@ and that the MaaS-related components are in place:</p>
 </ol>
 </div>
 <div class="paragraph">
-<p>Expect one DataScienceCluster entry, typically <code>default-dsc</code>, with an <code>AGE</code>
-value. This is the CR that the RHOAI operator reconciles to deploy MaaS.</p>
+<p>Expect one DataScienceCluster entry, typically <code>default-dsc</code>. On this cluster
+its <code>READY</code> column reads <code>False</code> with reason <code>NotReady</code> — the NOTE below
+explains why that is not a MaaS problem.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Cluster health — do not misread the DataScienceCluster phase. On this
+workshop cluster <code>default-dsc</code> reports phase <code>Not Ready</code>, but the reason is
+the <strong>trustyai</strong> (and trainer) modules, not MaaS: the message reads
+<code>Some modules are not ready: trainer, trustyai</code>. The components this workshop
+depends on are healthy — <code>ModelsAsAServiceReady=True</code> (reason <code>Ready</code>) and
+<code>AIGatewayReady=True</code>. <code>MaaSPortalAvailable</code> shows <code>False</code> only because that
+submodule&#8217;s <code>managementState</code> is <code>Removed</code> (it is intentionally not
+installed), not because MaaS failed. Check the conditions, not just the phase:
+</td>
+</tr>
+</table>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get dsc default-dsc -o jsonpath='{range .status.conditions[*]}{.type}={.status} {"| "}{.reason}{"\n"}{end}' | grep -E 'ModelsAsAServiceReady|AIGatewayReady|TrustyAIReady'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Expect <code>ModelsAsAServiceReady=True</code>, <code>AIGatewayReady=True</code>, and
+<code>TrustyAIReady=False</code> — the MaaS side is ready while an unrelated module is not.</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
@@ -684,112 +713,104 @@ tenants.maas.opendatahub.io</pre>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>Verify that the Tenant custom resource exists and is reconciled in the
-models-as-a-service namespace:</p>
+<p>Verify that the <code>AITenant</code> custom resources are reconciled. AITenants live
+in the <code>ai-tenants</code> namespace and map each tenant to its namespace and MaaS
+gateway:</p>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get tenants.maas.opendatahub.io -n models-as-a-service</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get aitenants.maas.opendatahub.io -n ai-tenants</code></pre>
 </div>
 </div>
 </li>
 </ol>
 </div>
 <div class="paragraph">
-<p>Expect at least one Tenant resource with a <code>READY</code> value of <code>True</code> and a
-reason of <code>Reconciled</code>, for example:</p>
+<p>Expect two <code>AITenant</code> rows, both with <code>READY</code> equal to <code>True</code>:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>NAME             READY   REASON       AGE
-default-tenant   True    Reconciled   5m</pre>
+<pre>NAME                  READY   TENANT NAMESPACE      GATEWAY                AGE
+models-as-a-service   True    models-as-a-service   maas-default-gateway   5d22h
+red-team              True    ai-tenant-red-team    red-team               6h30m</pre>
 </div>
+</div>
+<div class="paragraph">
+<p>The <code>models-as-a-service</code> tenant is the one this workshop&#8217;s usage records
+belong to: its tenant namespace is <code>models-as-a-service</code> and its inference
+traffic flows through the <code>maas-default-gateway</code> gateway.</p>
 </div>
 <div class="sect2">
 <h3 id="_verify"><a class="anchor" href="#_verify"></a>Verify</h3>
 <div class="paragraph">
-<p>You have confirmed that the DataScienceCluster, the MaaS CRDs, and a reconciled
-Tenant resource are present — the MaaS foundation whose inference traffic the
-external-metering plugin meters.</p>
+<p>You have confirmed that the DataScienceCluster is deployed with the MaaS
+components ready, the MaaS CRDs are installed, and both <code>AITenant</code> resources
+are reconciled with <code>READY=True</code> — the MaaS foundation whose inference traffic
+the usage-logging pipeline meters.</p>
 </div>
 <div class="paragraph">
 <p>With the foundation observed, the next step is to understand how a request
-becomes a metering event.</p>
+becomes a per-user usage record.</p>
 </div>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_exercise_2_walk_the_external_metering_data_path"><a class="anchor" href="#_exercise_2_walk_the_external_metering_data_path"></a>Exercise 2: Walk the external metering data path</h2>
+<h2 id="_exercise_2_walk_the_usage_logging_data_path"><a class="anchor" href="#_exercise_2_walk_the_usage_logging_data_path"></a>Exercise 2: Walk the usage-logging data path</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>This is a guided walkthrough — no commands. Follow the life of one inference
-request and note where metering happens.</p>
+<p>This is a guided walkthrough. Follow the life of one inference request and
+note where metering happens. The pipeline has five stages, all observable on
+your cluster.</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p><strong>Request enters the AI Inference Gateway.</strong> The external-metering plugin
-operates in the IPP plugin chain of the gateway. Before a request is
-processed, the plugin checks the user&#8217;s balance from the metering service so
-that exhausted credit can stop the next request.</p>
+<p><strong>Request is authorized at the MaaS gateway.</strong> Every inference call passes
+through the tenant&#8217;s gateway (<code>maas-default-gateway</code> for the
+<code>models-as-a-service</code> tenant), where Limitador authorizes and rate-limits
+the call and counts it per user. These per-user call counts are what the
+administrative dashboard <code>dashboard-3-maas-usage-admin</code> visualizes.</p>
 </li>
 <li>
-<p><strong>Usage is extracted from the provider response.</strong> After the response returns,
-the plugin extracts token usage details from OpenAI and Anthropic provider
-responses. The plugin distinguishes five token dimensions:</p>
-</li>
-</ol>
-</div>
-<table class="tableblock frame-all grid-all stretch">
-<colgroup>
-<col style="width: 33.3333%;">
-<col style="width: 66.6667%;">
-</colgroup>
-<thead>
-<tr>
-<th class="tableblock halign-left valign-top">Token dimension</th>
-<th class="tableblock halign-left valign-top">What it captures</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Input tokens</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Tokens in the prompt sent to the model</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Output tokens</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Tokens generated by the model in the response</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Cached tokens</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Prompt tokens served from an existing cache</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Cache write tokens</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Prompt tokens written into the cache for later reuse</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Reasoning tokens</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Tokens consumed by reasoning-capable models before the final answer</p></td>
-</tr>
-</tbody>
-</table>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p><strong>A CloudEvent is emitted.</strong> The plugin emits the usage details as a
-CloudEvent to a standalone metering service backed by PostgreSQL.</p>
+<p><strong>MaaS records usage.</strong> The MaaS <code>Config</code> resource enables usage logging
+(<code>usageLogging: true</code>) and the usage metrics dashboard
+(<code>usageMetricsDashboard: true</code>). With usage logging enabled, the
+MaaS controller manages an OpenTelemetry Collector named <code>usage-logs</code> in
+the <code>redhat-ods-applications</code> namespace. It receives usage records over
+OTLP gRPC on port 4317 and groups them by <code>subscription</code>, <code>model</code>, and
+<code>response_type</code>, then stamps each record with the identity attributes that
+metering needs: <code>user_id</code>, <code>subscription</code>, <code>key_name</code>, <code>groups</code>,
+<code>organization_id</code>, and <code>cost_center</code>.</p>
 </li>
 <li>
-<p><strong>The metering service aggregates.</strong> The service aggregates usage, calculates
-cache-aware pricing — cached and cache-write tokens are priced differently
-from fresh input tokens — and stores the result for reporting.</p>
+<p><strong>Records are stored in the usage LokiStack.</strong> The collector exports the
+stamped records over OTLP/HTTP to the gateway of the <code>data-science-usage-logs</code>
+LokiStack in the <code>redhat-ods-monitoring</code> namespace — a 1x.pico LokiStack
+storing usage logs on S3 object storage (backed by the
+<code>data-science-usage-logs-s3</code> secret). This storage runtime is staged by the
+<a href="../maas-loki-showback/index.html" class="xref page">Loki-based showback workshop</a> — this
+workshop queries it but does not set it up.</p>
 </li>
 <li>
-<p><strong>Operators consume the data.</strong> The service exposes an administrative
-dashboard and a REST API for usage queries and balance checks. Platform
-operators use them to track per-user and per-model consumption, attribute
-costs, enforce quotas, and generate chargeback reports.</p>
+<p><strong>Access is user-scoped.</strong> The <code>usage-logs-tenancy-proxy</code> deployment fronts
+the LokiStack gateway so that each user can query only their own usage
+records, and a public route named <code>data-science-usage-logs</code> exposes the
+user-scoped query endpoint outside the cluster.</p>
+</li>
+<li>
+<p><strong>Operators and external backends consume the data.</strong> Inside the cluster, the
+Perses dashboards render the usage data: <code>dashboard-3-maas-usage-admin</code>
+shows per-user request and call counts from Limitador, while
+<code>dashboard-4-maas-usage-logs</code> and <code>dashboard-5-maas-usage-logs</code> show
+per-user token consumption (<code>tokens_total</code>) grouped by <code>user_id</code>,
+<code>organization_id</code>, and <code>cost_center</code>. Outside the cluster, the
+external-metering knob — <code>spec.monitoring.usageLogs.exporters</code> in the
+<code>DSCInitialization</code> (DSCI) resource — forwards a copy of every usage record
+to an observability backend beyond the cluster (for example a central hub
+LokiStack), stamping records with <code>cluster_name</code> and <code>cluster_id</code>
+attributes so multi-cluster fleets can attribute usage. The DataScienceCluster
+itself has no metering component; external forwarding is entirely a DSCI
+monitoring setting.</p>
 </li>
 </ol>
 </div>
@@ -797,9 +818,11 @@ costs, enforce quotas, and generate chargeback reports.</p>
 <h3 id="_verify_2"><a class="anchor" href="#_verify_2"></a>Verify</h3>
 <div class="paragraph">
 <p>You can describe, without referring back, the five stages of the data path:
-balance check at the plugin, usage extraction from the provider response,
-CloudEvent emission, aggregation with cache-aware pricing in the PostgreSQL
-service, and consumption through the dashboard and REST API.</p>
+per-user authorization at the MaaS gateway, usage recording by the
+controller-managed <code>usage-logs</code> collector with its identity attributes,
+storage in the <code>data-science-usage-logs</code> LokiStack, user-scoped access through
+the tenancy proxy, and consumption through the Perses dashboards plus the DSCI
+exporter for external backends.</p>
 </div>
 </div>
 </div>
@@ -813,13 +836,13 @@ service, and consumption through the dashboard and REST API.</p>
 <div class="ulist">
 <ul>
 <li>
-<p>Verified that the DataScienceCluster, MaaS CRDs, and Tenant resources are present in your cluster</p>
+<p>Verified that the DataScienceCluster, MaaS CRDs, and reconciled <code>AITenant</code> resources are present in your cluster</p>
 </li>
 <li>
-<p>Walked the external metering data path from balance check to chargeback report</p>
+<p>Walked the usage-logging data path from gateway authorization to external forwarding</p>
 </li>
 <li>
-<p>Identified the five token dimensions the plugin extracts from OpenAI and Anthropic responses</p>
+<p>Identified the identity attributes (<code>user_id</code>, <code>subscription</code>, <code>key_name</code>, <code>groups</code>, <code>organization_id</code>, <code>cost_center</code>) that make usage records cost-attributable</p>
 </li>
 </ul>
 </div>
@@ -829,13 +852,13 @@ service, and consumption through the dashboard and REST API.</p>
 <div class="ulist">
 <ul>
 <li>
-<p>The external-metering plugin meters AI Inference Gateway traffic in the IPP plugin chain, checking balances before requests are processed</p>
+<p>Usage logging is enabled by the MaaS <code>Config</code> resource (<code>usageLogging: true</code>, <code>usageMetricsDashboard: true</code>) and requires no per-user opt-in</p>
 </li>
 <li>
-<p>CloudEvents carry per-request token usage to a PostgreSQL-backed metering service that aggregates usage and calculates cache-aware pricing</p>
+<p>The controller-managed <code>usage-logs</code> OpenTelemetry Collector stamps every usage record with user and organization identity attributes before storing it in the <code>data-science-usage-logs</code> LokiStack</p>
 </li>
 <li>
-<p>The metering service exposes an administrative dashboard and REST API for usage queries and balance checks</p>
+<p>Perses dashboards surface per-user request counts and token consumption, while <code>DSCInitialization</code> <code>spec.monitoring.usageLogs.exporters</code> is the knob that forwards usage records to external metering backends</p>
 </li>
 </ul>
 </div>
@@ -843,9 +866,9 @@ service, and consumption through the dashboard and REST API.</p>
 <p><strong>Next steps:</strong></p>
 </div>
 <div class="paragraph">
-<p>Continue to Module 02, where you explore where per-user usage data surfaces
-in the MaaS observability dashboard and how it relates to chargeback
-workflows.</p>
+<p>Continue to Module 02, where you run the commands yourself: inspect the
+<code>Config</code> and the collector, query usage records through the tenancy proxy, and
+read the <code>tokens_total</code> metric on the Perses usage dashboards.</p>
 </div>
 </div>
 </div>

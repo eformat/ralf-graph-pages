@@ -603,10 +603,14 @@ provided as-is with no support and no guarantee of future availability.
 </div>
 <div class="paragraph">
 <p>This workshop is a guided tour of <strong>External metering: per-user token usage and
-cost</strong> in RHOAI 3.5: an external metering IPP plugin and a standalone metering
-service that let platform operators track per-user and per-model token
-consumption, attribute costs, enforce quotas, and generate chargeback reports
-for inference requests passing through the AI Inference Gateway.</p>
+cost</strong> in RHOAI 3.6: the Models-as-a-Service (MaaS) usage-logging
+pipeline that turns every inference call into a per-user usage record, the
+user-scoped dashboards that surface token consumption, and the
+<code>DSCInitialization</code> (DSCI) configuration knob that forwards usage records to
+metering backends outside the cluster. Platform operators use this pipeline to
+track per-user and per-model token consumption, attribute costs to
+organizations and cost centers, and generate showback and chargeback reports
+for inference requests passing through the MaaS gateway.</p>
 </div>
 <div class="paragraph">
 <p>Because this is a Developer Preview feature, this workshop focuses on
@@ -619,16 +623,16 @@ already exist in your cluster rather than on installing new components.</p>
 <div class="ulist">
 <ul>
 <li>
-<p>What the external-metering IPP plugin and the standalone metering service do and where they fit in RHOAI 3.5</p>
+<p>How the MaaS <code>Config</code> resource enables per-user usage logging (<code>usageLogging: true</code>) and the usage metrics dashboard (<code>usageMetricsDashboard: true</code>)</p>
 </li>
 <li>
-<p>How the plugin chain checks user balances and extracts token usage from OpenAI and Anthropic provider responses</p>
+<p>How the controller-managed <code>usage-logs</code> OpenTelemetry Collector receives usage records over OTLP and stamps them with identity attributes — <code>user_id</code>, <code>subscription</code>, <code>key_name</code>, <code>groups</code>, <code>organization_id</code>, and <code>cost_center</code></p>
 </li>
 <li>
-<p>How CloudEvents flow to the PostgreSQL-backed metering service for aggregation and cache-aware pricing</p>
+<p>How usage records flow into the <code>data-science-usage-logs</code> LokiStack and back out through the user-scoped <code>usage-logs-tenancy-proxy</code>, and what the Perses usage dashboards show: per-user request counts (<code>dashboard-3-maas-usage-admin</code>) and per-user token consumption (<code>tokens_total</code> grouped by <code>user_id</code>, <code>organization_id</code>, and <code>cost_center</code> in <code>dashboard-4</code> and <code>dashboard-5</code>)</p>
 </li>
 <li>
-<p>Where per-user usage data appears in the MaaS observability dashboard and how it differs from the CSV showback export</p>
+<p>How <code>spec.monitoring.usageLogs.exporters</code> in the <code>DSCInitialization</code> (DSCI) resource — the external-metering knob — forwards a copy of every usage record to an observability backend outside the cluster, with cluster identity attributes for fleet-level attribution</p>
 </li>
 </ul>
 </div>
@@ -640,21 +644,37 @@ already exist in your cluster rather than on installing new components.</p>
 <div class="ulist">
 <ul>
 <li>
-<p>An OpenShift cluster with RHOAI 3.5 installed</p>
+<p>An OpenShift cluster with RHOAI 3.6 installed</p>
 </li>
 <li>
-<p>RHOAI operator installed</p>
+<p>Red Hat OpenShift AI operator installed</p>
 </li>
 <li>
-<p>MaaS enabled</p>
-</li>
-<li>
-<p>External metering configured</p>
+<p>Models-as-a-Service (MaaS) enabled</p>
 </li>
 <li>
 <p>Recommended prerequisite: complete the <a href="../maas-core/index.html" class="xref page">Models-as-a-Service (MaaS) core: access model and token mechanism</a> workshop first</p>
 </li>
+<li>
+<p>Required for the usage-log storage runtime: the <code>data-science-usage-logs</code> LokiStack and the showback configuration it hosts are set up by the <a href="../maas-loki-showback/index.html" class="xref page">Loki-based showback and user-scoped usage dashboards (MaaS)</a> workshop. If your cluster does not already run that LokiStack, complete that workshop&#8217;s setup first — this workshop consumes that runtime and does not repeat its steps.</p>
+</li>
 </ul>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Scope boundary — this workshop covers <strong>external metering</strong>: the per-user
+usage records, the usage dashboards, and the DSCI exporter that forwards usage
+data beyond the cluster. The sibling showback workshop owns the LokiStack
+storage and CSV showback export setup that this pipeline writes into; the two
+features share the same usage-log pipeline but teach different consumers of it.
+</td>
+</tr>
+</table>
 </div>
 </div>
 </div>
