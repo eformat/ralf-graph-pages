@@ -1,0 +1,1301 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Module 02: Hands-on Exercise :: RHOAI 3.6 Kitchen Sink Workshop Catalog</title>
+    <link rel="canonical" href="https://eformat.github.io/ralf-graph-pages/eval-insights-model-library/module-02-hands-on.html">
+    <link rel="prev" href="module-01-concepts.html">
+    <link rel="next" href="module-03-advanced.html">
+    <meta name="generator" content="Antora 3.2.3">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@400;500;700&family=Red+Hat+Mono:wght@400;700&family=Red+Hat+Text:wght@400;700&display=swap">
+    <link rel="stylesheet" href="../_/css/site.css">
+<link rel="stylesheet" href="../_/css/site-extra.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="icon" href="../_/img/favicon.svg" type="image/svg+xml">
+  </head>
+  <body class="article">
+<a class="skip-link" href="#content">Skip to content</a>
+<header class="header">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <span class="navbar-item navbar-logo">
+        <img src="../_/img/logo-summit.svg" alt="Red Hat Summit" class="navbar-logo-img">
+      </span>
+      <a class="navbar-item site-title" target="_blank" href="https://eformat.github.io/ralf-graph-pages">RHOAI 3.6 Kitchen Sink Workshop Catalog</a>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="eval-insights-model-library" data-version="">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+    <h3 class="title"><a href="index.html" class=" query-params-link">Evaluation Insights in the Model Library</a></h3>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Workshop</span>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="index.html">Overview</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="getting-connected.html">Getting Connected</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Modules</span>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="module-01-concepts.html">Core Concepts</a>
+  </li>
+  <li class="nav-item is-current-page" data-depth="1">
+    <a class="nav-link" href="module-02-hands-on.html">Hands-on Exercise</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="module-03-advanced.html">Advanced Usage</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Wrap-up</span>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="conclusion.html">Conclusion</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+  </div>
+  <ul class="components">
+    <li class="component">
+      <span class="title">Agent Catalog in AI Hub</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../agent-catalog-ai-hub/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">AI Available Assets page</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../ai-available-assets/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Automated Red Teaming (powered by Garak)</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../automated-red-teaming-garak/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Automated tool-calling evaluation-data generation for custom MCP servers</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../automated-tool-calling-eval/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">AutoML</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../automl/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">AutoRAG</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../autorag/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">AutoRAG Multilingual Workshop</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../autorag-multilingual/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">AutoRAG OCR Document Ingestion</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../autorag-ocr-ingestion/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Claude Code agent starter kit</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../claude-code-starter-kit/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">CSV export for Model Catalog data</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../csv-export-model-catalog/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Distributed Inference with llm-d (core)</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../llmd-core/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Distributed Inference with llm-d: priority-based flow control</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../llmd-priority-flow-control/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">EvalHub Eval Gallery — Curated Evaluation Collections</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../evalhub-eval-gallery/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">EvalHub Inspect AI Provider GA Workshop</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../evalhub-inspect-ai-ga/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">EvalHub LightEval Provider GA Workshop</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../evalhub-lighteval-ga/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component is-current">
+      <span class="title">Evaluation Insights in the Model Library</span>
+      <ul class="versions">
+        <li class="version is-current">
+          <a href="index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Evaluation Stack (EvalHub)</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../evalhub/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">External metering integration for MaaS</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../external-metering-maas/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">External metering: per-user token usage and cost</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../external-metering-per-user/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Feature Store (Feast-based)</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feature-store-feast/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Gateway API and Red Hat Connectivity Link (RHCL)</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../gateway-api-rhcl/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Gen AI Studio saved-agent configuration</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../genai-studio-saved-agent/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">GRPO Training Pipelines</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../grpo-training-pipelines/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Hierarchical KV Cache Tiering (llm-d)</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../llmd-kv-cache-tiering/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Kale JupyterLab extension</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../kale-jupyterlab/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Kubeflow Trainer v2</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../kubeflow-trainer-v2/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">KubeRay (CodeFlare Operator successor)</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../kuberay/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Kueue (Red Hat build of Kueue Operator)</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../kueue/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Latency-aware routing for llm-d</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../llmd-latency-routing/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Llama Stack / OGX core: RAG, agentic workflows, vector DB integration</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../llama-stack-ogx-core/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">LLMInferenceService / LLMInferenceServiceConfig (llm-d-native)</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../llminferenceservice-config/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Loki-based showback and user-scoped usage dashboards (MaaS)</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../maas-loki-showback/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">LoRA-aware routing for llm-d</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../llmd-lora-routing/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">MaaS deployment/routing path for Distributed Inference with llm-d</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../maas-llmd-deployment/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">MaaS multi-tenancy with per-tenant gateway and identity isolation</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../maas-multi-tenancy/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">MaaS-specific external OIDC user authentication</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../maas-oidc-auth/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">MCP Catalog administrative interface</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../mcp-catalog-admin/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">MCP Catalog support-tier labeling</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../mcp-catalog-support-tier/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">MCP gateway Operator</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../mcp-gateway-operator/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">MCP Lifecycle Operator</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../mcp-lifecycle-operator/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">MiDojo adversarial testing engine</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../midojo-adversarial-testing/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">MLflow experiment tracking / MLOps integration</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../mlflow-experiment-tracking/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Model registry and model catalog</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../model-registry-catalog/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Models-as-a-Service (MaaS) core: access model and token mechanism</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../maas-core/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Multi-provider API passthrough for external models (MaaS)</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../maas-multi-provider-passthrough/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Native Prometheus telemetry for Kubeflow Trainer v2 training workloads</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../kftv2-prometheus-telemetry/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">NeMo Guardrails</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../nemo-guardrails/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">NeMo Guardrails integration with MCP Gateway</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../nemo-guardrails-mcp-gateway/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">OGX File Processors API</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../ogx-file-processors/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">OGX remote::anthropic and remote::gemini providers</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../ogx-remote-providers/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">OGX-native agentic API surface (Tool Runtime, Responses, Conversations)</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../ogx-agentic-api/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">OpenClaw agent starter kit</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../openclaw-starter-kit/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">OpenCode coding-agent deployment</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../opencode-coding-agent/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">OpenShell (secure agent sandboxing and policy enforcement)</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../openshell-agent-sandboxing/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Platform-wide direct OIDC authentication (GatewayConfig CR)</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../platform-oidc-auth/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Private Hugging Face models in the model catalog</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../private-hf-models/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Red Hat AI Inference fast-release images as custom ServingRuntime</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../rhai-fast-release-images/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">RHOAI Kitchen Sink</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../home/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Speculator training pipeline for Kubeflow Pipelines</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../speculator-training-kfp/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Text-mode training for multimodal models in Training Hub</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../text-mode-multimodal-training/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Validated tool-calling configuration in Model Catalog</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../validated-tool-calling-config/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">View running agent deployments in dashboard</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../view-agent-deployments/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">vLLM CPU ServingRuntime on IBM Z / Power</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../vllm-cpu-ibm-z-power/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">vLLM model deployment directly through MaaS</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../maas-vllm-deployment/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">vLLM ServingRuntime for KServe</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../vllm-serving-runtime-kserve/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</div>    </div>
+  </aside>
+</div>
+<main class="article" id="content">
+<div class="toolbar" role="navigation">
+<button class="nav-toggle"></button>
+  <a href="../home/index.html" class="home-link"></a>
+<nav class="breadcrumbs" aria-label="breadcrumbs">
+  <ul>
+    <li><a href="index.html">Evaluation Insights in the Model Library</a></li>
+    <li>Modules</li>
+    <li><a href="module-02-hands-on.html">Hands-on Exercise</a></li>
+  </ul>
+</nav>
+</div>
+  <div class="content">
+<article class="doc">
+<h1 class="page">Module 02: Hands-on Exercise</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>In this module you will stage the full data path the Evaluation Insights
+feature is built on: a Model Registry with a registered model, a benchmark
+collection added to your project, and a real evaluation run against a live
+OpenAI-compatible endpoint — then inspect the results and check the model
+card.</p>
+</div>
+<div class="paragraph">
+<p><strong>Learning objectives:</strong></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Create a Model Registry instance and register a model via the registry REST
+API</p>
+</li>
+<li>
+<p>Add the <code>toxicity-and-ethical-principles</code> collection to the
+<code>ai-tenants</code> project</p>
+</li>
+<li>
+<p>Run an evaluation against the <code>qwen25-05b</code> endpoint with EvalHub</p>
+</li>
+<li>
+<p>Read run state and scores from the /evaluation Runs view</p>
+</li>
+<li>
+<p>Verify what the 3.6.0-ea.2 deployed bits render on the model card</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>All commands assume you are in the repository root; every referenced script
+lives in <code>features/evaluation/eval-insights-model-library/deploy/</code> and is
+idempotent — re-running it detects existing state and exits cleanly.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_exercise_1_stage_the_model_registry"><a class="anchor" href="#_exercise_1_stage_the_model_registry"></a>Exercise 1: Stage the Model Registry</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The Model Library <strong>Registry</strong> tab needs at least one ModelRegistry instance.
+Apply <code>01-modelregistry.yaml</code>, which creates <code>model-registry-demo</code> in the
+<code>rhoai-model-registries</code> namespace (the operator&#8217;s admission webhook rejects
+ModelRegistry CRs anywhere else) with an operator-provisioned PostgreSQL
+backend:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc apply -f features/evaluation/eval-insights-model-library/deploy/01-modelregistry.yaml</code></pre>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_verify"><a class="anchor" href="#_verify"></a>Verify</h3>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc -n rhoai-model-registries get modelregistry model-registry-demo
+oc -n rhoai-model-registries get pods -l app.kubernetes.io/name=model-registry-demo</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The CR shows <code>Ready</code>, and the <code>model-registry-demo</code> deployment pod is
+<code>Running</code> (registry REST container plus its kube-rbac-proxy). With the
+registry instance in place, the next exercise registers a model in it.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_exercise_2_register_the_model"><a class="anchor" href="#_exercise_2_register_the_model"></a>Exercise 2: Register the model</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Register <code>qwen25-05b</code> and attach the evaluation endpoint to its version.
+Run the helper script (it resolves the registry pod, POSTs the registered
+model and version, PATCHes <code>customProperties</code> with the endpoint, and
+GET-verifies):</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">bash features/evaluation/eval-insights-model-library/deploy/02-register-model.sh</code></pre>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_verify_2"><a class="anchor" href="#_verify_2"></a>Verify</h3>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">REG_POD=$(oc -n rhoai-model-registries get pods -l app.kubernetes.io/name=model-registry-demo -o jsonpath='{.items[0].metadata.name}')
+oc exec -n rhoai-model-registries "$REG_POD" -c rest -- \
+  curl -s http://localhost:8080/api/model_registry/v1alpha3/registered_models | python3 -m json.tool | head -25</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The list contains <code>qwen25-05b</code> (owner <code>prelude</code>, state <code>LIVE</code>) with one
+version, <code>qwen25-05b-gguf</code>, whose <code>customProperties</code> carry the endpoint
+(<code><a href="https://qwen25-05b-ai-tenants.apps.ocp5-m6wl4-2plgg.sandbox1832.opentlc.com/v1" class="bare">https://qwen25-05b-ai-tenants.apps.ocp5-m6wl4-2plgg.sandbox1832.opentlc.com/v1</a></code>), <code>model_id</code>, and <code>serving_runtime</code>.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Two schema rules this registry build enforces (both hit live while staging):
+<code>customProperties</code> values must use the discriminator form
+(<code>"metadataType":"MetadataStringValue"</code>), and <code>ModelVersion</code> has no
+<code>sourceModelFormat</code> field. The script already complies; see
+<a href="module-03-advanced.html" class="xref page">Module 3</a> for the raw REST sequence.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>In the dashboard, <strong>AI hub → Models → Registry</strong> now lists <code>qwen25-05b</code>;
+clicking it opens the registered model card at
+<code>/ai-hub/models/registry/model-registry-demo/registered-models/1/overview</code>.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_exercise_3_add_a_collection_to_your_project"><a class="anchor" href="#_exercise_3_add_a_collection_to_your_project"></a>Exercise 3: Add a collection to your project</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Evaluation data is organized in <strong>collections</strong>. The platform seeds
+<code>toxicity-and-ethical-principles</code> (benchmarks: <code>toxigen</code>,
+<code>truthfulqa_mc1</code>, <code>bigbench_hhh_alignment_multiple_choice</code>) as a read-only
+system collection; to use it in <code>ai-tenants</code>, create a tenant-scoped
+copy. Run the helper (or use the UI <strong>Copy</strong> wizard at
+<code><a href="https://rh-ai.apps.ocp5-m6wl4-2plgg.sandbox1832.opentlc.com/evaluation/ai-tenants/create/collections/toxicity-and-ethical-principles/copy" class="bare">https://rh-ai.apps.ocp5-m6wl4-2plgg.sandbox1832.opentlc.com/evaluation/ai-tenants/create/collections/toxicity-and-ethical-principles/copy</a></code>):</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">bash features/evaluation/eval-insights-model-library/deploy/03-add-collection-to-tenant.sh</code></pre>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_verify_3"><a class="anchor" href="#_verify_3"></a>Verify</h3>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">EVALHUB_POD=$(oc -n redhat-ods-applications get pods -o name | grep evalhub | head -1 | cut -d/ -f2)
+oc exec -n redhat-ods-applications "$EVALHUB_POD" -c evalhub -- \
+  curl -s -H 'X-Tenant: ai-tenants' -H 'X-User: prelude' \
+  'http://localhost:8444/api/v1/evaluations/collections?scope=tenant' | python3 -m json.tool | head -30</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>total_count</code> is <code>1</code> and the item&#8217;s <code>derived_from</code> is
+<code>toxicity-and-ethical-principles</code> — your tenant&#8217;s copy. In the UI,
+<strong>Evaluations → Benchmark collections</strong> lists the card
+<strong>Toxicity and Ethical Principles (ai-tenants)</strong> (Model evaluation · 3
+benchmarks) with a <strong>Run</strong> button:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/evaluation-benchmark-collections.png" alt="The Benchmark collections tab lists the tenant copy of the collection with a Run button">
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>The <strong>Gallery</strong> tab stays empty by design in these bits: it renders only
+<strong>curated</strong> collections (<code>curation_order &gt; 0</code>) and the shipped system
+collections are all uncurated. Use <strong>Benchmark collections</strong>, not the Gallery,
+to add and run collections:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/evaluation-gallery-curated-empty.png" alt="The Gallery tab shows No collections found by design in the 3.6.0-ea.2 bits">
+</div>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_exercise_4_stage_the_evaluation_runtime_in_the_tenant"><a class="anchor" href="#_exercise_4_stage_the_evaluation_runtime_in_the_tenant"></a>Exercise 4: Stage the evaluation runtime in the tenant</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>When a job runs, the EvalHub service account creates a ConfigMap, a
+NetworkPolicy, and a batch Job <strong>in the tenant namespace</strong> — but the
+3.6.0-ea.2 operator provisions that RBAC only in EvalHub&#8217;s own
+namespace. Without the fix, every run dies immediately with
+<code>configmaps is forbidden: User &#8230;&#8203;:evalhub-service cannot create resource
+configmaps &#8230;&#8203; in the namespace ai-tenants</code>. Apply the additive RBAC
+and mirror the MLflow CA bundle the eval pod mounts:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc apply -f features/evaluation/eval-insights-model-library/deploy/04-evalhub-runtime-rbac.yaml
+bash features/evaluation/eval-insights-model-library/deploy/06-evalhub-tenant-configmaps.sh</code></pre>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_verify_4"><a class="anchor" href="#_verify_4"></a>Verify</h3>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc -n ai-tenants get sa,rolebinding | grep -E 'evalhub|job'
+oc -n ai-tenants get cm evalhub-service-ca evalhub-mlflow-ca-bundle</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Both ConfigMaps exist in <code>ai-tenants</code> and the evalhub job
+ServiceAccount/RoleBindings are present.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_exercise_5_run_the_evaluation"><a class="anchor" href="#_exercise_5_run_the_evaluation"></a>Exercise 5: Run the evaluation</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Run the collection against the <code>qwen25-05b</code> endpoint. Either click <strong>Run</strong> on
+the collection card in the UI, or run the helper. The helper POSTs one fast
+inline <code>ifeval</code> job — 10 examples (<code>parameters.num_examples</code>), generation-only,
+<code>pass_criteria</code> threshold <code>0.6</code> on <code>inst_level_strict_acc</code> — which completes in
+minutes on CPU. Setting <code>RUN_COLLECTION=1</code> also submits the 3-benchmark
+collection run (when that works on your endpoint; see the failure-modes note
+below for why it is off by default here):</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">bash features/evaluation/eval-insights-model-library/deploy/05-run-collection-eval.sh</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Watch progress — EvalHub translates each job into a batch Job (one pod per
+benchmark) in <code>ai-tenants</code>:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc -n ai-tenants get jobs -w</code></pre>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_verify_5"><a class="anchor" href="#_verify_5"></a>Verify</h3>
+<div class="paragraph">
+<p>Check the run states from the API and the UI:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">EVALHUB_POD=$(oc -n redhat-ods-applications get pods -o name | grep evalhub | head -1 | cut -d/ -f2)
+oc exec -n redhat-ods-applications "$EVALHUB_POD" -c evalhub -- \
+  curl -s -H 'X-Tenant: ai-tenants' -H 'X-User: prelude' \
+  'http://localhost:8444/api/v1/evaluations/jobs?limit=10' | \
+  python3 -c 'import json,sys; [print(i["resource"]["id"][:8], i["status"].get("state"), i["resource"].get("name")) for i in json.load(sys.stdin)["items"]]'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Then open <a href="https://rh-ai.apps.ocp5-m6wl4-2plgg.sandbox1832.opentlc.com/evaluation" class="bare">https://rh-ai.apps.ocp5-m6wl4-2plgg.sandbox1832.opentlc.com/evaluation</a> with Project <code>ai-tenants</code> and the <strong>Runs</strong>
+tab. Every submission appears with its job status, the evaluated model
+(<code>Qwen/Qwen2.5-0.5B-Instruct</code> in this workshop), date, and — for completed
+runs — the score in the <strong>Result</strong> column:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/evaluation-runs.png" alt="The Runs tab lists the completed evaluation: qwen25-05b-ifeval-subset" width="Complete" height="28%">
+</div>
+</div>
+<div class="paragraph">
+<p>Open a run (click its name) for the score surface — the result percentage, the
+pass/fail verdict against the benchmark threshold, the primary metric, the run
+duration, and a <strong>View log</strong> link:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/evaluation-run-detail.png" alt="Run detail: 28% result" width="Ifeval Fail badge against the 60% benchmark threshold" height="primary metric Instruction accuracy (strict)">
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>One API-vs-UI detail worth knowing: the run detail renders the <strong>authored</strong>
+<code>pass_criteria</code> threshold (60%), while the raw API <code>results.test.threshold</code>
+field reads EvalHub&#8217;s own default (0.5). The verdict — <code>pass:false</code> for this
+0.28 run — is the same under either value.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p><strong>Failure modes observed live while staging this workshop</strong> (honest record —
+your cluster may behave differently):</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Tokenizer resolution uses the model name</strong> — the harness resolves the
+tokenizer from HuggingFace with the <strong>same</strong> <code>model.name</code> it sends to the
+endpoint, so an arbitrary serving alias (here <code>qwen25-05b</code>) fails with
+<code>Gated HuggingFace tokenizer error &#8230;&#8203; not a valid model identifier</code>. Fix:
+pass the real HuggingFace id — <code>Qwen/Qwen2.5-0.5B-Instruct</code>, public and
+token-free — as the job&#8217;s model name; the endpoint itself accepts any id
+(llama.cpp echoes it back).</p>
+</li>
+<li>
+<p><strong>Multiple-choice benchmarks need <code>echo</code></strong> — lm-eval&#8217;s loglikelihood path
+hard-codes <code>echo:true</code> in <code>POST /v1/completions</code>, and the llama.cpp build
+serving this endpoint returns HTTP 500 for every <code>echo:true</code> request. All
+multiple-choice benchmarks (<code>truthfulqa_mc1</code>, <code>toxigen</code>,
+<code>bigbench_hhh_alignment_*</code>) therefore fail against this endpoint — which is
+why the default demo job is the <strong>generation</strong> benchmark <code>ifeval</code>, which does
+not use <code>echo</code> and completes fine. Against a vLLM-served endpoint,
+<code>RUN_COLLECTION=1</code> works end to end.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>A <strong>Failed</strong> row with <code>3 of 3 benchmarks failed</code> is diagnostic, not fatal:
+fix the cause and run again — each submission is independent. (The
+multiple-choice-vs-llama.cpp failure above is the known exception: an
+endpoint capability gap, not a staging mistake.)</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_exercise_6_where_the_results_surface_and_the_model_card_reality_check"><a class="anchor" href="#_exercise_6_where_the_results_surface_and_the_model_card_reality_check"></a>Exercise 6: Where the results surface — and the model card reality check</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The RHAISTRAT-1858 contract puts this evaluation data on an <strong>Evaluation
+insights</strong> tab on model cards. Open the registered model card
+(<strong>AI hub → Models → Registry → <code>qwen25-05b</code></strong>) and compare with what the
+release feed promises:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/registered-model-card-tabs.png" alt="The registered model card renders Overview" width="Versions and Deployments tabs">
+</div>
+</div>
+<div class="paragraph">
+<p>In the 3.6.0-ea.2 bits deployed in this environment, the card
+renders exactly three tabs — <strong>Overview</strong>, <strong>Versions</strong>, <strong>Deployments</strong> — and the
+Evaluation insights tab is <strong>not among them</strong>, even with evaluation runs
+present. The on-cluster re-check that established this is conclusive:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The string <code>Evaluation insights</code> (and <code>eval-insights</code>,
+<code>evaluation-insights</code>, <code>evalInsights</code>) appears in <strong>no</strong> deployed frontend
+bundle — dashboard core-bff, model-registry-ui, eval-hub-ui — while control
+strings like <code>Performance insights</code> and <code>Benchmark collections</code> do match.</p>
+</li>
+<li>
+<p>The deployed build&#8217;s compiled TypeScript tab-contract types enumerate the
+model-card tabs as <code>Overview | Performance insights</code> (catalog) and
+<code>Overview | Versions</code> (registry card); no evaluation variant exists in the
+type system.</p>
+</li>
+<li>
+<p>The <code>/performance-insights</code> route itself renders the dashboard not-found
+page.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>So in these bits the feature&#8217;s <strong>live surface</strong> is the /evaluation stack you
+just exercised — collections, runs, and scores through the EvalHub API and
+UI — which is exactly the data and the EvalHub UI components the feature
+contract says the model-card tab will reuse. Treat the GA label as a
+statement about the feature&#8217;s target release content; on
+3.6.0-ea.2, verify your own bits with the bundle grep in
+<a href="module-03-advanced.html" class="xref page">Module 3</a> before promising the tab.</p>
+</div>
+<div class="sect2">
+<h3 id="_verify_6"><a class="anchor" href="#_verify_6"></a>Verify</h3>
+<div class="paragraph">
+<p>Open the <code>qwen25-05b</code> card in <strong>AI hub → Models → Registry</strong> and check the
+tab list with the Exercise 5 evaluation runs completed: exactly <strong>Overview</strong>,
+<strong>Versions</strong>, and <strong>Deployments</strong> — no <strong>Evaluation insights</strong> tab, even with
+evaluation runs present. That reproduces the documented state of the
+3.6.0-ea.2 bits; the bundle grep in
+<a href="module-03-advanced.html" class="xref page">Module 3</a> is the command-level confirmation.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_module_summary"><a class="anchor" href="#_module_summary"></a>Module summary</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><strong>What you accomplished:</strong></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Staged a Model Registry (<code>model-registry-demo</code>) and registered <code>qwen25-05b</code>
+with its evaluation endpoint</p>
+</li>
+<li>
+<p>Added the <code>toxicity-and-ethical-principles</code> collection to <code>ai-tenants</code></p>
+</li>
+<li>
+<p>Provisioned the evaluation runtime RBAC the 3.6.0-ea.2 operator
+does not create in tenant namespaces</p>
+</li>
+<li>
+<p>Submitted real evaluation runs against a live OpenAI-compatible endpoint
+and read their state from the Runs view</p>
+</li>
+<li>
+<p>Verified the model-card tab reality against the release-feed contract</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><strong>Key takeaways:</strong></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The evaluation runtime needs additive RBAC in the tenant namespace — in
+these bits the operator provisions it only in EvalHub&#8217;s own namespace</p>
+</li>
+<li>
+<p>Model names must be real HuggingFace repo ids (the harness resolves the
+tokenizer from the name), and multiple-choice benchmarks need an
+echo-capable endpoint</p>
+</li>
+<li>
+<p>The /evaluation Runs view is the feature&#8217;s live surface in the
+3.6.0-ea.2 bits; the model-card tab is contract-present,
+render-absent</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><strong>Next steps:</strong></p>
+</div>
+<div class="paragraph">
+<p>Continue to <a href="module-03-advanced.html" class="xref page">Module 03: Advanced Usage</a> for the
+raw REST surface and troubleshooting matrix.</p>
+</div>
+</div>
+</div>
+<nav class="pagination">
+  <span class="prev"><a href="module-01-concepts.html" class="query-params-link">Core Concepts</a></span>
+  <span class="next"><a href="module-03-advanced.html" class="query-params-link">Advanced Usage</a></span>
+</nav>
+</article>
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>  </div>
+</main>
+</div>
+<footer class="footer">
+  <a href="https://demo.redhat.com" target="_blank" class="poweredBy"><p>Powered by</p><div class="labInfo_poweredBy" style="display: block; width: 260px;"><svg class="labInfo_poweredByLogo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1508.5 178.739"><g fill="#111"><path d="M316.6 63.2v-56H342a21.279 21.279 0 0 1 7.8 1.3 18.111 18.111 0 0 1 5.9 3.5 15.577 15.577 0 0 1 5 11.8 15.051 15.051 0 0 1-3.1 9.5 16.836 16.836 0 0 1-8.4 5.8l12.5 24.1h-9.3l-11.6-23H325v23Zm24.7-48.6H325v18.7h16.3q5.25 0 8.1-2.7a8.7 8.7 0 0 0 2.8-6.6 8.7 8.7 0 0 0-2.8-6.6c-1.8-1.9-4.5-2.8-8.1-2.8ZM364.1 42.8a20.674 20.674 0 0 1 1.6-8.2 20.288 20.288 0 0 1 4.3-6.7 19.92 19.92 0 0 1 6.5-4.5 19.718 19.718 0 0 1 8-1.6 18.463 18.463 0 0 1 7.8 1.6 18.677 18.677 0 0 1 6.2 4.5 20.927 20.927 0 0 1 4.1 6.8 23.2 23.2 0 0 1 1.5 8.4v2.3H372a13.822 13.822 0 0 0 4.6 8.4 13.6 13.6 0 0 0 9.1 3.3 15.553 15.553 0 0 0 5.7-1 12.858 12.858 0 0 0 4.6-2.6l5.1 5a25.983 25.983 0 0 1-7.4 4.1 24.69 24.69 0 0 1-8.4 1.3 21.306 21.306 0 0 1-8.4-1.6 22.763 22.763 0 0 1-6.8-4.4 20.788 20.788 0 0 1-4.5-6.7 23.2 23.2 0 0 1-1.5-8.4Zm20.2-14.2a11.527 11.527 0 0 0-8 3 13.046 13.046 0 0 0-4.2 7.8h24.2a13.091 13.091 0 0 0-4.2-7.8 11.106 11.106 0 0 0-7.8-3ZM443.1 63.2v-3.8a19.448 19.448 0 0 1-5.8 3.3 18.924 18.924 0 0 1-6.7 1.2 19.824 19.824 0 0 1-14.6-6.1 22.268 22.268 0 0 1-4.4-6.7 21.812 21.812 0 0 1 0-16.4A20.534 20.534 0 0 1 416 28a19.335 19.335 0 0 1 6.6-4.5 20.334 20.334 0 0 1 8.2-1.6 20.7 20.7 0 0 1 6.6 1 19.415 19.415 0 0 1 5.7 3V7.2l8-1.8v57.8Zm-25.2-20.4a13.718 13.718 0 0 0 4 10.1 13.45 13.45 0 0 0 9.8 4.1 14.956 14.956 0 0 0 6.4-1.3 15.954 15.954 0 0 0 4.9-3.6V33.6a14.988 14.988 0 0 0-4.9-3.5 15.271 15.271 0 0 0-6.4-1.3 13.423 13.423 0 0 0-9.9 4 13.806 13.806 0 0 0-3.9 10ZM478.1 63.2v-56h8.4v24h29.8v-24h8.4v56h-8.4V38.8h-29.8v24.4ZM547.2 64a16.483 16.483 0 0 1-10.8-3.5 11.037 11.037 0 0 1-4.2-8.9 10.375 10.375 0 0 1 4.7-9.2 20.76 20.76 0 0 1 11.8-3.2 27.841 27.841 0 0 1 5.8.6 27.374 27.374 0 0 1 5.3 1.6v-4.3a8.143 8.143 0 0 0-2.6-6.5 11.452 11.452 0 0 0-7.4-2.2 20.788 20.788 0 0 0-6 .9 34.616 34.616 0 0 0-6.6 2.6l-3-6a54.169 54.169 0 0 1 8.4-3.1 33.18 33.18 0 0 1 8.3-1.1c5.2 0 9.3 1.3 12.2 3.8s4.4 6.1 4.4 10.8v27h-7.8v-3.5a19.441 19.441 0 0 1-5.8 3.2 23.54 23.54 0 0 1-6.7 1Zm-7.3-12.6a5.646 5.646 0 0 0 2.6 4.8 11.193 11.193 0 0 0 6.6 1.8 16.256 16.256 0 0 0 5.9-1 14.449 14.449 0 0 0 4.9-2.9V47a19.778 19.778 0 0 0-4.8-1.8 24.933 24.933 0 0 0-5.7-.6 11.859 11.859 0 0 0-6.8 1.8 5.728 5.728 0 0 0-2.7 5ZM580.6 53.2v-24H572v-6.7h8.6V12.1l7.9-1.9v12.3h12v6.7h-12v22.1a5.94 5.94 0 0 0 1.4 4.4c.9.9 2.5 1.3 4.6 1.3a23.637 23.637 0 0 0 3-.2 10.857 10.857 0 0 0 2.8-.8v6.7a19.28 19.28 0 0 1-3.8.9 27.484 27.484 0 0 1-3.8.3c-3.9 0-7-.9-9-2.8-2-1.7-3.1-4.4-3.1-7.9Z"></path></g><path d="M127 90.2c12.5 0 30.6-2.6 30.6-17.5a12.678 12.678 0 0 0-.3-3.4L149.8 37c-1.7-7.1-3.2-10.3-15.7-16.6-9.7-5-30.8-13.1-37.1-13.1-5.8 0-7.5 7.5-14.4 7.5-6.7 0-11.6-5.6-17.9-5.6-6 0-9.9 4.1-12.9 12.5 0 0-8.4 23.7-9.5 27.2a4.216 4.216 0 0 0-.3 1.9c0 9.2 36.3 39.4 85 39.4Zm32.5-11.4c1.7 8.2 1.7 9.1 1.7 10.1 0 14-15.7 21.8-36.4 21.8-46.8 0-87.7-27.4-87.7-45.5a17.535 17.535 0 0 1 1.5-7.3C21.8 58.8 0 61.8 0 81c0 31.5 74.6 70.3 133.7 70.3 45.3 0 56.7-20.5 56.7-36.6-.1-12.8-11-27.3-30.9-35.9Z" fill="#e00"></path><path d="M159.5 78.8c1.7 8.2 1.7 9.1 1.7 10.1 0 14-15.7 21.8-36.4 21.8-46.8 0-87.7-27.4-87.7-45.5a17.535 17.535 0 0 1 1.5-7.3l3.7-9.1a4.877 4.877 0 0 0-.3 2c0 9.2 36.3 39.4 85 39.4 12.5 0 30.6-2.6 30.6-17.5a12.678 12.678 0 0 0-.3-3.4Z"></path><path d="M253.5 158.7a2.22 2.22 0 0 1-2.2-2.2V2.2a2.2 2.2 0 0 1 4.4 0v154.2a2.242 2.242 0 0 1-2.2 2.3Z" fill="#111"></path><text data-name="Demo Platform" transform="translate(1186 149)" fill="#111" font-size="82" font-family="'RedHatDisplay', 'Overpass', overpass, helvetica, arial, sans-serif" font-weight="700"><tspan x="-877.892" y="0">Demo Platform</tspan></text></svg></div></div>
+</footer>
+<script defer src="../_/js/vendor/clipboard.js"></script>
+<script defer src="../_/js/site.js"></script>
+<script defer src="../_/js/vendor/highlight.js"></script>
+  <style>
+/* left align items inside imageblock */
+.doc .imageblock {
+    align-items: flex-start;
+  }
+
+/* add a shadow to the image container */
+.doc .bordershadow .content{
+    border: solid 1px black;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+}
+
+/*custom video css*/
+video {
+    border: solid 1px black;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+}
+
+/* allow for wider screens */
+.doc {
+    max-width: none;
+}
+
+.navbar-item-right-dropdown {
+    float: right!important;
+}
+
+.navbar-dropdown-right {
+    right: 0;
+    left: auto;
+}
+
+.navbar-item-right-content {
+    width: 100%;
+    background-color: #131313;
+}
+
+/* ── Send-to button ─────────────────────────────────── */
+.listingblock { position: relative; }
+.send-to-command-btn {
+  position: absolute; top: 0.5rem; right: 0.5rem;
+  background: #28a745; color: white; border: none; border-radius: 4px;
+  padding: 0.5rem 1rem; font-size: 0.875rem; font-weight: 600;
+  cursor: pointer; transition: all 0.2s; z-index: 100;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2); opacity: 0.3;
+}
+.send-to-command-btn:hover { background: #218838; transform: translateY(-2px); opacity: 1; }
+.send-to-command-btn.success { background: #27ae60; }
+.send-to-command-btn.copied { background: #3498db; }
+.listingblock pre.send-to { padding-top: 3rem !important; }
+
+</style>
+<script>
+(function () {
+  'use strict';
+
+  // ── Send-to Terminal ──────────────────────────────────────────────────────
+  function initSendTo() {
+    document.querySelectorAll('[class*="send-to-"]').forEach(function (block) {
+      if (block.dataset.sendToButtonAdded) return;
+      var listingBlock = block.closest('.listingblock');
+      if (!listingBlock) return;
+
+      var targetClass = Array.from(block.classList).find(function (c) { return /^send-to-.+/.test(c); });
+      if (!targetClass) return;
+      var targetPath = '/' + targetClass.replace('send-to-', '');
+
+      var btn = document.createElement('button');
+      btn.className = 'send-to-command-btn';
+      btn.title = 'Send to ' + targetPath;
+      btn.innerHTML = '▶';
+      btn.onclick = function () {
+        var cmd = (block.querySelector('code') || block).textContent.trim();
+        sendToTerminal(cmd, btn, targetPath);
+      };
+      listingBlock.appendChild(btn);
+      block.dataset.sendToButtonAdded = 'true';
+    });
+  }
+
+  function findFrame(targetPath) {
+    try {
+      if (!window.parent || window.parent === window) return null;
+      var frames = window.parent.document.querySelectorAll('iframe');
+      for (var i = 0; i < frames.length; i++) {
+        if ((frames[i].src || '').indexOf(targetPath) !== -1) return frames[i];
+      }
+    } catch (e) {}
+    return null;
+  }
+
+  function sendToTerminal(command, button, targetPath) {
+    var frame = findFrame(targetPath);
+    var original = button.innerHTML;
+    if (!frame) {
+      alert('Cannot find terminal at ' + targetPath + ' in this showroom.\nCheck ui-config.yml has a tab with ' + targetPath + ' URL.');
+      return;
+    }
+
+    if (targetPath === '/terminal') {
+      ensureTerminalListener(frame);
+    }
+
+    frame.contentWindow.postMessage({ type: 'execute', data: command + '\r' }, '*');
+    button.classList.add('success'); button.innerHTML = '✓ Sent!';
+    setTimeout(function () { button.classList.remove('success'); button.innerHTML = original; }, 2000);
+  }
+
+  function ensureTerminalListener(frame) {
+    if (frame.dataset.listenerInjected) return;
+
+    var listenerScript = `
+(function() {
+  if (window.__terminalListenerInstalled) return;
+  window.__terminalListenerInstalled = true;
+
+  window.addEventListener("message", function(event) {
+    if (event.data && event.data.type === "execute") {
+      var command = event.data.data;
+      var term = window.term;
+
+      if (term) {
+        command = command.replace(/[\\r\\n]+$/, "");
+
+        if (window.client && typeof window.client.sendData === 'function') {
+          window.client.sendData(command + '\\r');
+          return;
+        }
+
+        if (term._core && term._core.coreService && term._core.coreService._inputHandler) {
+          for (var i = 0; i < command.length; i++) {
+            term._core.coreService._inputHandler.parse(command[i]);
+          }
+          term._core.coreService._inputHandler.parse('\\r');
+          return;
+        }
+
+        if (term._core && term._core._onData) {
+          term._core._onData.fire(command + '\\r');
+          return;
+        }
+
+        term.write(command + '\\r\\n');
+      }
+    }
+  }, false);
+})();`;
+
+    try {
+      var script = frame.contentWindow.document.createElement('script');
+      script.textContent = listenerScript;
+      frame.contentWindow.document.body.appendChild(script);
+      frame.dataset.listenerInjected = 'true';
+    } catch (e) {
+      console.error('Failed to inject terminal listener:', e);
+    }
+  }
+
+  // ── Copy-to-parent (plugin integration) ──────────────────────────────────
+  function initCopyToParent() {
+    if (window.parent === window) return;
+
+    document.addEventListener('click', function (e) {
+      var btn = e.target.closest('.copypaste .clipboard, .copypaste button[title="Copy"]');
+      if (!btn) return;
+      var listing = btn.closest('.listingblock');
+      if (!listing) return;
+      var code = listing.querySelector('pre code');
+      if (!code) return;
+      window.parent.postMessage({ type: 'copy', text: code.textContent.trim() }, '*');
+    });
+  }
+
+  // ── Boot ──────────────────────────────────────────────────────────────────
+  function init() { initSendTo(); initCopyToParent(); }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+
+})();
+
+</script>
+</body>
+</html>

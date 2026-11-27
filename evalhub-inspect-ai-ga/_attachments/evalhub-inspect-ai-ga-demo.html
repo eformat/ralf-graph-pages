@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EvalHub: Inspect AI provider at GA — demo walkthrough</title>
+<style>
+/* ===========================================================
+   Arcade-style demo player — reverse engineered from
+   arcade.software player DOM (area-border spotlight + camera).
+   Sibling template: evalhub-eval-gallery-demo.html (1440x900).
+
+   Self-contained walkthrough of the 6-phase demo production
+   contract (ENV → RECORD → AUTHOR → BUILD → VALIDATE → INTEGRATE).
+   The end-to-end demo run is owner-gated (graph facts 1784/1786),
+   so there are NO run screenshots to embed: every cue frame is a
+   terminal panel drawn at boot from the real steps.json contract
+   text. No fabricated run screenshots or results. No external
+   network fetches; works from file://.
+   =========================================================== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --accent: #EE0000;                       /* Red Hat red, as the Arcade demo */
+  --accent-soft: rgba(238, 0, 0, 0.12);
+  --marker: #6D5AE6;                       /* Arcade purple marker */
+  --dim: rgba(17, 24, 39, 0.25);           /* exact Arcade scrim */
+  --chrome-bg: rgba(21, 21, 21, 0.92);
+  --chrome-fg: #f0f0f0;
+  --chrome-dim: #9a9a9a;
+  --border: #3a3a3a;
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --zoom-dur: 0.7s;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  background: #0b0b0c;
+  font-family: 'Red Hat Display', 'Segoe UI', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Stage: recording space scaled to fit the window ── */
+#stage { position: absolute; inset: 0; }
+
+#frame {
+  position: absolute; top: 50%; left: 50%;
+  width: 1440px; height: 900px;
+  transform: translate(-50%, -50%);
+  background: #111;
+  border-radius: 8px;
+  overflow: hidden;                        /* clips the spotlight's punch-out dim */
+  box-shadow: 0 30px 90px rgba(0,0,0,.6);
+}
+
+#frame.picking { cursor: crosshair; }
+
+/* ── Camera: zoom layer, everything scene-related lives inside ── */
+#camera {
+  position: absolute; top: 0; left: 0;
+  width: 1440px; height: 900px;
+  transform-origin: 0 0;
+  transition: transform var(--zoom-dur) var(--ease);
+  will-change: transform;
+}
+
+/* ── Scene frames (crossfade stack) ── */
+.scene {
+  position: absolute; top: 0; left: 0;
+  width: 1440px; height: 900px;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  image-rendering: auto;
+}
+.scene.on { opacity: 1; }
+
+/* Video mode (optional): mp4 plays between cues, pauses at each */
+#video {
+  position: absolute; top: 0; left: 0;
+  width: 1440px; height: 900px;
+  display: none;
+}
+
+/* ── Spotlight: Arcade area-border. The dim is a box-shadow punch-out
+      (equivalent of Arcade's evenodd SVG path), border 6px red with 12px
+      radius like the extracted player DOM. Rides INSIDE the camera so it
+      stays anchored to the UI element while zooming. ── */
+#spot {
+  position: absolute;
+  pointer-events: none;
+  opacity: 0;
+  border: 6px solid var(--accent);
+  border-radius: 12px;
+  box-shadow: 0 0 0 4000px var(--dim);     /* the evenodd dim */
+  transition:
+    opacity 0.18s ease-out,
+    left   var(--zoom-dur) var(--ease),
+    top    var(--zoom-dur) var(--ease),
+    width  var(--zoom-dur) var(--ease),
+    height var(--zoom-dur) var(--ease),
+    border-width var(--zoom-dur) var(--ease),
+    border-radius var(--zoom-dur) var(--ease);
+}
+#spot.on { opacity: 1; }
+
+/* ── Pulsing marker (Arcade purple dot + expanding ring) ── */
+#marker {
+  position: absolute;
+  pointer-events: none;
+  opacity: 0;
+  transition:
+    opacity 0.3s ease,
+    left var(--zoom-dur) var(--ease),
+    top   var(--zoom-dur) var(--ease);
+}
+#marker.on { opacity: 1; }
+#marker .dot {
+  position: absolute; top: 50%; left: 50%;
+  width: 18px; height: 18px;
+  transform: translate(-50%, -50%);
+  background: var(--marker);
+  border: 3px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px rgba(109, 90, 230, 0.35);
+}
+#marker .ring {
+  position: absolute; top: 50%; left: 50%;
+  width: 30px; height: 30px;
+  transform: translate(-50%, -50%);
+  border: 3px solid var(--marker);
+  border-radius: 50%;
+  animation: pulse 1.6s ease-out infinite;
+}
+@keyframes pulse {
+  0%   { transform: translate(-50%, -50%) scale(0.6); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(2.4); opacity: 0; }
+}
+
+/* ── Chrome: caption, pills, panel, controls — OUTSIDE the camera so
+      text stays crisp at any zoom (scales with the stage only) ── */
+
+#caption {
+  position: absolute;
+  bottom: 56px; left: 50%;
+  transform: translateX(-50%);
+  max-width: 1160px;
+  padding: 13px 30px;
+  background: var(--chrome-bg);
+  color: var(--chrome-fg);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  font-size: 21px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1.35;
+  text-align: center;
+  opacity: 1;
+  transition: opacity 0.22s ease;
+  z-index: 20;
+}
+#caption.swap { opacity: 0; }
+
+#pills {
+  position: absolute;
+  bottom: 40px; left: 40px;
+  display: flex; gap: 8px;
+  align-items: center;
+  z-index: 20;
+}
+.pill {
+  height: 12px;
+  width: 26px;
+  border-radius: 6px;
+  background: rgba(240, 240, 240, 0.22);
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: width 0.3s var(--ease), background 0.3s ease;
+}
+.pill.done { background: rgba(109, 90, 230, 0.55); }
+.pill.cur  { width: 72px; background: var(--marker); }
+.pill:hover { background: var(--marker); }
+
+#controls {
+  position: absolute;
+  bottom: 34px; right: 40px;
+  display: flex; gap: 10px;
+  z-index: 20;
+}
+.btn {
+  min-width: 46px; height: 46px;
+  padding: 0 14px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  background: var(--chrome-bg);
+  color: var(--chrome-fg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 19px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.btn:hover { background: #2a2a2a; border-color: #555; }
+.btn.on { border-color: var(--marker); color: #fff; background: rgba(109, 90, 230, 0.25); }
+
+#hud {
+  position: absolute;
+  top: 28px; left: 36px;
+  display: flex; gap: 14px; align-items: baseline;
+  z-index: 20;
+  pointer-events: none;
+}
+#hud .title {
+  color: var(--chrome-fg);
+  font-size: 20px; font-weight: 700; letter-spacing: 0.02em;
+  text-shadow: 0 1px 8px rgba(0,0,0,.8);
+}
+#hud .count {
+  color: var(--chrome-dim);
+  font-size: 17px; font-weight: 600;
+  font-family: 'Red Hat Mono', 'Courier New', monospace;
+  text-shadow: 0 1px 8px rgba(0,0,0,.8);
+}
+
+/* ── Detail panel: Arcade's right slide-in, with Hide details ── */
+#panel {
+  position: absolute;
+  top: 88px; right: 40px;
+  width: 500px;
+  max-height: 620px;
+  overflow: auto;
+  background: rgba(250, 250, 250, 0.97);
+  color: #1a1a1a;
+  border-radius: 14px;
+  box-shadow: 0 18px 60px rgba(0,0,0,.45);
+  transform: translateX(120%);
+  transition: transform 0.35s var(--ease);
+  z-index: 20;
+}
+#panel.open { transform: translateX(0); }
+#panel .panel-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 18px 22px 12px;
+}
+#panel .panel-head h3 {
+  font-size: 16px; font-weight: 700; letter-spacing: 0.06em;
+  text-transform: uppercase; color: #555;
+}
+#panel .hide {
+  border: 1px solid #d5d5d5; background: #fff; color: #333;
+  border-radius: 8px; font-size: 13px; font-weight: 600;
+  padding: 6px 12px; cursor: pointer; font-family: inherit;
+}
+#panel .hide:hover { background: #f0f0f0; }
+#panel dl { padding: 4px 22px 20px; }
+#panel .row {
+  display: flex; gap: 14px;
+  padding: 9px 0;
+  border-top: 1px solid #ececec;
+  font-size: 15px;
+  line-height: 1.45;
+}
+#panel .row:first-child { border-top: none; }
+#panel dt { flex: 0 0 150px; color: #666; font-weight: 600; }
+#panel dd { flex: 1; color: #111; font-family: 'Red Hat Mono', 'Courier New', monospace; font-size: 13px; word-break: break-word; }
+
+/* ── Picker mode (authoring): drag a rect, get paste-ready config JSON ── */
+#pickBox {
+  position: absolute;
+  border: 2px dashed var(--accent);
+  background: var(--accent-soft);
+  border-radius: 4px;
+  display: none;
+  pointer-events: none;
+  z-index: 15;
+}
+#pickHint {
+  position: absolute;
+  top: 28px; left: 50%;
+  transform: translateX(-50%);
+  padding: 10px 22px;
+  background: rgba(238, 0, 0, 0.92);
+  color: #fff;
+  border-radius: 10px;
+  font-size: 17px; font-weight: 600;
+  display: none;
+  z-index: 30;
+  pointer-events: none;
+}
+#frame.picking #pickHint { display: block; }
+
+#pickLog {
+  position: absolute;
+  bottom: 100px; right: 40px;
+  width: 520px;
+  max-height: 300px;
+  overflow: auto;
+  background: rgba(12, 12, 14, 0.95);
+  color: #7ee787;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-family: 'Red Hat Mono', 'Courier New', monospace;
+  font-size: 13.5px;
+  line-height: 1.6;
+  padding: 12px 16px;
+  display: none;
+  white-space: pre;
+  z-index: 30;
+}
+#pickLog.on { display: block; }
+
+.scene, #video { pointer-events: none; user-select: none; -webkit-user-drag: none; }
+
+/* keyboard hint */
+#keys {
+  position: absolute;
+  bottom: 40px; left: 50%;
+  transform: translateX(-50%);
+  bottom: 6px;
+  color: rgba(240,240,240,0.35);
+  font-size: 14px;
+  letter-spacing: 0.04em;
+  z-index: 20;
+  pointer-events: none;
+}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="frame">
+    <div id="camera">
+      <video id="video" muted playsinline></video>
+      <img class="scene" id="sceneA" alt="">
+      <img class="scene" id="sceneB" alt="">
+      <div id="spot"></div>
+      <div id="marker"><div class="ring"></div><div class="dot"></div></div>
+      <div id="pickBox"></div>
+    </div>
+    <div id="hud"><span class="title" id="hudTitle"></span><span class="count" id="hudCount"></span></div>
+    <div id="caption"></div>
+    <div id="pills"></div>
+    <aside id="panel">
+      <div class="panel-head"><h3>Details</h3><button class="hide" id="hideBtn">Hide details</button></div>
+      <dl id="rows"></dl>
+    </aside>
+    <div id="controls">
+      <button class="btn" id="prevBtn" title="Previous (←)">◀</button>
+      <button class="btn" id="nextBtn" title="Next (→)">▶</button>
+      <button class="btn" id="playBtn" title="Autoplay (F)">▶▶</button>
+      <button class="btn" id="replayBtn" title="Replay (R)">↺</button>
+      <button class="btn" id="pickBtn" title="Pick target rect (P)">⌖ Pick</button>
+    </div>
+    <div id="pickHint">Pick: drag a rect over the frame — JSON copied per drag · Esc to exit</div>
+    <pre id="pickLog"></pre>
+    <div id="keys">← → step · F autoplay · D details · P pick · R replay</div>
+  </div>
+</div>
+
+<script>
+/* Data island: steps verbatim from demos/evalhub-inspect-ai-ga-steps.json (the
+   6-phase demo production contract). The demo run is owner-gated (not yet
+   produced), so EVERY beat is a terminal panel rendered at boot from the real
+   contract text — the sibling gallery player's established pattern for beats
+   without UI screenshots ('no fabricated UI states'). No fabricated run
+   screenshots or results; self-contained, no external fetches, works from file://. */
+const DATA = {"title": "EvalHub: Inspect AI provider at GA \u2014 RHOAI 3.6 demo production contract", "feature": "evalhub-inspect-ai-ga", "category": "evaluation", "maturity": "GA", "version_introduced": "3.6", "contract": "kitchensink 6-point demo contract \u2014 ENV \u2192 RECORD \u2192 AUTHOR \u2192 BUILD \u2192 VALIDATE \u2192 INTEGRATE", "feature_statement": "Use the Inspect AI evaluation provider (UK AI Security Institute) in EvalHub at GA: 79 benchmarks (36 Petri, Bloom, GDM, 38 curated inspect-evals) shipped as provider ConfigMap trustyai-service-operator-evalhub-provider-inspect (label trustyai.opendatahub.io/evalhub-provider-name=inspect), enabled via one line in the EvalHub CR spec.providers.", "note": "Interactive walkthrough of the demo production contract only \u2014 the VALIDATE run evidence is intentionally NOT shown: the end-to-end demo run is owner-gated and has not been produced (no fabricated screenshots or results).", "videoW": 1440, "videoH": 900, "dwell": 4.2, "embedVideo": false, "videoSrc": "", "steps": [{"id": "ENV", "t": 8, "target": {"x": 0, "y": 0, "w": 1440, "h": 900}, "caption": "Cluster ground truth: RHOAI 3.6 with EvalHub CR + Inspect AI provider ConfigMap present, dashboard reachable, demo namespaces known", "details": [{"label": "Phase", "value": "ENV \u2014 status: done"}, {"label": "Feature", "value": "Use the Inspect AI evaluation provider (UK AI Security Institute) in EvalHub at GA: 79 benchmarks (36 Petri, Bloom, GDM, 38 curated inspect-evals) shipped as provider ConfigMap trustyai-service-operator-evalhub-provider-inspect (label trustyai.opendatahub.io/evalhub-provider-name=inspect), enabled via one line in the EvalHub CR spec.providers."}, {"label": "Nuance", "value": "The AI Evaluations UI is in Technology Preview; the AI Evaluations back end is Generally Available (provider/back-end GA in 3.6 \u2014 graph facts 1043/1077)"}, {"label": "Contract", "value": "kitchensink 6-point demo contract \u2014 ENV \u2192 RECORD \u2192 AUTHOR \u2192 BUILD \u2192 VALIDATE \u2192 INTEGRATE"}, {"label": "Demo story", "value": "Enable the GA Inspect AI provider with one GitOps line, stage a tiny CPU vLLM eval target, and run inspect/strong-reject end-to-end from the AI Evaluations UI \u2014 alignment/safety scoring on a real model, all on a CPU-only cluster."}, {"label": "Recommended benchmark", "value": "inspect/strong-reject (fallbacks: inspect/arc, inspect/gsm8k)"}, {"label": "Eval target", "value": "CPU vLLM OpenAI endpoint http://vllm-qwen25-05b.ai-tenants.svc:8080/v1 serving Qwen/Qwen2.5-0.5B-Instruct (api_key not needed \u2014 unauthenticated vLLM)"}, {"label": "Honesty", "value": "Interactive walkthrough of the demo production contract only \u2014 the VALIDATE run evidence is intentionally NOT shown: the end-to-end demo run is owner-gated and has not been produced (no fabricated screenshots or results)."}, {"label": "Precondition 1", "value": "default-dsc at 3.6.0, TrustyAI enabledServices evalHub+nemoGuardrails (cluster/overlays/prelude-36-ea/evalhub.yaml)"}, {"label": "Precondition 2", "value": "EvalHub CR evalhub/redhat-odp-applications Ready; deployment mounts projected volume evalhub-providers at /etc/evalhub/config/providers"}, {"label": "Precondition 3", "value": "provider ConfigMap trustyai-service-operator-evalhub-provider-inspect exists (label trustyai.opendatahub.io/evalhub-provider-name=inspect) even though spec.providers still lists 6 legacy providers"}, {"label": "Action 1", "value": "verify EvalHub CR status + spec (providers / collections / database / env) against the GitOps overlay"}, {"label": "Action 2", "value": "verify the provider CM label lookup mechanism: operator mounts one provider CM per spec.providers entry (config-watcher serves them; no image bump)"}, {"label": "Action 3", "value": "confirm no eval target exists cluster-wide (0 GPUs, MaaS installed with 0 models) \u2192 decide the CPU vLLM in-tree target"}, {"label": "Action 4", "value": "verify keycloak login path (OCP_USER=prelude gotcha)"}, {"label": "Evidence 1", "value": "command-c1b373bd8fa508c4 \u2014 enablement mechanism: projected volume evalhub-providers sources = one CM per spec.providers entry; label lookup by provider-name"}, {"label": "Evidence 2", "value": "command-9044e57a0edb5a4e \u2014 serving ground truth: 0 GPUs, no InferenceServices, MaaS stack with zero models \u2192 CPU vLLM in-tree target decision"}, {"label": "Evidence 3", "value": "command-d63b36574a1a5131 \u2014 inspect provider CM defines 79 benchmarks; strong-reject recommended single-model entry; job.model.url param wiring; eval runtime CPU-only 8\u201332Gi"}], "term": [["d", "verbatim walkthrough from demos/evalhub-inspect-ai-ga-steps.json \u00b7 phase 1/6 \u00b7 ENV"], ["d", "6-point demo production contract: ENV \u2192 RECORD \u2192 AUTHOR \u2192 BUILD \u2192 VALIDATE \u2192 INTEGRATE"], ["o", ""], ["c", "preconditions"], ["o", "- default-dsc at 3.6.0, TrustyAI enabledServices evalHub+nemoGuardrails"], ["o", "  (cluster/overlays/prelude-36-ea/evalhub.yaml)"], ["o", "- EvalHub CR evalhub/redhat-odp-applications Ready; deployment mounts projected volume evalhub-providers"], ["o", "  at /etc/evalhub/config/providers"], ["o", "- provider ConfigMap trustyai-service-operator-evalhub-provider-inspect exists (label"], ["o", "  trustyai.opendatahub.io/evalhub-provider-name=inspect) even though spec.providers still lists 6 legacy"], ["o", "  providers"], ["o", ""], ["c", "actions"], ["o", "- verify EvalHub CR status + spec (providers / collections / database / env) against the GitOps overlay"], ["o", "- verify the provider CM label lookup mechanism: operator mounts one provider CM per spec.providers entry"], ["o", "  (config-watcher serves them; no image bump)"], ["o", "- confirm no eval target exists cluster-wide (0 GPUs, MaaS installed with 0 models) \u2192 decide the CPU vLLM"], ["o", "  in-tree target"], ["o", "- verify keycloak login path (OCP_USER=prelude gotcha)"], ["o", ""], ["c", "evidence"], ["o", "- command-c1b373bd8fa508c4 \u2014 enablement mechanism: projected volume evalhub-providers sources = one CM per"], ["o", "  spec.providers entry; label lookup by provider-name"], ["o", "- command-9044e57a0edb5a4e \u2014 serving ground truth: 0 GPUs, no InferenceServices, MaaS stack with zero"], ["o", "  models \u2192 CPU vLLM in-tree target decision"], ["o", "- command-d63b36574a1a5131 \u2014 inspect provider CM defines 79 benchmarks; strong-reject recommended"], ["o", "  single-model entry; job.model.url param wiring; eval runtime CPU-only 8\u201332Gi"], ["o", ""], ["k", "STATUS: done"]], "termTitle": "EvalHub demo contract \u2014 phase 1/6: ENV", "termNote": "status: done", "termFoot": "all text verbatim from demos/evalhub-inspect-ai-ga-steps.json \u00b7 authored by intent 1148 (2026-11-27) \u00b7 no fabricated run results"}, {"id": "RECORD", "t": 68, "target": {"x": 0, "y": 0, "w": 1440, "h": 900}, "caption": "Capture the BEFORE state: providers API shows 6 providers / no inspect; dashboard catalog without Inspect AI", "details": [{"label": "Phase", "value": "RECORD \u2014 status: done"}, {"label": "Precondition 1", "value": "inspect NOT yet in spec.providers (GitOps overlay unmodified \u2014 drift audit clean)"}, {"label": "Action 1", "value": "capture in-pod providers API listing all 6 providers without inspect (baseline for the 6\u21927 VALIDATE check)"}, {"label": "Action 2", "value": "capture dashboard Evaluations catalog before the framework filter lists Inspect AI"}, {"label": "Action 3", "value": "re-verify drift: live CR still matches repo overlay at HEAD (nobody oc-patched the GitOps CR)"}, {"label": "Evidence 1", "value": "command-406b51f19047bf42 \u2014 BEFORE: in-pod providers API \u2014 6 providers, inspect absent"}, {"label": "Evidence 2", "value": "screenshot-a3ef6843373c2db6 \u2014 BEFORE: dashboard Evaluations catalog without Inspect AI"}, {"label": "Evidence 3", "value": "command-d3c09934c43184a1 \u2014 drift audit: live CR spec.providers still the 6 legacy providers; no cluster/GitOps drift from factory work"}], "term": [["d", "verbatim walkthrough from demos/evalhub-inspect-ai-ga-steps.json \u00b7 phase 2/6 \u00b7 RECORD"], ["d", "6-point demo production contract: ENV \u2192 RECORD \u2192 AUTHOR \u2192 BUILD \u2192 VALIDATE \u2192 INTEGRATE"], ["o", ""], ["c", "preconditions"], ["o", "- inspect NOT yet in spec.providers (GitOps overlay unmodified \u2014 drift audit clean)"], ["o", ""], ["c", "actions"], ["o", "- capture in-pod providers API listing all 6 providers without inspect (baseline for the 6\u21927 VALIDATE"], ["o", "  check)"], ["o", "- capture dashboard Evaluations catalog before the framework filter lists Inspect AI"], ["o", "- re-verify drift: live CR still matches repo overlay at HEAD (nobody oc-patched the GitOps CR)"], ["o", ""], ["c", "evidence"], ["o", "- command-406b51f19047bf42 \u2014 BEFORE: in-pod providers API \u2014 6 providers, inspect absent"], ["o", "- screenshot-a3ef6843373c2db6 \u2014 BEFORE: dashboard Evaluations catalog without Inspect AI"], ["o", "- command-d3c09934c43184a1 \u2014 drift audit: live CR spec.providers still the 6 legacy providers; no"], ["o", "  cluster/GitOps drift from factory work"], ["o", ""], ["k", "STATUS: done"]], "termTitle": "EvalHub demo contract \u2014 phase 2/6: RECORD", "termNote": "status: done", "termFoot": "all text verbatim from demos/evalhub-inspect-ai-ga-steps.json \u00b7 authored by intent 1148 (2026-11-27) \u00b7 no fabricated run results"}, {"id": "AUTHOR", "t": 128, "target": {"x": 0, "y": 0, "w": 1440, "h": 900}, "caption": "Kitchensink Antora component at features/evaluation/evalhub-inspect-ai-ga/content + module pages carrying the captured gotchas verbatim", "details": [{"label": "Phase", "value": "AUTHOR \u2014 status: open"}, {"label": "Precondition 1", "value": "RECORD before-state captured"}, {"label": "Precondition 2", "value": "orient decisions locked: concepts/hands-on/advanced module split; strong-reject hands-on; petri-sycophancy advanced"}, {"label": "Action 1", "value": "scaffold content/antora.yml (name=evalhub-inspect-ai-ga, version ~, rhoai_version attr) + nav.adoc"}, {"label": "Action 2", "value": "pages/index.adoc with GA maturity ifeval banner AND the UI-TP/back-end-GA nuance verbatim + Watch-the-demo link"}, {"label": "Action 3", "value": "modules/ROOT/pages/concepts.adoc: what Inspect AI is (UK AISI), how the provider ships (17 system provider CMs; this one label evalhub-provider-name=inspect), how enablement works (CR spec.providers \u2192 operator mounts CM \u2192 config-watcher), benchmark landscape (79)"}, {"label": "Action 4", "value": "modules/ROOT/pages/hands-on.adoc: prerequisites with keycloak login gotcha verbatim (OCP_USER=prelude), enable provider via the handoff patch (never oc patch), stage the vLLM target (oc apply -k deploy/), run first benchmark inspect/strong-reject with job.model.url + served HF id + api_key null"}, {"label": "Action 5", "value": "modules/ROOT/pages/advanced.adoc: petri-sycophancy 3-role audit (auditor_model/judge_model overriding Anthropic defaults via auditor_base_url/judge_base_url), benchmark collections, provider landscape (17 system / 8 OOTB CRD-default incl. ruler/ifbench/followbench)"}, {"label": "Action 6", "value": "pages/conclusion.adoc"}, {"label": "Evidence 1", "value": "validator-eacdbd1c0d3cd419 \u2014 contract audit baseline: workshop unbuilt at audit time (7/7 artifacts absent) \u2014 the AUTHOR phase must close exactly this list"}], "term": [["d", "verbatim walkthrough from demos/evalhub-inspect-ai-ga-steps.json \u00b7 phase 3/6 \u00b7 AUTHOR"], ["d", "6-point demo production contract: ENV \u2192 RECORD \u2192 AUTHOR \u2192 BUILD \u2192 VALIDATE \u2192 INTEGRATE"], ["o", ""], ["c", "preconditions"], ["o", "- RECORD before-state captured"], ["o", "- orient decisions locked: concepts/hands-on/advanced module split; strong-reject hands-on;"], ["o", "  petri-sycophancy advanced"], ["o", ""], ["c", "actions"], ["o", "- scaffold content/antora.yml (name=evalhub-inspect-ai-ga, version ~, rhoai_version attr) + nav.adoc"], ["o", "- pages/index.adoc with GA maturity ifeval banner AND the UI-TP/back-end-GA nuance verbatim +"], ["o", "  Watch-the-demo link"], ["o", "- modules/ROOT/pages/concepts.adoc: what Inspect AI is (UK AISI), how the provider ships (17 system"], ["o", "  provider CMs; this one label evalhub-provider-name=inspect), how enablement works (CR spec.providers \u2192"], ["o", "  operator mounts CM \u2192 config-watcher), benchmark landscape (79)"], ["o", "- modules/ROOT/pages/hands-on.adoc: prerequisites with keycloak login gotcha verbatim (OCP_USER=prelude),"], ["o", "  enable provider via the handoff patch (never oc patch), stage the vLLM target (oc apply -k deploy/), run"], ["o", "  first benchmark inspect/strong-reject with job.model.url + served HF id + api_key null"], ["o", "- modules/ROOT/pages/advanced.adoc: petri-sycophancy 3-role audit (auditor_model/judge_model overriding"], ["o", "  Anthropic defaults via auditor_base_url/judge_base_url), benchmark collections, provider landscape (17"], ["o", "  system / 8 OOTB CRD-default incl. ruler/ifbench/followbench)"], ["o", "- pages/conclusion.adoc"], ["o", ""], ["c", "evidence"], ["o", "- validator-eacdbd1c0d3cd419 \u2014 contract audit baseline: workshop unbuilt at audit time (7/7 artifacts"], ["o", "  absent) \u2014 the AUTHOR phase must close exactly this list"], ["o", ""], ["k", "STATUS: open"]], "termTitle": "EvalHub demo contract \u2014 phase 3/6: AUTHOR", "termNote": "status: open", "termFoot": "all text verbatim from demos/evalhub-inspect-ai-ga-steps.json \u00b7 authored by intent 1148 (2026-11-27) \u00b7 no fabricated run results"}, {"id": "BUILD", "t": 188, "target": {"x": 0, "y": 0, "w": 1440, "h": 900}, "caption": "Antora structure valid: antora.yml/nav YAML parse, nav includes every authored page, execute blocks + === Verify sections present", "details": [{"label": "Phase", "value": "BUILD \u2014 status: open"}, {"label": "Precondition 1", "value": "AUTHOR artifacts on disk"}, {"label": "Action 1", "value": "validate antora.yml + nav.adoc YAML"}, {"label": "Action 2", "value": "check every nav entry resolves to an existing page; every page referenced by index/conclusion exists"}, {"label": "Action 3", "value": "check [source,bash,role=execute] blocks + === Verify sections on module pages"}, {"label": "Action 4", "value": "engine runs the site build (workers never run antora)"}, {"label": "Evidence", "value": "none captured yet"}], "term": [["d", "verbatim walkthrough from demos/evalhub-inspect-ai-ga-steps.json \u00b7 phase 4/6 \u00b7 BUILD"], ["d", "6-point demo production contract: ENV \u2192 RECORD \u2192 AUTHOR \u2192 BUILD \u2192 VALIDATE \u2192 INTEGRATE"], ["o", ""], ["c", "preconditions"], ["o", "- AUTHOR artifacts on disk"], ["o", ""], ["c", "actions"], ["o", "- validate antora.yml + nav.adoc YAML"], ["o", "- check every nav entry resolves to an existing page; every page referenced by index/conclusion exists"], ["o", "- check [source,bash,role=execute] blocks + === Verify sections on module pages"], ["o", "- engine runs the site build (workers never run antora)"], ["o", ""], ["c", "evidence"], ["o", "- none captured yet"], ["o", ""], ["k", "STATUS: open"]], "termTitle": "EvalHub demo contract \u2014 phase 4/6: BUILD", "termNote": "status: open", "termFoot": "all text verbatim from demos/evalhub-inspect-ai-ga-steps.json \u00b7 authored by intent 1148 (2026-11-27) \u00b7 no fabricated run results"}, {"id": "VALIDATE", "t": 248, "target": {"x": 0, "y": 0, "w": 1440, "h": 900}, "caption": "Real end-to-end demo evidence: in-pod API shows inspect (6\u21927); strong-reject run completes against the CPU vLLM target; screenshots + logs", "details": [{"label": "Phase", "value": "VALIDATE \u2014 status: gated"}, {"label": "Precondition 1", "value": "INTEGRATE enablement committed by engine/owner AND reconciled (spec.providers includes inspect; projected volume sources 6\u21927)"}, {"label": "Precondition 2", "value": "CPU vLLM target Ready in ai-tenants (deployment vllm-qwen25-05b rollout complete; /v1/models returns Qwen/Qwen2.5-0.5B-Instruct)"}, {"label": "Action 1", "value": "in-pod curl 127.0.0.1:8444/api/v1/evaluations/providers (X-Tenant/X-User/X-Groups) \u2192 total_count 7 with Inspect AI (compare to RECORD before-capture command-406b51f19047bf42)"}, {"label": "Action 2", "value": "POST /api/v1/evaluations for inspect/strong-reject with job.model.url = http://vllm-qwen25-05b.ai-tenants.svc:8080/v1, model = Qwen/Qwen2.5-0.5B-Instruct, api_key null; poll run to completion (fallback benchmark: inspect/arc or inspect/gsm8k)"}, {"label": "Action 3", "value": "Playwright headless chromium ONLY (PLAYWRIGHT_BROWSERS_PATH=/opt/ms-playwright, channel unset, headless:true): catalog filtered to framework = Inspect AI + run detail page; login per the OCP_USER=prelude gotcha"}, {"label": "Action 4", "value": "submit captures (screenshot/log/command) per milestone and record facts"}, {"label": "Evidence 1", "value": "EXPECTED (not yet produced): in-pod providers API total_count 7 + inspect present (not yet produced)"}, {"label": "Evidence 2", "value": "EXPECTED (not yet produced): strong-reject run detail + results against the CPU vLLM target (not yet produced)"}, {"label": "Evidence 3", "value": "EXPECTED (not yet produced): dashboard screenshots \u2014 Inspect AI catalog filter + run detail (not yet produced)"}, {"label": "Honesty", "value": "No run screenshots or results are shown \u2014 the demo run is owner-gated and not yet produced; the EXPECTED evidence entries are placeholders carried verbatim from steps.json."}], "term": [["d", "verbatim walkthrough from demos/evalhub-inspect-ai-ga-steps.json \u00b7 phase 5/6 \u00b7 VALIDATE"], ["d", "6-point demo production contract: ENV \u2192 RECORD \u2192 AUTHOR \u2192 BUILD \u2192 VALIDATE \u2192 INTEGRATE"], ["o", ""], ["c", "preconditions"], ["o", "- INTEGRATE enablement committed by engine/owner AND reconciled (spec.providers includes inspect;"], ["o", "  projected volume sources 6\u21927)"], ["o", "- CPU vLLM target Ready in ai-tenants (deployment vllm-qwen25-05b rollout complete; /v1/models returns"], ["o", "  Qwen/Qwen2.5-0.5B-Instruct)"], ["o", ""], ["c", "actions"], ["o", "- in-pod curl 127.0.0.1:8444/api/v1/evaluations/providers (X-Tenant/X-User/X-Groups) \u2192 total_count 7 with"], ["o", "  Inspect AI (compare to RECORD before-capture command-406b51f19047bf42)"], ["o", "- POST /api/v1/evaluations for inspect/strong-reject with job.model.url ="], ["o", "  http://vllm-qwen25-05b.ai-tenants.svc:8080/v1, model = Qwen/Qwen2.5-0.5B-Instruct, api_key null; poll"], ["o", "  run to completion (fallback benchmark: inspect/arc or inspect/gsm8k)"], ["o", "- Playwright headless chromium ONLY (PLAYWRIGHT_BROWSERS_PATH=/opt/ms-playwright, channel unset,"], ["o", "  headless:true): catalog filtered to framework = Inspect AI + run detail page; login per the"], ["o", "  OCP_USER=prelude gotcha"], ["o", "- submit captures (screenshot/log/command) per milestone and record facts"], ["o", ""], ["c", "evidence"], ["o", "- EXPECTED (not yet produced): in-pod providers API total_count 7 + inspect present \u00b7 (capture not yet"], ["o", "  produced)"], ["o", "- EXPECTED (not yet produced): strong-reject run detail + results against the CPU vLLM target \u00b7 (capture"], ["o", "  not yet produced)"], ["o", "- EXPECTED (not yet produced): dashboard screenshots \u2014 Inspect AI catalog filter + run detail \u00b7 (capture"], ["o", "  not yet produced)"], ["o", ""], ["k", "STATUS: gated"], ["d", "run evidence intentionally NOT shown \u2014 the demo run is owner-gated (not yet produced);"], ["d", "no fabricated screenshots or results \u00b7 EXPECTED entries above are steps.json placeholders"]], "termTitle": "EvalHub demo contract \u2014 phase 5/6: VALIDATE", "termNote": "status: gated \u2014 not yet produced", "termFoot": "all text verbatim from demos/evalhub-inspect-ai-ga-steps.json \u00b7 authored by intent 1148 (2026-11-27) \u00b7 no fabricated run results"}, {"id": "INTEGRATE", "t": 308, "target": {"x": 0, "y": 0, "w": 1440, "h": 900}, "caption": "Handoff patch committed by engine/owner + steps.json + nav + conclusion + deploy/ complete and additive", "details": [{"label": "Phase", "value": "INTEGRATE \u2014 status: open"}, {"label": "Precondition 1", "value": "deploy/ files complete: kustomization + patch + README + README-HANDOFF + vLLM target manifests (all additive, no GitOps resource modified beyond the proposed patch file)"}, {"label": "Action 1", "value": "engine/owner commits deploy/0001-evalhub-add-inspect-provider.patch onto cluster/overlays/prelude-36-ea/evalhub.yaml (git apply \u2192 commit; ArgoCD sync-wave 3 reconciles; NEVER oc patch)"}, {"label": "Action 2", "value": "engine integrates factory files (git writer owns commits); workers place files only"}, {"label": "Action 3", "value": "post-sync verify: projected volume sources 6\u21927; in-pod providers API total_count 7; UI framework filter lists Inspect AI"}, {"label": "Evidence 1", "value": "log-41b5bd70eaf33f35 \u2014 plan dispatch: 8 intents (1147\u20131154) closing the evalhub-inspect-ai-ga gaps; 1150 = handoff patch, 1153 runs only after owner commit + target Ready"}], "term": [["d", "verbatim walkthrough from demos/evalhub-inspect-ai-ga-steps.json \u00b7 phase 6/6 \u00b7 INTEGRATE"], ["d", "6-point demo production contract: ENV \u2192 RECORD \u2192 AUTHOR \u2192 BUILD \u2192 VALIDATE \u2192 INTEGRATE"], ["o", ""], ["c", "preconditions"], ["o", "- deploy/ files complete: kustomization + patch + README + README-HANDOFF + vLLM target manifests (all"], ["o", "  additive, no GitOps resource modified beyond the proposed patch file)"], ["o", ""], ["c", "actions"], ["o", "- engine/owner commits deploy/0001-evalhub-add-inspect-provider.patch onto"], ["o", "  cluster/overlays/prelude-36-ea/evalhub.yaml (git apply \u2192 commit; ArgoCD sync-wave 3 reconciles; NEVER oc"], ["o", "  patch)"], ["o", "- engine integrates factory files (git writer owns commits); workers place files only"], ["o", "- post-sync verify: projected volume sources 6\u21927; in-pod providers API total_count 7; UI framework filter"], ["o", "  lists Inspect AI"], ["o", ""], ["c", "evidence"], ["o", "- log-41b5bd70eaf33f35 \u2014 plan dispatch: 8 intents (1147\u20131154) closing the evalhub-inspect-ai-ga gaps; 1150"], ["o", "  = handoff patch, 1153 runs only after owner commit + target Ready"], ["o", ""], ["k", "STATUS: open"]], "termTitle": "EvalHub demo contract \u2014 phase 6/6: INTEGRATE", "termNote": "status: open", "termFoot": "all text verbatim from demos/evalhub-inspect-ai-ga-steps.json \u00b7 authored by intent 1148 (2026-11-27) \u00b7 no fabricated run results"}]};
+
+/* ── State ── */
+const W = DATA.videoW || 1440, H = DATA.videoH || 900;
+const DWELL = DATA.dwell || 4.2;
+const steps = DATA.steps;
+let cur = -1;
+let SCALE = 1;
+let playing = false;
+let playTimer = null;
+let picking = false;
+let userPanel = null;          // null = auto-open per step, true/false = user override
+let sceneFlip = false;         // which scene layer is on top
+
+const $ = (id) => document.getElementById(id);
+const frameEl = $('frame'), camEl = $('camera'),
+      spotEl = $('spot'), markerEl = $('marker'),
+      capEl = $('caption'), pillsEl = $('pills'), panelEl = $('panel'),
+      rowsEl = $('rows'), pickBoxEl = $('pickBox'), pickLogEl = $('pickLog'),
+      videoEl = $('video'), sceneA = $('sceneA'), sceneB = $('sceneB');
+
+/* ── Terminal panels: render the real captured terminal text of the CR/API
+      beats onto a 1440x900 canvas; the data URL becomes the step's scene
+      frame, so the player machinery below stays identical to the template. */
+function rr(g, x, y, w, h, r) {
+  g.beginPath();
+  g.moveTo(x + r, y);
+  g.arcTo(x + w, y, x + w, y + h, r);
+  g.arcTo(x + w, y + h, x, y + h, r);
+  g.arcTo(x, y + h, x, y, r);
+  g.arcTo(x, y, x + w, y, r);
+  g.closePath();
+}
+function renderTerm(step) {
+  const c = document.createElement('canvas');
+  c.width = W; c.height = H;
+  const g = c.getContext('2d');
+  g.fillStyle = '#0b0e14'; g.fillRect(0, 0, W, H);
+  const px = 110, py = 54, pw = W - 220, ph = 745;   /* bottom clears the caption chrome */
+  rr(g, px, py, pw, ph, 14);
+  g.fillStyle = '#0d1117'; g.fill();
+  g.strokeStyle = '#30363d'; g.lineWidth = 2; g.stroke();
+  g.save();
+  rr(g, px, py, pw, ph, 14); g.clip();
+  /* header bar */
+  g.fillStyle = '#161b22'; g.fillRect(px, py, pw, 52);
+  g.strokeStyle = '#30363d';
+  g.beginPath(); g.moveTo(px, py + 52.5); g.lineTo(px + pw, py + 52.5); g.stroke();
+  [['#ff5f56', 0], ['#ffbd2e', 1], ['#27c93f', 2]].forEach(d => {
+    g.beginPath(); g.arc(px + 30 + d[1] * 22, py + 26, 7, 0, Math.PI * 2);
+    g.fillStyle = d[0]; g.fill();
+  });
+  g.textBaseline = 'middle';
+  g.font = "600 15px 'Red Hat Display','Segoe UI',Arial,sans-serif";
+  g.fillStyle = '#e6edf3';
+  g.fillText(step.termTitle || '', px + 96, py + 27);
+  g.font = "13px 'Red Hat Mono','DejaVu Sans Mono','Courier New',monospace";
+  g.fillStyle = '#8b949e';
+  const note = step.termNote || '';
+  g.fillText(note, px + pw - 24 - g.measureText(note).width, py + 27);
+  /* body: the captured lines */
+  const mono = "15px 'Red Hat Mono','DejaVu Sans Mono','Courier New',monospace";
+  g.textBaseline = 'alphabetic';
+  const x0 = px + 30, lh = 20, y0 = py + 86;
+  const cols = { c: '#e6edf3', o: '#c9d1d9', k: '#56d364', d: '#6e7681' };
+  g.beginPath(); g.rect(px + 2, py + 54, pw - 4, ph - 58); g.clip();
+  g.font = mono;
+  let y = y0;
+  for (const ln of step.term) {
+    const cls = ln[0], txt = ln[1];
+    if (txt.length) {
+      if (cls === 'c') {
+        g.fillStyle = '#3fb950'; g.fillText('$', x0, y);
+        g.fillStyle = cols.c; g.fillText(txt, x0 + 24, y);
+      } else {
+        g.fillStyle = cols[cls] || cols.o;
+        g.fillText(txt, x0 + 2, y);
+      }
+    }
+    y += lh;
+  }
+  /* footer: provenance of the text above */
+  g.font = "13px 'Red Hat Mono','DejaVu Sans Mono','Courier New',monospace";
+  g.fillStyle = '#6e7681';
+  g.fillText(step.termFoot || '', x0, py + ph - 24);
+  g.restore();
+  return c.toDataURL('image/png');
+}
+
+/* ── Stage sized to the recording resolution (W/H from DATA) ──
+   The CSS hard-codes 1440x900; the stage must match DATA.videoW/H
+   or the frame content is squeezed while spotlight/marker/camera
+   coordinates stay in recording pixels. */
+for (const el of [frameEl, camEl, sceneA, sceneB, videoEl]) {
+  el.style.width = W + 'px';
+  el.style.height = H + 'px';
+}
+
+/* ── Layout: fit the recording space into the window ── */
+function layout() {
+  const s = Math.min(window.innerWidth / W, window.innerHeight / H) * 0.985;
+  SCALE = s;
+  frameEl.style.transform = `translate(-50%, -50%) scale(${s})`;
+}
+window.addEventListener('resize', layout);
+
+/* ── Zoom math: frame the target rect at ~55% of the stage ── */
+function computeZoom(step) {
+  if (!step.target) return { s: 1, tx: 0, ty: 0 };
+  const r = step.target;
+  const maxS = step.zoomMax || 2.5;
+  let s = Math.min(0.55 * W / r.w, 0.55 * H / r.h, maxS);
+  if (s < 1) s = 1;                        // wide rects: recenter only
+  const tx = W / 2 - s * (r.x + r.w / 2);
+  const ty = H / 2 - s * (r.y + r.h / 2);
+  return { s, tx, ty };
+}
+
+/* ── Scene swap (poster crossfade; video mode is driven by goTo) ── */
+function showScene(step) {
+  if (DATA.embedVideo && DATA.videoSrc) {
+    videoEl.style.display = 'block';
+    sceneA.style.display = sceneB.style.display = 'none';
+    return;
+  }
+  const showEl = sceneFlip ? sceneA : sceneB;
+  const hideEl = sceneFlip ? sceneB : sceneA;
+  showEl.src = step.src || '';
+  showEl.classList.add('on');
+  hideEl.classList.remove('on');
+  sceneFlip = !sceneFlip;
+}
+
+/* ── Go to a step: camera + spotlight + marker + chrome, all in sync ── */
+let seekSeq = 0;
+
+function goTo(i, opts = {}) {
+  i = Math.max(0, Math.min(steps.length - 1, i));
+  if (i === cur && !opts.force) return;
+  cur = i;
+  const step = steps[i];
+  const { s, tx, ty } = computeZoom(step);
+
+  /* overlays: camera + spotlight + marker + caption + pills + hud + panel.
+     In video mode these are applied on the video's `seeked` event so the
+     highlight switches exactly when the frame does. */
+  const applyOverlays = () => {
+    camEl.style.transform = `translate(${tx}px, ${ty}px) scale(${s})`;
+
+    /* spotlight: anchored to the element, rides the camera;
+       compensate border + radius so they read 6px / 12px on screen */
+    if (step.target) {
+      const r = step.target;
+      spotEl.style.left = r.x + 'px';
+      spotEl.style.top = r.y + 'px';
+      spotEl.style.width = r.w + 'px';
+      spotEl.style.height = r.h + 'px';
+      spotEl.style.borderWidth = Math.max(1.5, 6 / s) + 'px';
+      spotEl.style.borderRadius = (12 / s) + 'px';
+      spotEl.classList.add('on');
+    } else {
+      spotEl.classList.remove('on');
+    }
+
+    /* marker (default: target center; marker:false disables) */
+    const mk = step.marker === false ? null : (step.marker || (step.target && { x: step.target.x + step.target.w / 2, y: step.target.y + step.target.h / 2 }));
+    if (mk) {
+      markerEl.style.left = mk.x + 'px';
+      markerEl.style.top = mk.y + 'px';
+      markerEl.style.transform = `scale(${1 / Math.max(1, s * 0.75)})`;
+      markerEl.classList.add('on');
+    } else {
+      markerEl.classList.remove('on');
+    }
+
+    /* caption crossfade */
+    capEl.classList.add('swap');
+    setTimeout(() => { capEl.textContent = step.caption || ''; capEl.classList.remove('swap'); }, 190);
+
+    /* pills + hud */
+    [...pillsEl.children].forEach((p, idx) => {
+      p.className = 'pill' + (idx < i ? ' done' : idx === i ? ' cur' : '');
+    });
+    $('hudTitle').textContent = DATA.title || '';
+    $('hudCount').textContent = `${i + 1} / ${steps.length}`;
+
+    /* detail panel */
+    renderRows(step);
+    const want = userPanel === null ? (step.details && step.details.length > 0) : userPanel;
+    panelEl.classList.toggle('open', !!want);
+  };
+
+  if (DATA.embedVideo && DATA.videoSrc) {
+    /* video mode: hold the current frame, seek, then switch the overlays
+       exactly when the new frame is decoded — highlight and frame in sync. */
+    videoEl.style.display = 'block';
+    sceneA.style.display = sceneB.style.display = 'none';
+    if (playing) videoEl.pause();
+    const gen = ++seekSeq;
+    const ready = () => {
+      videoEl.removeEventListener('seeked', ready);
+      clearTimeout(seekGuard);
+      if (gen !== seekSeq) return;      /* a newer cue superseded this seek */
+      applyOverlays();
+      if (playing) {
+        videoEl.play().then(() => scheduleNext()).catch(() => stopPlay());
+      }
+    };
+    const seekGuard = setTimeout(ready, 1500);   /* never stall >1.5s */
+    if (Math.abs(videoEl.currentTime - step.t) < 0.05 && videoEl.readyState >= 2) {
+      ready();
+    } else {
+      videoEl.addEventListener('seeked', ready);
+      videoEl.currentTime = step.t;
+    }
+    return;
+  }
+
+  showScene(step);
+  applyOverlays();
+  if (playing) scheduleNext();
+}
+
+function renderRows(step) {
+  rowsEl.innerHTML = '';
+  (step.details || []).forEach(d => {
+    const row = document.createElement('div');
+    row.className = 'row';
+    const dt = document.createElement('dt'); dt.textContent = d.label;
+    const dd = document.createElement('dd'); dd.textContent = d.value;
+    row.appendChild(dt); row.appendChild(dd);
+    rowsEl.appendChild(row);
+  });
+}
+
+/* ── Autoplay: dwell per step, stop at the end ── */
+function scheduleNext() {
+  clearTimeout(playTimer);
+  if (!playing) return;
+  playTimer = setTimeout(() => {
+    if (cur >= steps.length - 1) { stopPlay(); return; }
+    goTo(cur + 1);
+  }, (steps[cur] && steps[cur].dwell || DWELL) * 1000);
+}
+function startPlay() {
+  playing = true;
+  $('playBtn').classList.add('on');
+  $('playBtn').textContent = '❚❚';
+  if (cur >= steps.length - 1) goTo(0, { force: true });
+  else goTo(cur + 1);   // advance immediately — waiting a full dwell reads as "broken"
+}
+function stopPlay() {
+  playing = false;
+  clearTimeout(playTimer);
+  $('playBtn').classList.remove('on');
+  $('playBtn').textContent = '▶▶';
+  if (DATA.embedVideo && DATA.videoSrc) videoEl.pause();
+}
+
+/* ── Picker mode: drag a rect in recording coords, output config JSON ── */
+function toRec(e) {
+  const rect = frameEl.getBoundingClientRect();
+  return {
+    x: Math.round((e.clientX - rect.left) / SCALE),
+    y: Math.round((e.clientY - rect.top) / SCALE)
+  };
+}
+function togglePick() {
+  picking = !picking;
+  frameEl.classList.toggle('picking', picking);
+  pickLogEl.classList.toggle('on', picking);
+  $('pickBtn').classList.toggle('on', picking);
+}
+let dragStart = null;
+frameEl.addEventListener('mousedown', e => {
+  if (!picking) return;
+  if (e.target.closest('#controls,#pills,#panel,#pickLog')) return;
+  e.preventDefault();                       // stop native img drag swallowing mouseup
+  dragStart = toRec(e);
+  pickBoxEl.style.display = 'block';
+  updatePickBox(dragStart, dragStart);
+});
+frameEl.addEventListener('mousemove', e => {
+  if (!picking || !dragStart) return;
+  updatePickBox(dragStart, toRec(e));
+});
+window.addEventListener('mouseup', e => {
+  if (!picking || !dragStart) return;
+  const end = toRec(e);
+  const r = normRect(dragStart, end);
+  dragStart = null;
+  pickBoxEl.style.display = 'none';
+  if (r.w < 8 || r.h < 8) return;          // treat tiny drags as noise
+  const out = { step: cur, t: steps[cur].t, target: { x: r.x, y: r.y, w: r.w, h: r.h } };
+  const line = JSON.stringify(out);
+  pickLogEl.textContent += line + '\n';
+  pickLogEl.scrollTop = pickLogEl.scrollHeight;
+  if (navigator.clipboard) navigator.clipboard.writeText(line).catch(() => {});
+});
+function updatePickBox(a, b) {
+  const r = normRect(a, b);
+  pickBoxEl.style.left = r.x + 'px';
+  pickBoxEl.style.top = r.y + 'px';
+  pickBoxEl.style.width = r.w + 'px';
+  pickBoxEl.style.height = r.h + 'px';
+}
+function normRect(a, b) {
+  const x = Math.min(a.x, b.x), y = Math.min(a.y, b.y);
+  return { x, y, w: Math.abs(a.x - b.x), h: Math.abs(a.y - b.y) };
+}
+
+/* ── Wiring ── */
+$('prevBtn').addEventListener('click', () => { stopPlay(); goTo(cur - 1); });
+$('nextBtn').addEventListener('click', () => { stopPlay(); goTo(cur + 1); });
+$('playBtn').addEventListener('click', () => playing ? stopPlay() : startPlay());
+$('replayBtn').addEventListener('click', () => { stopPlay(); goTo(0, { force: true }); });
+/* keep the chrome honest: the demo cannot outlive the video */
+videoEl.addEventListener('ended', () => { if (playing) stopPlay(); });
+$('pickBtn').addEventListener('click', togglePick);
+$('hideBtn').addEventListener('click', () => {
+  userPanel = !panelEl.classList.contains('open');
+  panelEl.classList.toggle('open', userPanel);
+});
+pillsEl.addEventListener('click', e => {
+  const pills = [...pillsEl.children];
+  const idx = pills.indexOf(e.target);
+  if (idx >= 0) { stopPlay(); goTo(idx, { force: true }); }
+});
+frameEl.addEventListener('click', e => {
+  if (picking) return;
+  if (e.target.closest('#controls,#pills,#panel,#pickLog,#caption')) return;
+  stopPlay();
+  goTo(cur + 1);
+});
+window.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); stopPlay(); goTo(cur + 1); }
+  else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); stopPlay(); goTo(cur - 1); }
+  else if (e.key === 'Home') { stopPlay(); goTo(0, { force: true }); }
+  else if (e.key === 'End') { stopPlay(); goTo(steps.length - 1, { force: true }); }
+  else if (e.key === 'f' || e.key === 'F') { playing ? stopPlay() : startPlay(); }
+  else if (e.key === 'd' || e.key === 'D') { $('hideBtn').click(); }
+  else if (e.key === 'p' || e.key === 'P') { togglePick(); }
+  else if (e.key === 'r' || e.key === 'R') { stopPlay(); goTo(0, { force: true }); }
+  else if (e.key === 'Escape') { if (picking) togglePick(); }
+});
+
+/* ── Boot ── */
+(function boot() {
+  /* terminal beats first: their cue frame IS the styled panel of real text */
+  steps.forEach(s => { if (s.term && !s.src) s.src = renderTerm(s); });
+  steps.forEach(() => {
+    const b = document.createElement('button');
+    b.className = 'pill';
+    b.title = '';
+    pillsEl.appendChild(b);
+  });
+  $('hudTitle').textContent = DATA.title || '';
+  if (DATA.embedVideo && DATA.videoSrc) videoEl.src = DATA.videoSrc;
+  layout();
+  goTo(0, { force: true });
+})();
+</script>
+</body>
+</html>

@@ -176,6 +176,38 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">EvalHub Eval Gallery — Curated Evaluation Collections</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../evalhub-eval-gallery/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">EvalHub Inspect AI Provider GA Workshop</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../evalhub-inspect-ai-ga/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">EvalHub LightEval Provider GA Workshop</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../evalhub-lighteval-ga/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Evaluation Insights in the Model Library</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../eval-insights-model-library/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Evaluation Stack (EvalHub)</span>
       <ul class="versions">
         <li class="version">
@@ -228,6 +260,14 @@
       <ul class="versions">
         <li class="version">
           <a href="../genai-studio-saved-agent/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">GRPO Training Pipelines</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../grpo-training-pipelines/index.html">default</a>
         </li>
       </ul>
     </li>
@@ -600,10 +640,10 @@ cost workshop.</p>
 <div class="ulist">
 <ul>
 <li>
-<p><a href="module-01-getting-started.html" class="xref page">Getting Started</a> — the external-metering IPP plugin and standalone metering service, the MaaS foundation they depend on, and the metering data path from balance check to chargeback report</p>
+<p><a href="module-01-getting-started.html" class="xref page">Getting Started</a> — the MaaS foundation, and the usage-logging data path end to end: gateway authorization, the <code>usage-logs</code> OpenTelemetry Collector with its identity attributes, the <code>data-science-usage-logs</code> LokiStack, user-scoped tenancy-proxy access, and the Perses dashboards plus the <code>DSCInitialization</code> exporter for external backends</p>
 </li>
 <li>
-<p><a href="module-02-hands-on.html" class="xref page">Hands-on Exercise</a> — the per-user usage data in the MaaS observability dashboard, and the boundary between showback data and the external metering chargeback path</p>
+<p><a href="module-02-hands-on.html" class="xref page">Hands-on Exercise</a> — inspecting the MaaS <code>Config</code> and the collector yourself, reading the <code>spec.monitoring.usageLogs</code> external-metering schema (dual-write versus forward-only), and running per-user LogQL queries that separate token consumption (<code>tokens_total</code>) from request counts (Limitador metrics)</p>
 </li>
 </ul>
 </div>
@@ -615,13 +655,13 @@ cost workshop.</p>
 <div class="ulist">
 <ul>
 <li>
-<p><a href="https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/3.5/html/release_notes/developer-preview-features">RHOAI 3.5 release notes — Developer Preview features</a> — announces <strong>External metering for per-user token usage and cost tracking</strong>: the IPP plugin, CloudEvents, the PostgreSQL-backed metering service, and its dashboard and REST API</p>
+<p><a href="https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/3.6/html/release_notes/developer-preview-features">RHOAI 3.6 release notes — Developer Preview features</a> — announces <strong>External metering for per-user token usage and cost tracking</strong>; as a Developer Preview feature its procedures may change between releases</p>
 </li>
 <li>
-<p><a href="https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/3.5/html/govern_llm_access_with_models-as-a-service/monitor-models-as-a-service-usage-by-using-the-observability-dashboard">Monitor Models-as-a-Service usage by using the observability dashboard</a> — the Usage tab, Token Consumption by User table, underlying Prometheus metrics, <code>captureUser</code> setting, and the CSV export steps you explored</p>
+<p><a href="https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/3.6/html/govern_llm_access_with_models-as-a-service/monitor-models-as-a-service-usage-by-using-the-observability-dashboard">Monitor Models-as-a-Service usage by using the observability dashboard</a> — the usage logging configuration and the Perses usage dashboards you inspected</p>
 </li>
 <li>
-<p><a href="https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/3.5/html/govern_llm_access_with_models-as-a-service/deploy-and-manage-models-as-a-service">Deploy and manage Models-as-a-Service</a> — the MaaS guide chapter with the deployment verification checks used in Module 01 and the MaaS API reference</p>
+<p><a href="https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/3.6/html/govern_llm_access_with_models-as-a-service/deploy-and-manage-models-as-a-service">Deploy and manage Models-as-a-Service</a> — the MaaS guide chapter with the deployment verification checks used in Module 01 and the MaaS API reference</p>
 </li>
 <li>
 <p><a href="index.html" class="xref page">Back to the workshop overview</a></p>
@@ -642,10 +682,13 @@ cost workshop.</p>
 <div class="ulist">
 <ul>
 <li>
-<p><a href="../external-metering-maas/index.html" class="xref page">External metering integration for MaaS</a></p>
+<p><a href="../maas-loki-showback/index.html" class="xref page">Loki-based showback and user-scoped usage dashboards (MaaS)</a> — the sibling workshop that sets up the <code>data-science-usage-logs</code> LokiStack runtime and adds the CSV showback export on the same usage-log pipeline</p>
 </li>
 <li>
-<p><a href="../maas-loki-showback/index.html" class="xref page">Loki-based showback and user-scoped usage dashboards (MaaS)</a></p>
+<p><a href="../external-metering-maas/index.html" class="xref page">External metering integration for MaaS</a> — the separate BBR-plugin integration connecting MaaS inference traffic to an external metering or billing system</p>
+</li>
+<li>
+<p><a href="../maas-core/index.html" class="xref page">Models-as-a-Service (MaaS) core: access model and token mechanism</a> — the MaaS foundation workshop: tenants, gateways, tokens, and model access</p>
 </li>
 </ul>
 </div>

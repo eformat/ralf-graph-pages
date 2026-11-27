@@ -177,6 +177,38 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">EvalHub Eval Gallery — Curated Evaluation Collections</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../evalhub-eval-gallery/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">EvalHub Inspect AI Provider GA Workshop</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../evalhub-inspect-ai-ga/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">EvalHub LightEval Provider GA Workshop</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../evalhub-lighteval-ga/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Evaluation Insights in the Model Library</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../eval-insights-model-library/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Evaluation Stack (EvalHub)</span>
       <ul class="versions">
         <li class="version">
@@ -229,6 +261,14 @@
       <ul class="versions">
         <li class="version">
           <a href="../genai-studio-saved-agent/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">GRPO Training Pipelines</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../grpo-training-pipelines/index.html">default</a>
         </li>
       </ul>
     </li>
@@ -622,12 +662,21 @@
 <div class="paragraph">
 <p>You should see your workshop username.</p>
 </div>
+<div class="paragraph">
+<p>With cluster access confirmed, the next step is to give yourself a workspace.</p>
+</div>
 </div>
 </div>
 </div>
 <div class="sect1">
 <h2 id="_exercise_2_create_your_working_project"><a class="anchor" href="#_exercise_2_create_your_working_project"></a>Exercise 2: Create your working project</h2>
 <div class="sectionbody">
+<div class="paragraph">
+<p>Workshop users never deploy anything into the MaaS or observability
+namespaces — usage logging is cluster infrastructure. Everything you run in
+this workshop is either read-only inspection or a query, but create your own
+project anyway so any scratch work you do stays isolated:</p>
+</div>
 <div class="listingblock execute">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc new-project abc123-user1</code></pre>
@@ -643,6 +692,9 @@
 <div class="paragraph">
 <p>The output shows your new project as the current namespace.</p>
 </div>
+<div class="paragraph">
+<p>Your project is ready, so the last connection step is to open the console.</p>
+</div>
 </div>
 </div>
 </div>
@@ -652,7 +704,8 @@
 <div class="paragraph">
 <p>Navigate to the OpenShift console and sign in with your workshop credentials.
 Locate <strong>Red Hat OpenShift AI</strong> in the application launcher grid; the RHOAI
-dashboard opens in a new tab.</p>
+dashboard opens in a new tab. The <strong>Observe &amp; monitor</strong> section of that
+dashboard is where the Perses usage dashboards of Module 02 render.</p>
 </div>
 </div>
 </div>
@@ -694,8 +747,18 @@ dashboard opens in a new tab.</p>
 <div class="paragraph">
 <p><strong>Next steps:</strong></p>
 </div>
-<div class="paragraph">
-<p>Continue to the first module of this workshop.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Start Module 01 to verify the MaaS foundation on your cluster</p>
+</li>
+<li>
+<p>Keep your <code>oc login</code> session — every module runs its commands from the same terminal</p>
+</li>
+<li>
+<p>Note the dashboard location (<strong>Observe &amp; monitor</strong>) — Module 02 returns there for the usage dashboards</p>
+</li>
+</ul>
 </div>
 </div>
 </div>

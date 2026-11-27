@@ -1,0 +1,1213 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Module 01: Core Concepts :: RHOAI 3.6 Kitchen Sink Workshop Catalog</title>
+    <link rel="canonical" href="https://eformat.github.io/ralf-graph-pages/grpo-training-pipelines/module-01-concepts.html">
+    <link rel="prev" href="getting-connected.html">
+    <link rel="next" href="module-02-hands-on.html">
+    <meta name="generator" content="Antora 3.2.3">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@400;500;700&family=Red+Hat+Mono:wght@400;700&family=Red+Hat+Text:wght@400;700&display=swap">
+    <link rel="stylesheet" href="../_/css/site.css">
+<link rel="stylesheet" href="../_/css/site-extra.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="icon" href="../_/img/favicon.svg" type="image/svg+xml">
+  </head>
+  <body class="article">
+<a class="skip-link" href="#content">Skip to content</a>
+<header class="header">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <span class="navbar-item navbar-logo">
+        <img src="../_/img/logo-summit.svg" alt="Red Hat Summit" class="navbar-logo-img">
+      </span>
+      <a class="navbar-item site-title" target="_blank" href="https://eformat.github.io/ralf-graph-pages">RHOAI 3.6 Kitchen Sink Workshop Catalog</a>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="grpo-training-pipelines" data-version="">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+    <h3 class="title"><a href="index.html" class=" query-params-link">GRPO Training Pipelines</a></h3>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Workshop</span>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="index.html">Overview</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="getting-connected.html">Getting Connected</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Modules</span>
+<ul class="nav-list">
+  <li class="nav-item is-current-page" data-depth="1">
+    <a class="nav-link" href="module-01-concepts.html">Core Concepts</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="module-02-hands-on.html">Hands-on Exercise</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="module-03-advanced.html">Advanced Usage</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Wrap-up</span>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="conclusion.html">Conclusion</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+  </div>
+  <ul class="components">
+    <li class="component">
+      <span class="title">Agent Catalog in AI Hub</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../agent-catalog-ai-hub/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">AI Available Assets page</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../ai-available-assets/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Automated Red Teaming (powered by Garak)</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../automated-red-teaming-garak/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Automated tool-calling evaluation-data generation for custom MCP servers</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../automated-tool-calling-eval/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">AutoML</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../automl/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">AutoRAG</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../autorag/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">AutoRAG Multilingual Workshop</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../autorag-multilingual/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">AutoRAG OCR Document Ingestion</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../autorag-ocr-ingestion/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Claude Code agent starter kit</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../claude-code-starter-kit/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">CSV export for Model Catalog data</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../csv-export-model-catalog/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Distributed Inference with llm-d (core)</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../llmd-core/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Distributed Inference with llm-d: priority-based flow control</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../llmd-priority-flow-control/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">EvalHub Eval Gallery — Curated Evaluation Collections</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../evalhub-eval-gallery/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">EvalHub Inspect AI Provider GA Workshop</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../evalhub-inspect-ai-ga/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">EvalHub LightEval Provider GA Workshop</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../evalhub-lighteval-ga/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Evaluation Insights in the Model Library</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../eval-insights-model-library/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Evaluation Stack (EvalHub)</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../evalhub/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">External metering integration for MaaS</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../external-metering-maas/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">External metering: per-user token usage and cost</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../external-metering-per-user/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Feast MCP Server — Governed Feature Access for AI Agents</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feast-mcp-server/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Feature Store (Feast-based)</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../feature-store-feast/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Gateway API and Red Hat Connectivity Link (RHCL)</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../gateway-api-rhcl/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Gen AI Studio saved-agent configuration</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../genai-studio-saved-agent/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component is-current">
+      <span class="title">GRPO Training Pipelines</span>
+      <ul class="versions">
+        <li class="version is-current">
+          <a href="index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Hierarchical KV Cache Tiering (llm-d)</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../llmd-kv-cache-tiering/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Kale JupyterLab extension</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../kale-jupyterlab/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Kubeflow Trainer v2</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../kubeflow-trainer-v2/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">KubeRay (CodeFlare Operator successor)</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../kuberay/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Kueue (Red Hat build of Kueue Operator)</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../kueue/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Latency-aware routing for llm-d</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../llmd-latency-routing/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Llama Stack / OGX core: RAG, agentic workflows, vector DB integration</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../llama-stack-ogx-core/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">LLMInferenceService / LLMInferenceServiceConfig (llm-d-native)</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../llminferenceservice-config/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Loki-based showback and user-scoped usage dashboards (MaaS)</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../maas-loki-showback/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">LoRA-aware routing for llm-d</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../llmd-lora-routing/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">MaaS deployment/routing path for Distributed Inference with llm-d</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../maas-llmd-deployment/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">MaaS multi-tenancy with per-tenant gateway and identity isolation</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../maas-multi-tenancy/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">MaaS-specific external OIDC user authentication</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../maas-oidc-auth/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">MCP Catalog administrative interface</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../mcp-catalog-admin/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">MCP Catalog support-tier labeling</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../mcp-catalog-support-tier/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">MCP gateway Operator</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../mcp-gateway-operator/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">MCP Lifecycle Operator</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../mcp-lifecycle-operator/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">MiDojo adversarial testing engine</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../midojo-adversarial-testing/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">MLflow experiment tracking / MLOps integration</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../mlflow-experiment-tracking/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Model registry and model catalog</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../model-registry-catalog/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Models-as-a-Service (MaaS) core: access model and token mechanism</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../maas-core/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Multi-provider API passthrough for external models (MaaS)</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../maas-multi-provider-passthrough/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Native Prometheus telemetry for Kubeflow Trainer v2 training workloads</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../kftv2-prometheus-telemetry/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">NeMo Guardrails</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../nemo-guardrails/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">NeMo Guardrails integration with MCP Gateway</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../nemo-guardrails-mcp-gateway/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">OGX File Processors API</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../ogx-file-processors/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">OGX remote::anthropic and remote::gemini providers</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../ogx-remote-providers/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">OGX-native agentic API surface (Tool Runtime, Responses, Conversations)</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../ogx-agentic-api/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">OpenClaw agent starter kit</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../openclaw-starter-kit/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">OpenCode coding-agent deployment</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../opencode-coding-agent/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">OpenShell (secure agent sandboxing and policy enforcement)</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../openshell-agent-sandboxing/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Platform-wide direct OIDC authentication (GatewayConfig CR)</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../platform-oidc-auth/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Private Hugging Face models in the model catalog</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../private-hf-models/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Red Hat AI Inference fast-release images as custom ServingRuntime</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../rhai-fast-release-images/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">RHOAI Kitchen Sink</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../home/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Speculator training pipeline for Kubeflow Pipelines</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../speculator-training-kfp/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Text-mode training for multimodal models in Training Hub</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../text-mode-multimodal-training/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Validated tool-calling configuration in Model Catalog</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../validated-tool-calling-config/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">View running agent deployments in dashboard</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../view-agent-deployments/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">vLLM CPU ServingRuntime on IBM Z / Power</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../vllm-cpu-ibm-z-power/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">vLLM model deployment directly through MaaS</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../maas-vllm-deployment/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">vLLM ServingRuntime for KServe</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../vllm-serving-runtime-kserve/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</div>    </div>
+  </aside>
+</div>
+<main class="article" id="content">
+<div class="toolbar" role="navigation">
+<button class="nav-toggle"></button>
+  <a href="../home/index.html" class="home-link"></a>
+<nav class="breadcrumbs" aria-label="breadcrumbs">
+  <ul>
+    <li><a href="index.html">GRPO Training Pipelines</a></li>
+    <li>Modules</li>
+    <li><a href="module-01-concepts.html">Core Concepts</a></li>
+  </ul>
+</nav>
+</div>
+  <div class="content">
+<article class="doc">
+<h1 class="page">Module 01: Core Concepts</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>In this module you will understand what Group Relative Policy Optimization
+(GRPO) is, how the RHOAI AI Pipelines architecture runs it, and how the full
+fine-tuning and LoRA training modes compare.</p>
+</div>
+<div class="paragraph">
+<p><strong>Learning objectives:</strong></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Explain the GRPO reinforcement-learning loop and its group-relative advantage</p>
+</li>
+<li>
+<p>Describe how the pipeline server (DSPA), DSPO, and Argo workflows fit together in RHOAI 3.6</p>
+</li>
+<li>
+<p>Choose between full fine-tuning and LoRA for a GRPO training workload</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_exercise_1_what_is_grpo"><a class="anchor" href="#_exercise_1_what_is_grpo"></a>Exercise 1: What is GRPO?</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><strong>Group Relative Policy Optimization</strong> is a reinforcement-learning fine-tuning
+algorithm for large language models. Instead of supervised fine-tuning — where
+the model imitates a fixed dataset of prompt/response pairs — GRPO improves the
+model against a <strong>reward signal</strong>: the model generates responses, a reward
+function scores them, and the model&#8217;s weights are updated to make higher-scoring
+responses more likely.</p>
+</div>
+<div class="paragraph">
+<p>GRPO gets its name from how it computes the advantage — the "how much better
+was this response" signal that drives the update:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>For each training prompt, the current policy samples a <strong>group</strong> of candidate
+responses (for example 8 or 16 completions of the same prompt).</p>
+</li>
+<li>
+<p>A reward function scores every response in the group. With <strong>verifiable
+rewards</strong> (RLVR), the reward is computed by checking the response itself —
+exact-match answer checks, unit tests, format rules — so no separate reward
+model is trained.</p>
+</li>
+<li>
+<p>Each response&#8217;s advantage is its reward <strong>normalized relative to the group</strong>:
+subtract the group mean and divide by the group spread. Responses that
+outscore the group average are reinforced; responses that underscore it are
+suppressed.</p>
+</li>
+<li>
+<p>The policy is updated with a clipped surrogate objective plus a KL penalty
+that keeps the model anchored to the reference policy.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Because the baseline comes from the group itself, GRPO does not need a learned
+critic (value) model the way PPO does — you train the policy model and nothing
+else. That halves the model memory that the training step must hold and is the
+main reason GRPO became the workhorse of reasoning-model fine-tuning.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get clustertrainingruntime</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The listed runtimes include the Training Hub CUDA runtime that executes GRPO
+training steps in this workshop. In RHOAI 3.6, Training Hub ships
+GRPO as a first-class fine-tuning algorithm alongside SFT, OSFT, and LoRA, and
+the universal workbench images bundle the RLVR/GRPO dependencies.</p>
+</div>
+<div class="sect2">
+<h3 id="_verify"><a class="anchor" href="#_verify"></a>Verify</h3>
+<div class="paragraph">
+<p>The command lists <code>ClusterTrainingRuntime</code> resources including the
+<code>training-hub</code> CUDA runtime your cluster administrator provisioned. GRPO
+training steps execute against this runtime in Module 02.</p>
+</div>
+<div class="paragraph">
+<p>Now that you know what GRPO is, you will look at the platform pieces that run
+it as a pipeline.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_exercise_2_the_rhoai_ai_pipelines_architecture"><a class="anchor" href="#_exercise_2_the_rhoai_ai_pipelines_architecture"></a>Exercise 2: The RHOAI AI Pipelines architecture</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>RHOAI names its Kubeflow Pipelines distribution <strong>AI Pipelines</strong> (the component
+was renamed from Data Science Pipelines). Three layers cooperate:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 40%;">
+<col style="width: 60%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Layer</th>
+<th class="tableblock halign-left valign-top">Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Pipeline server</strong> (<code>DataSciencePipelinesApplication</code>, DSPA)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The namespaced pipeline engine. The DSPO operator reconciles the DSPA into a
+<code>ds-pipeline</code> API server deployment, a MariaDB metadata database on a PVC, and
+a persistence agent that tracks run state. Pipeline definitions and runs are
+stored in the database; large artifacts go to S3 object storage.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>DSPO operator</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The <code>opendatahub</code>-managed operator that watches <code>DataSciencePipelinesApplication</code>
+resources and provisions the pipeline server components, including the
+Argo Workflows controllers that execute runs.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Argo Workflows</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The workflow engine under a pipeline run. Each pipeline run becomes an Argo
+workflow; the <strong>Executions</strong> view in the Pipelines UI shows the underlying Argo
+execution graph of every run.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Inspect the pipeline server Custom Resource Definition — every field your
+administrator can tune:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc explain datasciencepipelinesapplications.spec</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>GROUP:      datasciencepipelinesapplications.opendatahub.io
+KIND:       DataSciencePipelinesApplication
+VERSION:    v1
+
+FIELDS:
+  apiServer         &lt;Object&gt;   DS Pipelines API Server configuration.
+  database          &lt;Object&gt;   DB for metadata tracking; default MariaDB
+                               deployment or external SQL.
+  dspVersion        &lt;string&gt;
+  mlflow            &lt;Object&gt;   API server MLflow plugin; integrationMode
+                               AUTODETECT default, DISABLED to opt out.
+  mlmd              &lt;Object&gt;
+  networkPolicy     &lt;Object&gt;   admin overrides.
+  objectStorage     &lt;Object&gt;   -required- artifact passing; external S3 or
+                               default Minio (unsupported for prod).
+  persistenceAgent  &lt;Object&gt;
+  podToPodTLS       &lt;boolean&gt;  default true; only supported in DSP V2 on
+                               OpenShift.
+  proxy             &lt;Object&gt;
+  scheduledWorkflow &lt;Object&gt;</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Two integration points matter for GRPO training:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Object storage</strong> is required — every pipeline run writes its artifacts
+(datasets, checkpoints, metrics) to an S3-compatible bucket.</p>
+</li>
+<li>
+<p><strong>MLflow</strong> integration is autodetected by default: the pipeline server injects
+MLflow tracking into compatible workloads without extra configuration.</p>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="_verify_2"><a class="anchor" href="#_verify_2"></a>Verify</h3>
+<div class="paragraph">
+<p>The <code>oc explain</code> command returned the <code>spec</code> fields of the
+<code>DataSciencePipelinesApplication</code> CRD, confirming the DSPO operator and the AI
+Pipelines CRDs are installed on your cluster.</p>
+</div>
+<div class="paragraph">
+<p>Now that you know the architecture, you will see how a GRPO pipeline flows
+through it.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_exercise_3_how_a_grpo_pipeline_runs_on_rhoai_3_6"><a class="anchor" href="#_exercise_3_how_a_grpo_pipeline_runs_on_rhoai_3_6"></a>Exercise 3: How a GRPO pipeline runs on RHOAI 3.6</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A GRPO fine-tuning pipeline is a Kubeflow Pipelines (KFP) v2 definition — a
+graph of components — imported into your project&#8217;s pipeline server. When you
+create a run, the pipeline server compiles the definition into an Argo
+workflow and executes it:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><strong>Prepare</strong> — the pipeline loads the prompt dataset and the base model.</p>
+</li>
+<li>
+<p><strong>Generate</strong> — for each prompt the pipeline samples a group of candidate
+responses from the current policy. On GPU-backed steps the pipeline launches
+training work as <code>TrainJob</code> resources (Kubeflow Trainer v2) against a
+Training Hub runtime, and the GPU is attached through a DRA <code>ResourceClaim</code>.</p>
+</li>
+<li>
+<p><strong>Reward</strong> — the reward function scores every response in the group.</p>
+</li>
+<li>
+<p><strong>Update</strong> — the advantage (reward relative to the group mean) drives the
+policy update: every weight of the model in <strong>full fine-tuning</strong> mode, or only
+the low-rank adapter matrices in <strong>LoRA</strong> mode.</p>
+</li>
+<li>
+<p><strong>Export</strong> — the updated model and metrics are written to the object-storage
+bucket as run artifacts.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>You drive all of this from the dashboard&#8217;s Pipelines UI
+(<strong>Develop &amp; train → Pipelines</strong>), which has four views:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 40%;">
+<col style="width: 60%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">View</th>
+<th class="tableblock halign-left valign-top">What it shows</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Pipeline definitions</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The imported pipeline graphs available in your project, with versions</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Runs</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Every execution of a pipeline definition, with status, duration, and parameters</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Artifacts</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The files and metrics the runs produced, traced to their producing run</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Executions</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The underlying Argo execution graph — every step a run performed</p></td>
+</tr>
+</tbody>
+</table>
+<div class="sect2">
+<h3 id="_verify_3"><a class="anchor" href="#_verify_3"></a>Verify</h3>
+<div class="paragraph">
+<p>In the dashboard, click <strong>Develop &amp; train → Pipelines</strong>. With a pipeline server
+configured in your project, the <strong>Pipeline definitions</strong> view opens with an
+<strong>Import pipeline</strong> button instead of a <strong>Configure a pipeline server</strong> empty
+state. You will use it in Module 02.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_full_fine_tuning_or_lora"><a class="anchor" href="#_full_fine_tuning_or_lora"></a>Full fine-tuning or LoRA?</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>GRPO pipelines in RHOAI 3.6 support two training modes:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 22.2222%;">
+<col style="width: 22.2222%;">
+<col style="width: 22.2222%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top"></th>
+<th class="tableblock halign-left valign-top">Full fine-tuning</th>
+<th class="tableblock halign-left valign-top">LoRA matrix</th>
+<th class="tableblock halign-left valign-top">When to choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>What is updated</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Every weight of the model</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Only low-rank adapter matrices (A·B) injected into target layers; base weights stay frozen</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">LoRA for adaptation on a budget; full fine-tuning when the behavior change is large</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Trainable parameter memory</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Optimizer state for all weights — the dominant memory cost</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A small fraction of the weights (the adapter rank times the layer shapes)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">LoRA fits larger models (or larger GRPO groups) on the same GPU</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Artifact size</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A full model copy per export</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A small adapter file per export; the base model is referenced at load time</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">LoRA exports are cheap to store, version, and merge</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Quality profile</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Maximum capacity to change behavior</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Near-full-FT quality for style, format, and domain adaptation</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Start with LoRA; move to full fine-tuning if adapter-only updates plateau</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>In LoRA mode the pipeline trains the <strong>adapter matrices</strong> — the "LoRA matrix" of
+the feature name — while the frozen base model is loaded read-only. The LoRA
+hyperparameters (adapter rank, alpha scaling, target modules) are pipeline run
+parameters; Module 03 runs the LoRA variant and compares it with the full
+fine-tuning run of Module 02.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_module_summary"><a class="anchor" href="#_module_summary"></a>Module summary</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><strong>What you accomplished:</strong></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Explained the GRPO group-relative advantage and why no critic model is needed</p>
+</li>
+<li>
+<p>Mapped the AI Pipelines architecture (DSPA, DSPO, Argo) to the dashboard Pipelines views</p>
+</li>
+<li>
+<p>Compared full fine-tuning and LoRA training modes for GRPO</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><strong>Key takeaways:</strong></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>GRPO samples a group of responses per prompt and reinforces responses relative to the group&#8217;s own reward baseline</p>
+</li>
+<li>
+<p>A pipeline run is an Argo workflow orchestrated by the DSPA pipeline server; heavy training steps run as TrainJobs with DRA-attached GPUs</p>
+</li>
+<li>
+<p>LoRA mode trains small adapter matrices instead of all weights — cheaper memory and artifacts, near-full-FT quality for adaptation</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><strong>Next steps:</strong></p>
+</div>
+<div class="paragraph">
+<p>Set up the pipeline server and run your first GRPO pipeline in the hands-on
+module.</p>
+</div>
+</div>
+</div>
+<nav class="pagination">
+  <span class="prev"><a href="getting-connected.html" class="query-params-link">Getting Connected</a></span>
+  <span class="next"><a href="module-02-hands-on.html" class="query-params-link">Hands-on Exercise</a></span>
+</nav>
+</article>
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>  </div>
+</main>
+</div>
+<footer class="footer">
+  <a href="https://demo.redhat.com" target="_blank" class="poweredBy"><p>Powered by</p><div class="labInfo_poweredBy" style="display: block; width: 260px;"><svg class="labInfo_poweredByLogo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1508.5 178.739"><g fill="#111"><path d="M316.6 63.2v-56H342a21.279 21.279 0 0 1 7.8 1.3 18.111 18.111 0 0 1 5.9 3.5 15.577 15.577 0 0 1 5 11.8 15.051 15.051 0 0 1-3.1 9.5 16.836 16.836 0 0 1-8.4 5.8l12.5 24.1h-9.3l-11.6-23H325v23Zm24.7-48.6H325v18.7h16.3q5.25 0 8.1-2.7a8.7 8.7 0 0 0 2.8-6.6 8.7 8.7 0 0 0-2.8-6.6c-1.8-1.9-4.5-2.8-8.1-2.8ZM364.1 42.8a20.674 20.674 0 0 1 1.6-8.2 20.288 20.288 0 0 1 4.3-6.7 19.92 19.92 0 0 1 6.5-4.5 19.718 19.718 0 0 1 8-1.6 18.463 18.463 0 0 1 7.8 1.6 18.677 18.677 0 0 1 6.2 4.5 20.927 20.927 0 0 1 4.1 6.8 23.2 23.2 0 0 1 1.5 8.4v2.3H372a13.822 13.822 0 0 0 4.6 8.4 13.6 13.6 0 0 0 9.1 3.3 15.553 15.553 0 0 0 5.7-1 12.858 12.858 0 0 0 4.6-2.6l5.1 5a25.983 25.983 0 0 1-7.4 4.1 24.69 24.69 0 0 1-8.4 1.3 21.306 21.306 0 0 1-8.4-1.6 22.763 22.763 0 0 1-6.8-4.4 20.788 20.788 0 0 1-4.5-6.7 23.2 23.2 0 0 1-1.5-8.4Zm20.2-14.2a11.527 11.527 0 0 0-8 3 13.046 13.046 0 0 0-4.2 7.8h24.2a13.091 13.091 0 0 0-4.2-7.8 11.106 11.106 0 0 0-7.8-3ZM443.1 63.2v-3.8a19.448 19.448 0 0 1-5.8 3.3 18.924 18.924 0 0 1-6.7 1.2 19.824 19.824 0 0 1-14.6-6.1 22.268 22.268 0 0 1-4.4-6.7 21.812 21.812 0 0 1 0-16.4A20.534 20.534 0 0 1 416 28a19.335 19.335 0 0 1 6.6-4.5 20.334 20.334 0 0 1 8.2-1.6 20.7 20.7 0 0 1 6.6 1 19.415 19.415 0 0 1 5.7 3V7.2l8-1.8v57.8Zm-25.2-20.4a13.718 13.718 0 0 0 4 10.1 13.45 13.45 0 0 0 9.8 4.1 14.956 14.956 0 0 0 6.4-1.3 15.954 15.954 0 0 0 4.9-3.6V33.6a14.988 14.988 0 0 0-4.9-3.5 15.271 15.271 0 0 0-6.4-1.3 13.423 13.423 0 0 0-9.9 4 13.806 13.806 0 0 0-3.9 10ZM478.1 63.2v-56h8.4v24h29.8v-24h8.4v56h-8.4V38.8h-29.8v24.4ZM547.2 64a16.483 16.483 0 0 1-10.8-3.5 11.037 11.037 0 0 1-4.2-8.9 10.375 10.375 0 0 1 4.7-9.2 20.76 20.76 0 0 1 11.8-3.2 27.841 27.841 0 0 1 5.8.6 27.374 27.374 0 0 1 5.3 1.6v-4.3a8.143 8.143 0 0 0-2.6-6.5 11.452 11.452 0 0 0-7.4-2.2 20.788 20.788 0 0 0-6 .9 34.616 34.616 0 0 0-6.6 2.6l-3-6a54.169 54.169 0 0 1 8.4-3.1 33.18 33.18 0 0 1 8.3-1.1c5.2 0 9.3 1.3 12.2 3.8s4.4 6.1 4.4 10.8v27h-7.8v-3.5a19.441 19.441 0 0 1-5.8 3.2 23.54 23.54 0 0 1-6.7 1Zm-7.3-12.6a5.646 5.646 0 0 0 2.6 4.8 11.193 11.193 0 0 0 6.6 1.8 16.256 16.256 0 0 0 5.9-1 14.449 14.449 0 0 0 4.9-2.9V47a19.778 19.778 0 0 0-4.8-1.8 24.933 24.933 0 0 0-5.7-.6 11.859 11.859 0 0 0-6.8 1.8 5.728 5.728 0 0 0-2.7 5ZM580.6 53.2v-24H572v-6.7h8.6V12.1l7.9-1.9v12.3h12v6.7h-12v22.1a5.94 5.94 0 0 0 1.4 4.4c.9.9 2.5 1.3 4.6 1.3a23.637 23.637 0 0 0 3-.2 10.857 10.857 0 0 0 2.8-.8v6.7a19.28 19.28 0 0 1-3.8.9 27.484 27.484 0 0 1-3.8.3c-3.9 0-7-.9-9-2.8-2-1.7-3.1-4.4-3.1-7.9Z"></path></g><path d="M127 90.2c12.5 0 30.6-2.6 30.6-17.5a12.678 12.678 0 0 0-.3-3.4L149.8 37c-1.7-7.1-3.2-10.3-15.7-16.6-9.7-5-30.8-13.1-37.1-13.1-5.8 0-7.5 7.5-14.4 7.5-6.7 0-11.6-5.6-17.9-5.6-6 0-9.9 4.1-12.9 12.5 0 0-8.4 23.7-9.5 27.2a4.216 4.216 0 0 0-.3 1.9c0 9.2 36.3 39.4 85 39.4Zm32.5-11.4c1.7 8.2 1.7 9.1 1.7 10.1 0 14-15.7 21.8-36.4 21.8-46.8 0-87.7-27.4-87.7-45.5a17.535 17.535 0 0 1 1.5-7.3C21.8 58.8 0 61.8 0 81c0 31.5 74.6 70.3 133.7 70.3 45.3 0 56.7-20.5 56.7-36.6-.1-12.8-11-27.3-30.9-35.9Z" fill="#e00"></path><path d="M159.5 78.8c1.7 8.2 1.7 9.1 1.7 10.1 0 14-15.7 21.8-36.4 21.8-46.8 0-87.7-27.4-87.7-45.5a17.535 17.535 0 0 1 1.5-7.3l3.7-9.1a4.877 4.877 0 0 0-.3 2c0 9.2 36.3 39.4 85 39.4 12.5 0 30.6-2.6 30.6-17.5a12.678 12.678 0 0 0-.3-3.4Z"></path><path d="M253.5 158.7a2.22 2.22 0 0 1-2.2-2.2V2.2a2.2 2.2 0 0 1 4.4 0v154.2a2.242 2.242 0 0 1-2.2 2.3Z" fill="#111"></path><text data-name="Demo Platform" transform="translate(1186 149)" fill="#111" font-size="82" font-family="'RedHatDisplay', 'Overpass', overpass, helvetica, arial, sans-serif" font-weight="700"><tspan x="-877.892" y="0">Demo Platform</tspan></text></svg></div></div>
+</footer>
+<script defer src="../_/js/vendor/clipboard.js"></script>
+<script defer src="../_/js/site.js"></script>
+<script defer src="../_/js/vendor/highlight.js"></script>
+  <style>
+/* left align items inside imageblock */
+.doc .imageblock {
+    align-items: flex-start;
+  }
+
+/* add a shadow to the image container */
+.doc .bordershadow .content{
+    border: solid 1px black;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+}
+
+/*custom video css*/
+video {
+    border: solid 1px black;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+}
+
+/* allow for wider screens */
+.doc {
+    max-width: none;
+}
+
+.navbar-item-right-dropdown {
+    float: right!important;
+}
+
+.navbar-dropdown-right {
+    right: 0;
+    left: auto;
+}
+
+.navbar-item-right-content {
+    width: 100%;
+    background-color: #131313;
+}
+
+/* ── Send-to button ─────────────────────────────────── */
+.listingblock { position: relative; }
+.send-to-command-btn {
+  position: absolute; top: 0.5rem; right: 0.5rem;
+  background: #28a745; color: white; border: none; border-radius: 4px;
+  padding: 0.5rem 1rem; font-size: 0.875rem; font-weight: 600;
+  cursor: pointer; transition: all 0.2s; z-index: 100;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2); opacity: 0.3;
+}
+.send-to-command-btn:hover { background: #218838; transform: translateY(-2px); opacity: 1; }
+.send-to-command-btn.success { background: #27ae60; }
+.send-to-command-btn.copied { background: #3498db; }
+.listingblock pre.send-to { padding-top: 3rem !important; }
+
+</style>
+<script>
+(function () {
+  'use strict';
+
+  // ── Send-to Terminal ──────────────────────────────────────────────────────
+  function initSendTo() {
+    document.querySelectorAll('[class*="send-to-"]').forEach(function (block) {
+      if (block.dataset.sendToButtonAdded) return;
+      var listingBlock = block.closest('.listingblock');
+      if (!listingBlock) return;
+
+      var targetClass = Array.from(block.classList).find(function (c) { return /^send-to-.+/.test(c); });
+      if (!targetClass) return;
+      var targetPath = '/' + targetClass.replace('send-to-', '');
+
+      var btn = document.createElement('button');
+      btn.className = 'send-to-command-btn';
+      btn.title = 'Send to ' + targetPath;
+      btn.innerHTML = '▶';
+      btn.onclick = function () {
+        var cmd = (block.querySelector('code') || block).textContent.trim();
+        sendToTerminal(cmd, btn, targetPath);
+      };
+      listingBlock.appendChild(btn);
+      block.dataset.sendToButtonAdded = 'true';
+    });
+  }
+
+  function findFrame(targetPath) {
+    try {
+      if (!window.parent || window.parent === window) return null;
+      var frames = window.parent.document.querySelectorAll('iframe');
+      for (var i = 0; i < frames.length; i++) {
+        if ((frames[i].src || '').indexOf(targetPath) !== -1) return frames[i];
+      }
+    } catch (e) {}
+    return null;
+  }
+
+  function sendToTerminal(command, button, targetPath) {
+    var frame = findFrame(targetPath);
+    var original = button.innerHTML;
+    if (!frame) {
+      alert('Cannot find terminal at ' + targetPath + ' in this showroom.\nCheck ui-config.yml has a tab with ' + targetPath + ' URL.');
+      return;
+    }
+
+    if (targetPath === '/terminal') {
+      ensureTerminalListener(frame);
+    }
+
+    frame.contentWindow.postMessage({ type: 'execute', data: command + '\r' }, '*');
+    button.classList.add('success'); button.innerHTML = '✓ Sent!';
+    setTimeout(function () { button.classList.remove('success'); button.innerHTML = original; }, 2000);
+  }
+
+  function ensureTerminalListener(frame) {
+    if (frame.dataset.listenerInjected) return;
+
+    var listenerScript = `
+(function() {
+  if (window.__terminalListenerInstalled) return;
+  window.__terminalListenerInstalled = true;
+
+  window.addEventListener("message", function(event) {
+    if (event.data && event.data.type === "execute") {
+      var command = event.data.data;
+      var term = window.term;
+
+      if (term) {
+        command = command.replace(/[\\r\\n]+$/, "");
+
+        if (window.client && typeof window.client.sendData === 'function') {
+          window.client.sendData(command + '\\r');
+          return;
+        }
+
+        if (term._core && term._core.coreService && term._core.coreService._inputHandler) {
+          for (var i = 0; i < command.length; i++) {
+            term._core.coreService._inputHandler.parse(command[i]);
+          }
+          term._core.coreService._inputHandler.parse('\\r');
+          return;
+        }
+
+        if (term._core && term._core._onData) {
+          term._core._onData.fire(command + '\\r');
+          return;
+        }
+
+        term.write(command + '\\r\\n');
+      }
+    }
+  }, false);
+})();`;
+
+    try {
+      var script = frame.contentWindow.document.createElement('script');
+      script.textContent = listenerScript;
+      frame.contentWindow.document.body.appendChild(script);
+      frame.dataset.listenerInjected = 'true';
+    } catch (e) {
+      console.error('Failed to inject terminal listener:', e);
+    }
+  }
+
+  // ── Copy-to-parent (plugin integration) ──────────────────────────────────
+  function initCopyToParent() {
+    if (window.parent === window) return;
+
+    document.addEventListener('click', function (e) {
+      var btn = e.target.closest('.copypaste .clipboard, .copypaste button[title="Copy"]');
+      if (!btn) return;
+      var listing = btn.closest('.listingblock');
+      if (!listing) return;
+      var code = listing.querySelector('pre code');
+      if (!code) return;
+      window.parent.postMessage({ type: 'copy', text: code.textContent.trim() }, '*');
+    });
+  }
+
+  // ── Boot ──────────────────────────────────────────────────────────────────
+  function init() { initSendTo(); initCopyToParent(); }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+
+})();
+
+</script>
+</body>
+</html>

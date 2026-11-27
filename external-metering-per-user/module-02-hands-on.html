@@ -177,6 +177,38 @@
       </ul>
     </li>
     <li class="component">
+      <span class="title">EvalHub Eval Gallery — Curated Evaluation Collections</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../evalhub-eval-gallery/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">EvalHub Inspect AI Provider GA Workshop</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../evalhub-inspect-ai-ga/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">EvalHub LightEval Provider GA Workshop</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../evalhub-lighteval-ga/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">Evaluation Insights in the Model Library</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../eval-insights-model-library/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
       <span class="title">Evaluation Stack (EvalHub)</span>
       <ul class="versions">
         <li class="version">
@@ -229,6 +261,14 @@
       <ul class="versions">
         <li class="version">
           <a href="../genai-studio-saved-agent/index.html">default</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <span class="title">GRPO Training Pipelines</span>
+      <ul class="versions">
+        <li class="version">
+          <a href="../grpo-training-pipelines/index.html">default</a>
         </li>
       </ul>
     </li>
@@ -590,10 +630,11 @@
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p>In this module you will explore where per-user usage data surfaces in the
-MaaS observability dashboard, connect it to the external metering model you
-walked in Module 01, and understand the boundary between the showback data
-that exists today and the chargeback workflows external metering targets.</p>
+<p>In this module you run the commands yourself. You inspect the MaaS
+configuration that turns on per-user usage logging, examine the
+OpenTelemetry Collector that records usage, read the <code>DSCInitialization</code>
+configuration that forwards usage records to external metering backends, and
+query per-user token usage through the user-scoped gateway route.</p>
 </div>
 <div class="paragraph">
 <p><strong>Learning objectives:</strong></p>
@@ -601,180 +642,552 @@ that exists today and the chargeback workflows external metering targets.</p>
 <div class="ulist">
 <ul>
 <li>
-<p>Locate per-user token usage data in the MaaS observability dashboard</p>
+<p>Inspect the MaaS <code>Config</code> resource and confirm that usage logging and the usage metrics dashboard are enabled</p>
 </li>
 <li>
-<p>Interpret the Token Consumption by User table and the metrics behind it</p>
+<p>Read the <code>usage-logs</code> OpenTelemetry Collector pipeline: receivers, attribute processors, and the Loki exporter endpoint</p>
 </li>
 <li>
-<p>Distinguish the MaaS showback CSV export from the external metering chargeback path</p>
+<p>Describe the <code>DSCInitialization</code> <code>spec.monitoring.usageLogs</code> schema — the external-metering knob — and the dual-write versus forward-only choice it encodes</p>
+</li>
+<li>
+<p>Run per-user LogQL queries through the <code>data-science-usage-logs</code> route and read <code>tokens_total</code> on the Perses usage dashboards</p>
 </li>
 </ul>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_exercise_1_explore_per_user_usage_data_in_the_maas_observability_dashboard"><a class="anchor" href="#_exercise_1_explore_per_user_usage_data_in_the_maas_observability_dashboard"></a>Exercise 1: Explore per-user usage data in the MaaS observability dashboard</h2>
+<h2 id="_exercise_1_inspect_the_maas_usage_logging_configuration"><a class="anchor" href="#_exercise_1_inspect_the_maas_usage_logging_configuration"></a>Exercise 1: Inspect the MaaS usage-logging configuration</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>The MaaS observability dashboard is the surface where per-user token usage is
-visible today. This is an explore exercise — observe the data and map each
-column back to the token dimensions from Module 01.</p>
+<p>Everything in this workshop starts from one resource: the MaaS <code>Config</code> named
+<code>default</code> in the <code>models-as-a-service</code> namespace. Its <code>usageLogging</code> flag turns
+on the per-user usage-record pipeline you walked in Module 01, and
+<code>usageMetricsDashboard</code> deploys the Perses usage dashboards.</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>In the OpenShift AI dashboard, click <strong>Observe &amp; monitor → Dashboard</strong>.</p>
-</li>
-<li>
-<p>Click the <strong>Usage</strong> tab.</p>
-</li>
-<li>
-<p>Configure filters to scope the view:</p>
-<div class="ulist">
-<ul>
-<li>
-<p>Select a time period from the <strong>Time period</strong> dropdown.</p>
-</li>
-<li>
-<p>Select filters for <strong>User</strong>, <strong>Subscription</strong>, or <strong>Model</strong>.</p>
-</li>
-</ul>
+<p>Check that the two flags are enabled. Because the value fields are nested in
+<code>spec</code>, query them with a JSONPath expression:</p>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get configs.maas.opendatahub.io default -n models-as-a-service \
+  -o jsonpath='{.spec.usageLogging}{" "}{.spec.usageMetricsDashboard}{" "}{.spec.limitadorScrapeInterval}{"\n"}'</code></pre>
 </div>
-</li>
-<li>
-<p>Review the <strong>Token Consumption by User</strong> table, which shows detailed
-per-user usage data:</p>
+</div>
 </li>
 </ol>
 </div>
-<table class="tableblock frame-all grid-all stretch">
-<colgroup>
-<col style="width: 33.3333%;">
-<col style="width: 66.6667%;">
-</colgroup>
-<thead>
-<tr>
-<th class="tableblock halign-left valign-top">Column</th>
-<th class="tableblock halign-left valign-top">Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">User</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">The username of the user who made the requests. For API key-based requests, this is the user who created the API key; for OIDC-authenticated requests, this is the user&#8217;s OIDC identity.</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Subscription</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">The subscription used for the requests. If a user belongs to multiple subscriptions, separate rows appear for each subscription.</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Model</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">The model accessed, in the format <code>&lt;endpoint-name&gt;/&lt;model-id&gt;</code> for MaaS models.</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Tokens</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Total tokens consumed by this user for this subscription and model combination.</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Requests</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">The number of API requests made by this user for this subscription and model combination.</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Rate Limited</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Requests rejected due to rate limiting (HTTP 429). These count toward the request total without consuming tokens.</p></td>
-</tr>
-</tbody>
-</table>
+<div class="paragraph">
+<p>Expect exactly:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>true true 30s</pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>usageLogging: true</code> means every authorized inference call produces a usage
+record; <code>usageMetricsDashboard: true</code> deploys the Perses dashboards of
+Exercise 4; <code>limitadorScrapeInterval: 30s</code> sets how often the gateway&#8217;s
+Limitador call metrics are scraped. There is no per-user opt-in to configure —
+with usage logging on, usage records carry the caller&#8217;s identity by default.</p>
+</div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>Interpret how the table is computed. The dashboard aggregates the following
-Prometheus metrics collected from Kuadrant and MaaS components:</p>
-<div class="ulist">
-<ul>
-<li>
-<p><code>authorized_hits_total</code> — total tokens consumed, labeled by subscription, model, and <code>limitador_namespace</code></p>
-</li>
-<li>
-<p><code>authorized_calls_total</code> — total successful API requests, labeled by subscription</p>
-</li>
-<li>
-<p><code>limited_calls_total</code> — requests rejected due to rate limiting, labeled by <code>limitador_namespace</code></p>
-</li>
-</ul>
+<p>Confirm the resource itself is healthy:</p>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get configs.maas.opendatahub.io default -n models-as-a-service \
+  -o jsonpath='{range .status.conditions[*]}{.type}{"="}{.status}{" ("}{.reason}{")"}{"\n"}{end}'</code></pre>
+</div>
 </div>
 </li>
 </ol>
 </div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-The user label is disabled by default in MaaS metrics
-(<code>captureUser: false</code>). To enable per-user metrics collection, configure the
-<code>captureUser</code> setting in your <code>MaasTenantConfig</code>. Without it, usage
-aggregates at the subscription level rather than per user — which is exactly
-the gap external metering closes.
-</td>
-</tr>
-</table>
+<div class="paragraph">
+<p>Expect both conditions to be <code>True</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>Ready=True (AllOperandsReady)
+TenantsHealthy=True (AllTenantsHealthy)</pre>
+</div>
 </div>
 <div class="sect2">
 <h3 id="_verify"><a class="anchor" href="#_verify"></a>Verify</h3>
 <div class="paragraph">
-<p>The Usage tab renders the Token Consumption by User table filtered to your
-selected time period, and you can name which columns identify the user, the
-subscription, and the token totals.</p>
+<p>The <code>Config</code> resource reports <code>usageLogging=true</code>, <code>usageMetricsDashboard=true</code>,
+and <code>Ready=True</code> — the cluster-wide switch for per-user usage logging is on.</p>
 </div>
 <div class="paragraph">
-<p>With the per-user surface explored, the next step is to understand how this
-data relates to cost attribution and chargeback.</p>
+<p>With logging switched on, the next step is to see the component that actually
+writes the records.</p>
 </div>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_exercise_2_connect_showback_data_to_the_external_metering_chargeback_path"><a class="anchor" href="#_exercise_2_connect_showback_data_to_the_external_metering_chargeback_path"></a>Exercise 2: Connect showback data to the external metering chargeback path</h2>
+<h2 id="_exercise_2_inspect_the_collector_that_records_usage"><a class="anchor" href="#_exercise_2_inspect_the_collector_that_records_usage"></a>Exercise 2: Inspect the collector that records usage</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>This is a guided walkthrough — no commands. Compare the two data paths you
-now know and note where each fits.</p>
+<p>With usage logging enabled, the MaaS controller manages an OpenTelemetry
+Collector named <code>usage-logs</code> in the <code>redhat-ods-applications</code> namespace. This
+exercise reads its pipeline so you can name every hop a usage record takes.</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p><strong>Showback today: the CSV export.</strong> From the Usage tab, hovering over the
-Token Consumption by User table offers <strong>Export as CSV</strong>. The exported file
-contains subscription-level usage data for the selected time period and
-filters, and is suitable for showback reporting to finance teams — but it
-is not billed-grade accurate. The product documentation explicitly points
-to external metering and billing tools for production chargeback workflows.</p>
+<p>Confirm the collector is deployed and managed:</p>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get opentelemetrycollector usage-logs -n redhat-ods-applications</code></pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Expect a <code>deployment</code>-mode collector with both replicas ready:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>NAME         MODE         VERSION   READY   AGE     IMAGE                                                                                                                             MANAGEMENT
+usage-logs   deployment   0.158.0   2/2     4h52m   registry.redhat.io/rhosdt/opentelemetry-collector-rhel9@sha256:b71f75d039eb8bae222f2318fbd781640affdcb7d1a4ed8219576d6b0677a0c7   managed</pre>
+</div>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Read the collector pipeline. The configuration is embedded in the CR under
+<code>.spec.config</code>:</p>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get opentelemetrycollector usage-logs -n redhat-ods-applications \
+  -o jsonpath='{.spec.config}' | python3 -m json.tool | head -60</code></pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Expect a <code>logs</code> pipeline shaped like this (abridged):</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>exporters:
+  otlp_http/loki:
+    auth:
+      authenticator: bearertokenauth
+    endpoint: https://usage-gateway-http.${env:NAMESPACE}.svc:8080/api/logs/v1/application/otlp
+    tls:
+      ca_file: /etc/pki/ca-trust/extracted/pem/service-ca.crt
+processors:
+  groupbyattrs:
+    keys:
+    - subscription
+    - model
+    - response_type
+  resource:
+    attributes:
+    - action: upsert
+      key: log_type
+      value: application
+    - action: upsert
+      key: service.name
+      value: models-as-a-service
+    - action: upsert
+      key: kubernetes_namespace_name
+      value: ${env:NAMESPACE}
+  transform:
+    error_mode: ignore
+    log_statements:
+    - context: log
+      statements:
+      - replace_pattern(attributes["user_id"], "\"", "")
+      - replace_pattern(attributes["subscription"], "\"", "")
+      - replace_pattern(attributes["key_name"], "\"", "")
+      - replace_pattern(attributes["groups"], "\"", "")
+      - replace_pattern(attributes["organization_id"], "\"", "")
+      - replace_pattern(attributes["cost_center"], "\"", "")
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Walk the pipeline:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Receiver</strong> — the collector accepts usage records over OTLP gRPC on port
+4317; the MaaS controller pushes records there.</p>
 </li>
 <li>
-<p><strong>User-scoped dashboards.</strong> In addition to the metrics-based dashboard, MaaS
-in RHOAI 3.5 includes a Loki-based structured log pipeline for showback data
-with 30-day retention on object storage, sized for monthly billing cycles.
-User-scoped, read-only dashboards give each user visibility into their own
-usage, while administrators keep the platform-wide view.</p>
+<p><strong>Attribute processors</strong> — the <code>resource</code> processor stamps <code>log_type=application</code>,
+<code>service.name=models-as-a-service</code>, and the tenant namespace onto every
+record; the <code>transform</code> processor strips quoting artifacts from the six
+identity attributes — <code>user_id</code>, <code>subscription</code>, <code>key_name</code>, <code>groups</code>,
+<code>organization_id</code>, and <code>cost_center</code> — so they can be grouped and labeled;
+<code>groupbyattrs</code> groups records by <code>subscription</code>, <code>model</code>, and
+<code>response_type</code>.</p>
 </li>
 <li>
-<p><strong>Chargeback path: external metering.</strong> The external-metering IPP plugin and
-the standalone metering service close the chargeback gap: per-user and
-per-model token consumption, cost attribution, quota enforcement through
-balance checks, and cache-aware pricing — all for inference requests passing
-through the AI Inference Gateway.</p>
+<p><strong>Exporter</strong> — records leave as OTLP/HTTP to
+<code><a href="https://usage-gateway-http.${env:NAMESPACE}.svc:8080/api/logs/v1/application/otlp" class="bare">https://usage-gateway-http.${env:NAMESPACE}.svc:8080/api/logs/v1/application/otlp</a></code>,
+the gateway of the <code>data-science-usage-logs</code> LokiStack, authenticated with
+the collector&#8217;s service-account token and the cluster service CA.</p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Pipeline state on this cluster — the exporter endpoint name
+<code>usage-gateway-http</code> is an alias service the facilitator stages through the
+workshop&#8217;s in-tree manifests alongside the <code>data-science-usage-logs</code> LokiStack
+(set up by the <a href="../maas-loki-showback/index.html" class="xref page">Loki-based showback
+workshop</a>). Until it resolves, incoming usage records are still received but
+cannot be exported — the collector log then repeats
+<code>Exporting failed. Dropping data.</code> with
+<code>lookup usage-gateway-http.redhat-ods-applications.svc … no such host</code>. You can
+see the current state yourself:
+</td>
+</tr>
+</table>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc logs -n redhat-ods-applications deployment/usage-logs-collector --tail=100 | grep -c "Dropping data"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>0</code> means records are exporting cleanly; a positive count means the alias is
+not staged yet and Exercise 4&#8217;s queries will return empty results until your
+facilitator restores it.</p>
+</div>
+<div class="sect2">
+<h3 id="_verify_2"><a class="anchor" href="#_verify_2"></a>Verify</h3>
+<div class="paragraph">
+<p>You can point at the OTLP receiver port, list the six identity attributes the
+processors normalize, and name the LokiStack gateway endpoint the exporter
+ships records to.</p>
+</div>
+<div class="paragraph">
+<p>The collector writes records into the cluster&#8217;s local usage store. What you
+cannot see yet is the external side of the story — the knob this feature is
+named after.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_exercise_3_read_the_external_metering_knob_dsci_spec_monitoring_usagelogs"><a class="anchor" href="#_exercise_3_read_the_external_metering_knob_dsci_spec_monitoring_usagelogs"></a>Exercise 3: Read the external-metering knob: DSCI spec.monitoring.usageLogs</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Everything so far stores usage <strong>inside</strong> the cluster. External metering is the
+<code>usageLogs</code> stanza in <code>DSCInitialization.spec.monitoring</code>: it configures usage
+log collection and forwarding to Loki — including backends <strong>outside</strong> the
+cluster. This exercise is read-only: you inspect the schema and the current
+cluster state, and prepare the manifest that a facilitator would apply.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Read the schema straight from the installed CRD:</p>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc explain dscinitialization.spec.monitoring.usageLogs</code></pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Expect five fields:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>FIELD: usageLogs &lt;Object&gt;
+
+DESCRIPTION:
+    UsageLogs configures usage log collection and forwarding to Loki.
+
+FIELDS:
+  attributes	&lt;map[string]string&gt;
+  credentialSecret	&lt;string&gt;
+  exporters	&lt;map[string]Object&gt;
+  size	&lt;string&gt;
+  storage	&lt;Object&gt;</pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong><code>exporters</code></strong> — additional usage-log exporters in OpenTelemetry Collector
+format. Each one forwards a <strong>copy</strong> of every usage record to an observability
+backend outside the cluster — typically a LokiStack on a fleet-management
+hub. The local write stays untouched, which makes this a <strong>dual-write</strong>; if
+<code>storage</code> is omitted, the exporters are the <strong>only</strong> destination
+(<strong>forward-only</strong>, and no local LokiStack is deployed). At most 10 exporters,
+and the exporter name <code>otlphttp/loki</code> is reserved.</p>
 </li>
 <li>
-<p><strong>Know the boundary.</strong> In RHOAI 3.5, external metering for per-user token
-usage and cost tracking is a Developer Preview feature. The release notes
-describe its architecture and capabilities, but installation and
-configuration procedures are not yet in the product documentation, and the
-API may change between releases. Do not build production billing pipelines
-on a Developer Preview integration.</p>
+<p><strong><code>credentialSecret</code></strong> — name of a Secret in the monitoring namespace holding a
+bearer token under the key <code>token</code>; an exporter selects it with
+<code>auth: {authenticator: bearertokenauth/remote}</code>. The token is never written
+into the collector object, and rotating the Secret reaches a running
+collector.</p>
+</li>
+<li>
+<p><strong><code>attributes</code></strong> — resource attributes stamped onto exporter records <strong>only</strong>
+(so a cluster identity here cannot disturb the spoke-local pipeline). Set
+<code>cluster_name</code> and <code>cluster_id</code> to attribute usage records to the cluster
+that produced them in a multi-cluster fleet. Up to 20 entries.</p>
+</li>
+<li>
+<p><strong><code>size</code></strong> — LokiStack t-shirt size for the usage-log store. The default,
+<code>1x.extra-small</code>, reserves 2 CPU and 8Gi per ingester — on a small cluster
+the LokiStack then never reports Ready and the collector is never deployed;
+<code>1x.pico</code> fits small clusters. Ignored when <code>storage</code> is omitted.</p>
+</li>
+<li>
+<p><strong><code>storage</code></strong> — the LokiStack object storage backend (<code>type: s3</code> plus a
+<code>secretName</code>). When configured, the operator deploys a LokiStack instance
+and auto-configures the local collector endpoint.</p>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Note the API&#8217;s own consistency rule — a <code>usageLogs</code> stanza must configure
+<code>storage</code> and/or at least one <code>exporter</code>; otherwise the API server rejects
+the change with <code>usageLogs requires storage and/or at least one exporter</code>.</p>
+</li>
+<li>
+<p>Check what this cluster currently runs:</p>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc get dsci default-dsci -o jsonpath='{.spec.monitoring}'</code></pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Expect the monitoring stanza <strong>without</strong> a <code>usageLogs</code> key — the cluster runs
+storage-only forwarding (the local <code>data-science-usage-logs</code> LokiStack of
+Module 01), and no external exporter is configured:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>{"alerting":{},"managementState":"Managed","metrics":{"replicas":1,"storage":{"retention":"90d","size":"5Gi"}},"namespace":"redhat-ods-monitoring","traces":{"sampleRatio":"0.1","storage":{"backend":"pv","retention":"2160h0m0s","size":"5Gi"}}}</pre>
+</div>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Compare your state against the dual-write example staged in this workshop&#8217;s
+tree at <code>deploy/50-dsci-usage-logs-hub-exporter.yaml</code>:</p>
+</li>
+</ol>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: dscinitialization.opendatahub.io/v2
+kind: DSCInitialization
+metadata:
+  name: default-dsci
+spec:
+  applicationsNamespace: redhat-ods-applications
+  monitoring:
+    managementState: Managed
+    namespace: redhat-ods-monitoring
+    usageLogs:
+      size: 1x.pico
+      storage:
+        type: s3
+        secretName: data-science-usage-logs-s3
+      credentialSecret: usage-logs-hub-token
+      exporters:
+        otlphttp/hub-loki:
+          endpoint: https://hub-lokistack-gateway-http-openshift-logging.apps.hub.example.com/api/logs/v1/application/otlp
+          auth:
+            authenticator: bearertokenauth/remote
+          tls:
+            ca_file: /etc/pki/ca-trust/extracted/pem/service-ca.crt
+      attributes:
+        cluster_name: ocp5-m6wl4-2plgg
+        cluster_id: 00000000-0000-0000-0000-000000000000</code></pre>
+</div>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Applying the example changes cluster state: the operator redeploys the
+<code>usage-logs</code> collector with the extra exporter, and every subsequent usage
+record is copied to the hub endpoint. Do not apply it with an ad-hoc
+<code>oc patch</code> — the <code>DSCInitialization</code> is managed by the workshop&#8217;s GitOps
+tree, so the manifest is applied by your facilitator through the workshop&#8217;s
+in-tree manifests/overlay, and the same change must be committed to that tree.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_verify_3"><a class="anchor" href="#_verify_3"></a>Verify</h3>
+<div class="paragraph">
+<p>You can name the five <code>usageLogs</code> fields, explain the difference between
+dual-write (storage kept, exporters added) and forward-only (storage omitted),
+and point at the fleet-attribution attributes <code>cluster_name</code> and <code>cluster_id</code>.
+The cluster itself is still storage-only — which is exactly the "before" state
+external metering extends.</p>
+</div>
+<div class="paragraph">
+<p>With the external path understood, the last exercise goes back to the data
+itself: querying your own usage records.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_exercise_4_query_per_user_usage_through_the_gateway_route"><a class="anchor" href="#_exercise_4_query_per_user_usage_through_the_gateway_route"></a>Exercise 4: Query per-user usage through the gateway route</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>data-science-usage-logs</code> LokiStack is not queried directly. Two
+user-facing access paths sit in front of it:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The public route <code>data-science-usage-logs</code> (in the <code>redhat-ods-monitoring</code>
+namespace) exposes the LokiStack gateway. It authenticates callers with
+their OpenShift token and scopes queries to the <code>application</code> tenant — this
+is the path this exercise uses.</p>
+</li>
+<li>
+<p>The usage-logs tenancy proxy (<code>usage-logs-tenancy-proxy</code> service) fronts
+Loki for the user-scoped dashboard: it validates the caller&#8217;s token via a
+TokenReview, rewrites every query by injecting
+<code>| user_id="&lt;your-username&gt;"</code> immediately after each stream selector, and
+forwards it with the <code>application</code> tenant scope — so a query that arrives
+through the proxy can only ever return your own records.</p>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Query per-user usage through the route. The Loki API path through the
+gateway is <code>/api/logs/v1/application/loki/api/v1/query_range</code>, you
+authenticate with your own OpenShift token, and the query groups records by
+<code>user_id</code> so the result is one series per user:</p>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">ROUTE=$(oc get route data-science-usage-logs -n redhat-ods-monitoring \
+  -o jsonpath='{.spec.host}')
+curl -sS -H "Authorization: Bearer $(oc whoami -t)" \
+  "https://$ROUTE/api/logs/v1/application/loki/api/v1/query_range?query=sum%20by%20(user_id)%20(count_over_time(%7Bservice_name%3D%22models-as-a-service%22%7D%5B24h%5D))"</code></pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Expect a successful Loki matrix response, one series per <code>user_id</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>{"status":"success","data":{"resultType":"matrix","result":[
+  {"metric":{"user_id":"user1"},"values":[[1732740000,"42"]]}
+],...}}</pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Pipeline-restored state required — the query path above is live and
+returns <code>status: success</code> on this cluster today, but <code>result</code> is empty until
+records land: the exporter endpoint of Exercise 2 must resolve and a MaaS
+inference call must have been made first. On a cluster where the
+<code>usage-gateway-http</code> alias is staged, generate a call against a MaaS model and
+re-run the query to see one series per <code>user_id</code>.
+</td>
+</tr>
+</table>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Ask the same data the dashboards ask: per-user token consumption. The
+Perses usage dashboards aggregate the <code>tokens_total</code> field of usage records
+from <strong>successful</strong> requests (<code>response_type="hit"</code>), grouped by user and
+organization:</p>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">ROUTE=$(oc get route data-science-usage-logs -n redhat-ods-monitoring \
+  -o jsonpath='{.spec.host}')
+curl -sS -H "Authorization: Bearer $(oc whoami -t)" \
+  "https://$ROUTE/api/logs/v1/application/loki/api/v1/query_range?query=sum%20by%20(user_id%2Corganization_id%2Ccost_center)%20(sum_over_time(%7Bservice_name%3D%22models-as-a-service%22%2Cresponse_type%3D%22hit%22%7D%20%7C%20unwrap%20tokens_total%20%5B24h%5D))"</code></pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Expect one result series per user with their accumulated <code>tokens_total</code>, and
+the <code>organization_id</code> and <code>cost_center</code> labels cost attribution groups on.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Read the same numbers in the Perses dashboards. In the OpenShift AI console,
+navigate to <strong>Observe &amp; monitor</strong> → <strong>Metrics</strong>; the dashboards render as tabs.</p>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>dashboard-4-maas-usage-logs-admin</strong> — the administrator view, backed by the
+<code>usage-logs-all</code> datasource. Its <strong>Token consumption chart</strong> and <strong>Usage
+breakdown</strong> table run exactly the <code>sum_over_time(&#8230;&#8203; | unwrap tokens_total)</code>
+pattern above, grouped by <code>user_id</code>, <code>model</code>, <code>subscription</code>,
+<code>organization_id</code>, and <code>cost_center</code>.</p>
+</li>
+<li>
+<p><strong>dashboard-5-maas-usage-logs</strong> — the user-scoped view, backed by the
+<code>usage-logs-multi-tenancy</code> datasource that points at the tenancy proxy.
+Every panel is filtered to <strong>your</strong> identity, whatever the panel author
+wrote — the injected <code>| user_id="&lt;your-username&gt;"</code> stage enforces it.</p>
+</li>
+<li>
+<p><strong>dashboard-3-maas-usage-admin</strong> — request and call counts from Limitador
+(<code>authorized_calls_total</code>, <code>authorized_hits_total</code>,
+<code>limited_calls_total</code>). These count <strong>requests and authorization events</strong>, not
+tokens: <code>authorized_hits_total</code> is a hit counter labeled by user, model,
+subscription, and <code>limitador_namespace</code> — it is not a token total.</p>
+</li>
+</ul>
+</div>
 </li>
 </ol>
 </div>
@@ -785,23 +1198,26 @@ on a Developer Preview integration.</p>
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-External metering comes in two flavors in RHOAI 3.5. This workshop
-covers the per-user IPP plugin and metering service. The BBR-plugin
-integration that connects MaaS inference traffic to an external metering or
-billing system is a separate feature — see the
-<a href="../external-metering-maas/index.html" class="xref page">External metering integration for Models-as-a-Service</a>
-workshop for that path.
+Metric accuracy — token consumption and request counts are different
+quantities from different pipelines. <code>tokens_total</code> comes from the usage-log
+pipeline (the records of Exercise 2, surfaced in <code>dashboard-4</code> and
+<code>dashboard-5</code>) and is the per-user token consumption external metering bills
+on. The Limitador metrics come from the gateway&#8217;s metric endpoint (surfaced in
+<code>dashboard-3</code>) and measure how many requests were authorized, limited, or
+rejected. Never read <code>authorized_hits_total</code> as "total tokens consumed".
 </td>
 </tr>
 </table>
 </div>
 <div class="sect2">
-<h3 id="_verify_2"><a class="anchor" href="#_verify_2"></a>Verify</h3>
+<h3 id="_verify_4"><a class="anchor" href="#_verify_4"></a>Verify</h3>
 <div class="paragraph">
-<p>You can articulate the difference: the dashboard and CSV export give
-showback-grade visibility into per-user usage today, while external metering
-is the Developer Preview path to balance-enforced quotas and chargeback-grade
-reporting through the AI Inference Gateway.</p>
+<p>You can run a per-user LogQL query through the <code>data-science-usage-logs</code> route
+with your own token, state which datasource enforces user scoping
+(<code>usage-logs-multi-tenancy</code> via the tenancy proxy), and say which metric
+answers "how many tokens did this user consume" (<code>tokens_total</code>, usage-log
+pipeline) versus "how many requests did this user make" (Limitador call
+metrics, <code>dashboard-3</code>).</p>
 </div>
 </div>
 </div>
@@ -815,13 +1231,16 @@ reporting through the AI Inference Gateway.</p>
 <div class="ulist">
 <ul>
 <li>
-<p>Explored the Token Consumption by User table in the MaaS observability dashboard Usage tab</p>
+<p>Inspected the MaaS <code>Config</code> resource and confirmed usage logging, the usage metrics dashboard, and the Limitador scrape interval</p>
 </li>
 <li>
-<p>Mapped the dashboard columns and Prometheus metrics to the token dimensions external metering extracts</p>
+<p>Read the <code>usage-logs</code> OpenTelemetry Collector pipeline from receiver to LokiStack exporter, including its attribute processors</p>
 </li>
 <li>
-<p>Distinguished the showback CSV export and user-scoped dashboards from the external metering chargeback path</p>
+<p>Inspected the <code>DSCInitialization</code> <code>spec.monitoring.usageLogs</code> external-metering schema and compared the cluster&#8217;s storage-only state with a dual-write exporter example</p>
+</li>
+<li>
+<p>Ran per-user LogQL queries through the gateway route and distinguished token metrics from request-count metrics</p>
 </li>
 </ul>
 </div>
@@ -831,23 +1250,31 @@ reporting through the AI Inference Gateway.</p>
 <div class="ulist">
 <ul>
 <li>
-<p>Per-user usage data is visible in the Usage tab, but the user label is disabled by default and requires <code>captureUser: true</code> in the <code>MaasTenantConfig</code></p>
+<p>Per-user usage records flow by default when <code>usageLogging: true</code> — no per-user opt-in is required</p>
 </li>
 <li>
-<p>The CSV export is showback-grade; production chargeback is the target use case of the external-metering plugin and metering service</p>
+<p>The external-metering knob is <code>DSCInitialization</code> <code>spec.monitoring.usageLogs.exporters</code>: dual-write keeps local storage, forward-only omits it, <code>cluster_name</code>/<code>cluster_id</code> attribute records to a fleet</p>
 </li>
 <li>
-<p>Developer Preview means the metering architecture can change between releases and is not covered by production SLAs</p>
+<p><code>tokens_total</code> (usage-log pipeline, dashboards 4/5) is the per-user token consumption metric; Limitador metrics (dashboard 3) count requests, not tokens</p>
 </li>
 </ul>
 </div>
 <div class="paragraph">
 <p><strong>Next steps:</strong></p>
 </div>
-<div class="paragraph">
-<p>Continue to the conclusion for resources, including the release-notes
-section that describes this feature and the MaaS observability chapters that
-document the dashboard you explored.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Run the queries of Exercise 4 again after your facilitator stages the exporter endpoint and generates MaaS inference traffic, so the series carry real values</p>
+</li>
+<li>
+<p>Complete the <a href="../maas-loki-showback/index.html" class="xref page">Loki-based showback workshop</a> to add the CSV showback export on top of the same usage-log pipeline</p>
+</li>
+<li>
+<p>Continue to the <a href="conclusion.html" class="xref page">Conclusion</a> for the documentation references and where to go next in the catalog</p>
+</li>
+</ul>
 </div>
 </div>
 </div>
