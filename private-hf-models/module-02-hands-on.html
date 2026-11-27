@@ -881,9 +881,9 @@ data:
           # Never put a token value here — the catalog backend resolves the
           # credential from the Secret.
           apiKey: catalog-private-hf-models-apikey
-          allowedOrganization: example-org
+          allowedOrganization: eformat
         includedModels:
-          - example-org/*
+          - rhoai-private-demo  # auto-prefixed with the org (HF search does not glob)
         excludedModels: []</code></pre>
 </div>
 </div>
@@ -1033,7 +1033,9 @@ curl -sk -H "Authorization: Bearer $(oc whoami -t)" "$CATALOG_URL/api/model_cata
 </div>
 <div class="paragraph">
 <p>The sources list includes <code>private_hf_models</code>, and the models call returns the
-<code>example-org/*</code> repositories the credential can read.</p>
+token-visible repositories the credential can read (real enumeration: the
+private <code>eformat/rhoai-private-demo</code> demo repo — set <code>private: true</code> on the
+Hugging Face side so the retrieval genuinely requires the credential).</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">

@@ -761,7 +761,9 @@ patterns are auto-prefixed with it.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>includedModels</code> / <code>excludedModels</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Repository patterns (<code>example-org/*</code> expands to every visible model in the
+<td class="tableblock halign-left valign-top"><p class="tableblock">Repository patterns (<code>rhoai-private-demo</code> under the demo account expands to the
+  matching token-visible model; patterns are auto-prefixed with the configured
+  organization and the Hugging Face search API does not glob)
 organization) refined by the exclusions list.</p></td>
 </tr>
 </tbody>
@@ -812,7 +814,7 @@ in rhoai-model-registries.</p>
 </li>
 <li>
 <p><strong>READ-ONLY, fine-grained.</strong> Create the token at <a href="https://huggingface.co/settings/tokens" target="blank">huggingface.co → Settings → Access Tokens</a>
-with <strong>Repositories: Read</strong> only, scoped to the <code>example-org</code> organization. No
+with <strong>Repositories: Read</strong> only, scoped to the demo account (<code>eformat</code>). No
 write scopes, no inference quota, no billing access.</p>
 <div class="olist arabic">
 <ol class="arabic">
@@ -850,7 +852,7 @@ you see it, the token has not been injected yet.</p>
 <div class="sect2">
 <h3 id="_verify_4"><a class="anchor" href="#_verify_4"></a>Verify</h3>
 <div class="paragraph">
-<p>You hold a fine-grained READ-ONLY token scoped to <code>example-org</code>, you know the two
+<p>You hold a fine-grained READ-ONLY token scoped to the demo account, you know the two
 Secrets it must be injected into, and you never print or commit a real token
 value. This is the <strong>learner contract</strong> recorded for this feature: the workshop
 documents the placeholder-vs-real-token decision — the factory ships placeholders,
