@@ -658,7 +658,7 @@ OpenShift RBAC, and how persistence, security, and environment validation work.<
 <div class="sectionbody">
 <div class="paragraph">
 <p>A defining characteristic of the starter kit is that <strong>agent behavior is captured
-rather than opaque</strong>. According to the RHOAI 3.5 release notes, the kit captures model
+rather than opaque</strong>. According to the RHOAI 3.6 release notes, the kit captures model
 calls, tool executions, and context assembly spans in MLflow by using native
 OpenTelemetry tracing through the diagnostics-otel plugin.</p>
 </div>
@@ -803,8 +803,8 @@ agent&#8217;s ServiceAccount:</p>
 </div>
 <div class="paragraph">
 <p>Expected output is <code>oauth-proxy-agentic-sa &#8594; agentic-sa</code>. The route terminates
-TLS at the proxy (<code>oauth-proxy</code> termination), so every browser request is
-authenticated before it reaches the agent:</p>
+TLS at the OpenShift router (edge termination), and the OAuth proxy still
+authenticates every browser request before it reaches the agent UI:</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
